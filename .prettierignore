@@ -1,0 +1,41 @@
+# Test coverage reports
+/coverage
+
+# Node.js dependencies
+/node_modules
+
+# Test files
+/test-results
+/tests/.auth
+
+# Lock files
+package-lock.json
+pnpm-lock.yaml
+
+# Documentation files
+/docs
+
+# Temporary files
+/temp
+
+# Configuration files
+/.eslintignore
+/.prettierignore
+
+# IDE and editor directories
+/.idea
+/.vscode
+/.claude
+/.cursor
+/.expo
+
+# Build directories
+/dist
+/build
+/public
+
+# Logs
+/logs
+
+# Other ignored files
+/.DS_Store
