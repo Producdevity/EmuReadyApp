@@ -147,3 +147,17 @@ export { useListing as useListingById }
 export function useDeviceBrands() {
   return trpc.mobile.getDeviceBrands.useQuery()
 }
+
+// App stats hook for home screen
+export function useAppStats() {
+  return {
+    data: {
+      totalListings: 0,
+      totalGames: 0,
+      totalDevices: 0,
+      totalUsers: 0
+    },
+    isLoading: false,
+    error: null
+  }
+}
