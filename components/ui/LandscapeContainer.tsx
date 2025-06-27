@@ -36,14 +36,14 @@ export default function LandscapeContainer({
   // Adjust padding based on orientation and device type
   const getOptimizedPadding = () => {
     const { width } = Dimensions.get('window')
-    
+
     // Gaming handheld optimization
     if (Platform.OS === 'android' && isLandscape) {
       // Retroid Pocket 2: 854x480 resolution
       // AYN Odin 2: 1920x1080 resolution
       const isHighResolution = width >= 1900 // AYN Odin 2
       const isMediumResolution = width >= 800 && width < 1900 // Retroid Pocket 2
-      
+
       if (isHighResolution) {
         return {
           horizontal: paddingHorizontal ?? 32,
@@ -75,8 +75,7 @@ export default function LandscapeContainer({
         showsVerticalScrollIndicator: false,
         showsHorizontalScrollIndicator: false,
         contentContainerStyle: styles.scrollContent,
-        // Optimize scroll behavior for gaming handhelds
-        decelerationRate: Platform.OS === 'android' && isLandscape ? 'fast' : 'normal',
+        decelerationRate: Platform.OS === 'android' && isLandscape ? 'fast' as const : 'normal' as const,
         scrollEventThrottle: 16,
       }
     : {}
@@ -120,4 +119,4 @@ const createStyles = (theme: any, isLandscape: boolean, padding: any) =>
       right: 10,
       // Reserved space for gamepad hints
     },
-  }) 
+  })
