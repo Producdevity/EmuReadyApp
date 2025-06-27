@@ -1,161 +1,163 @@
-import { QueryClient } from '@tanstack/react-query';
-import { createTRPCClient, httpBatchLink } from '@trpc/client';
-import { createTRPCReact } from '@trpc/react-query';
-import 'react-native-url-polyfill/auto';
-import { API_CONFIG } from '../constants';
-import { authStorage } from '../storage';
+import { QueryClient } from '@tanstack/react-query'
+import { createTRPCReact } from '@trpc/react-query'
+import { createTRPCClient, httpBatchLink } from '@trpc/client'
+import 'react-native-url-polyfill/auto'
+import { CONFIG } from '@/lib/constants/config'
 
-// Type imports - these would match your backend router types
-// For now, we'll use a generic type
-type AppRouter = any; // Replace with actual router type from backend
+// Create the tRPC React client for hooks
+export const trpc = createTRPCReact<any>()
 
-// Create the tRPC React client
-export const trpc = createTRPCReact<AppRouter>();
-
-// Create the tRPC vanilla client
-export const trpcClient = createTRPCClient<AppRouter>({
-  links: [
-    httpBatchLink({
-      url: `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MOBILE}/trpc`,
-      headers: async () => {
-        const token = authStorage.getToken();
-        return {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        };
-      },
-    }),
-  ],
-});
-
-// Create React Query client
+// Create React Query client with mobile-optimized settings
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
+      staleTime: CONFIG.CACHE_TTL, // 5 minutes
+      gcTime: CONFIG.CACHE_TTL * 6, // 30 minutes (formerly cacheTime)
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors
         if (error?.status >= 400 && error?.status < 500) {
-          return false;
+          return false
         }
-        return failureCount < 3;
+        return failureCount < 3
       },
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: true,
+      networkMode: 'online', // Only fetch when online
     },
     mutations: {
       retry: false,
+      networkMode: 'online',
     },
   },
-});
+})
 
-// tRPC client configuration
-export const trpcClientConfig = trpc.createClient({
+// Function to get auth token from Clerk
+let getAuthToken: (() => Promise<string | null>) | null = null
+
+export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
+  getAuthToken = getter
+}
+
+// Create tRPC client configuration
+const getTRPCClientConfig = () => ({
   links: [
     httpBatchLink({
-      url: `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MOBILE}/trpc`,
-      headers: async () => {
-        const token = authStorage.getToken();
+      url: `${CONFIG.API_URL}/api/mobile/trpc`,
+      async headers() {
+        const token = getAuthToken ? await getAuthToken() : null
         return {
           'Content-Type': 'application/json',
+          'x-client-type': 'mobile',
           ...(token && { Authorization: `Bearer ${token}` }),
-        };
-      },
-      fetch: async (input, init) => {
-        // Add timeout and error handling
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-        
-        try {
-          const response = await fetch(input, {
-            ...init,
-            signal: controller.signal,
-          });
-          
-          clearTimeout(timeoutId);
-          
-          // Handle authentication errors
-          if (response.status === 401) {
-            // Clear stored token and redirect to login
-            authStorage.removeToken();
-            // You might want to emit an event or use a navigation service here
-          }
-          
-          return response;
-        } catch (error) {
-          clearTimeout(timeoutId);
-          throw error;
         }
       },
     }),
   ],
-});
+})
 
-// API utility functions
-export const api = {
-  // Featured listings for home screen
-  getFeaturedListings: () => 
-    trpcClient.mobile.getFeaturedListings.query(),
-  
-  // Get listings with pagination and filters
-  getListings: (params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    systemId?: string;
-    deviceId?: string;
-    emulatorId?: string;
-    performanceRank?: number;
-    sortBy?: string;
-  }) => 
-    trpcClient.mobile.getListings.query(params),
-  
-  // Get listing by ID
-  getListingById: (id: string) => 
-    trpcClient.mobile.getListingById.query({ id }),
-  
-  // Get games with search
-  getGames: (params: { search?: string; systemId?: string; limit?: number }) => 
-    trpcClient.mobile.getGames.query(params),
-  
-  // Get systems
-  getSystems: () => 
-    trpcClient.mobile.getSystems.query(),
-  
-  // Get devices
-  getDevices: (params: { search?: string; brandId?: string; limit?: number }) => 
-    trpcClient.mobile.getDevices.query(params),
-  
-  // Get emulators
-  getEmulators: (params: { search?: string; systemId?: string; limit?: number }) => 
-    trpcClient.mobile.getEmulators.query(params),
-  
-  // Vote on listing
-  voteListing: (params: { listingId: string; voteType: 'UP' | 'DOWN' }) => 
-    trpcClient.mobile.voteListing.mutate(params),
-  
-  // Get user profile
-  getUserProfile: () => 
-    trpcClient.mobile.getUserProfile.query(),
-  
-  // Get user listings
-  getUserListings: (params: { page?: number; limit?: number }) => 
-    trpcClient.mobile.getUserListings.query(params),
-};
+// Create the standalone tRPC client for direct calls
+export const standaloneClient = createTRPCClient<any>(getTRPCClientConfig())
+
+// Create client factory for React Provider
+export const createMobileTRPCClient = () => standaloneClient
+
+// HTTP client for direct API calls (fallback)
+export const httpClient = {
+  async request<T = any>(
+    endpoint: string,
+    options: RequestInit = {},
+  ): Promise<T> {
+    const token = getAuthToken ? await getAuthToken() : null
+    const url = `${CONFIG.API_URL}/api/mobile${endpoint}`
+
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-client-type': 'mobile',
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...options.headers,
+      },
+    })
+
+    if (response.status === 401) {
+      // Handle unauthorized - Clerk will handle token refresh
+      throw new Error('Unauthorized')
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(
+        `HTTP ${response.status}: ${errorText || response.statusText}`,
+      )
+    }
+
+    return response.json()
+  },
+
+  get(endpoint: string) {
+    return this.request(endpoint, { method: 'GET' })
+  },
+
+  post(endpoint: string, data?: any) {
+    return this.request(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  },
+
+  put(endpoint: string, data?: any) {
+    return this.request(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  },
+
+  delete(endpoint: string) {
+    return this.request(endpoint, { method: 'DELETE' })
+  },
+}
 
 // Error handling utility
 export const handleApiError = (error: any) => {
-  console.error('API Error:', error);
-  
-  if (error?.data?.code === 'UNAUTHORIZED') {
-    authStorage.removeToken();
-    // Handle redirect to login
+  console.error('API Error:', error)
+
+  // Log additional context for debugging
+  if (CONFIG.IS_DEV) {
+    console.error('Error details:', {
+      message: error?.message,
+      status: error?.status,
+      data: error?.data,
+      stack: error?.stack,
+    })
   }
-  
+
   return {
     message: error?.message || 'An unexpected error occurred',
     code: error?.data?.code || 'UNKNOWN_ERROR',
-  };
-}; 
+    status: error?.status,
+  }
+}
+
+// Network status utilities for mobile
+export const networkUtils = {
+  isOnline: () => {
+    // TODO: replace with actual network detection later
+    return true
+  },
+
+  retryWithBackoff: async (fn: () => Promise<any>, maxRetries = 3) => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await fn()
+      } catch (error) {
+        if (i === maxRetries - 1) throw error
+
+        // Exponential backoff: 1s, 2s, 4s
+        const delay = Math.pow(2, i) * 1000
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    }
+  },
+}

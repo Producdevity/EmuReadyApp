@@ -1,20 +1,20 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: __DEV__ 
+  BASE_URL: __DEV__
     ? 'http://localhost:3000' // Development
     : 'https://your-production-url.com', // Production
   ENDPOINTS: {
     TRPC: '/api/trpc',
     MOBILE: '/api/mobile',
   },
-} as const;
+} as const
 
 // App Configuration
 export const APP_CONFIG = {
   NAME: 'EmuReady',
   VERSION: '1.0.0',
   STORE_VERSION: 1,
-} as const;
+} as const
 
 // Animation Durations
 export const ANIMATIONS = {
@@ -22,7 +22,7 @@ export const ANIMATIONS = {
   NORMAL: 250,
   SLOW: 350,
   VERY_SLOW: 500,
-} as const;
+} as const
 
 // Spacing
 export const SPACING = {
@@ -32,7 +32,7 @@ export const SPACING = {
   LG: 24,
   XL: 32,
   XXL: 48,
-} as const;
+} as const
 
 // Screen Breakpoints
 export const BREAKPOINTS = {
@@ -40,7 +40,7 @@ export const BREAKPOINTS = {
   MD: 768,
   LG: 1024,
   XL: 1280,
-} as const;
+} as const
 
 // Storage Keys
 export const STORAGE_KEYS = {
@@ -48,7 +48,7 @@ export const STORAGE_KEYS = {
   USER_PREFERENCES: 'user_preferences',
   CACHED_DATA: 'cached_data',
   ONBOARDING_COMPLETED: 'onboarding_completed',
-} as const;
+} as const
 
 // Performance Scales
 export const PERFORMANCE_SCALES = {
@@ -57,7 +57,7 @@ export const PERFORMANCE_SCALES = {
   GOOD: { rank: 3, label: 'Good', color: '#eab308' },
   OKAY: { rank: 4, label: 'Okay', color: '#f97316' },
   POOR: { rank: 5, label: 'Poor', color: '#ef4444' },
-} as const;
+} as const
 
 // Tab Icons
 export const TAB_ICONS = {
@@ -65,4 +65,4 @@ export const TAB_ICONS = {
   BROWSE: 'search',
   CREATE: 'plus-circle',
   PROFILE: 'user',
-} as const; 
+} as const

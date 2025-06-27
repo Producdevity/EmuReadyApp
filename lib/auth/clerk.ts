@@ -31,7 +31,9 @@ if (!CLERK_PUBLISHABLE_KEY) {
   )
 }
 
-// Auth helpers hook
+/**
+ * Hook to provide authentication helpers using Clerk
+ */
 export function useAuthHelpers() {
   const { isSignedIn, signOut: clerkSignOut, getToken } = useAuth()
   const { user: clerkUser } = useUser()

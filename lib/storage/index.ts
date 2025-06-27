@@ -1,6 +1,6 @@
 import { MMKV } from 'react-native-mmkv'
 import { STORAGE_KEYS } from '@/lib/constants'
-import { isJsonPrimitive } from '@/lib/utils/isPrimitive'
+import { isJsonPrimitive } from '@/lib/utils/isJsonPrimitive'
 
 // Create storage instances
 const storage = new MMKV({

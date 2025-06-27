@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import {
   SafeAreaView,
   StyleSheet,
@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import * as Sharing from 'expo-sharing'
 import {
   useListing,
   useVoteListing,
@@ -34,13 +35,13 @@ export default function ListingDetailScreen() {
   const voteMutation = useVoteListing()
   const addCommentMutation = useAddComment()
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
     }).start()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleVote = async (type: 'up' | 'down') => {
     if (!isSignedIn) {
@@ -83,9 +84,26 @@ export default function ListingDetailScreen() {
     }
   }
 
-  const handleShare = () => {
-    // TODO: Implement share functionality
-    Alert.alert('Share', 'Share functionality coming soon!')
+  const handleShare = async () => {
+    try {
+      const shareContent = `Check out this ${listing?.game?.title} performance listing on EmuReady!\n\n` +
+        `Device: ${listing?.device?.brand?.name} ${listing?.device?.modelName}\n` +
+        `Emulator: ${listing?.emulator?.name}\n` +
+        `Performance: ${listing?.performance?.label}\n\n` +
+        `View more details in the EmuReady app!`
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(shareContent, {
+          mimeType: 'text/plain',
+          dialogTitle: 'Share Performance Listing',
+        })
+      } else {
+        Alert.alert('Share', shareContent)
+      }
+    } catch (error) {
+      console.error('Share error:', error)
+      Alert.alert('Error', 'Failed to share listing. Please try again.')
+    }
   }
 
   if (isLoading) {
