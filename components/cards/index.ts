@@ -1,1 +1,1 @@
-export { ListingCard } from './ListingCard'
+export { default as ListingCard } from './ListingCard'

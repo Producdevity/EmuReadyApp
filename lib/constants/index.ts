@@ -1,8 +1,8 @@
 // API Configuration
 export const API_CONFIG = {
   BASE_URL: __DEV__
-    ? 'http://localhost:3000' // Development
-    : 'https://your-production-url.com', // Production
+    ? 'https://dev.emuready.com' // Development
+    : 'https://emuready.com', // Production
   ENDPOINTS: {
     TRPC: '/api/trpc',
     MOBILE: '/api/mobile',

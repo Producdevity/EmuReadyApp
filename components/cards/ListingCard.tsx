@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, Alert, type ViewStyle } from 'react-native'
 import { useAuth } from '@clerk/clerk-expo'
 import { Card } from '../ui'
 import { useVoteListing } from '@/lib/api/hooks'
+import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 
 function ListingCardComponent(props: Props) {
   const { isSignedIn } = useAuth()
+  const { theme } = useTheme()
   const voteMutation = useVoteListing()
 
   const handleVote = async (vote: 'up' | 'down') => {
@@ -43,12 +45,13 @@ function ListingCardComponent(props: Props) {
   }
 
   const getPerformanceColor = (rank: number) => {
-    if (rank >= 4) return '#10b981' // Perfect - Green
-    if (rank >= 3) return '#3b82f6' // Great - Blue
-    if (rank >= 2) return '#f59e0b' // Good - Yellow
-    return '#ef4444' // Poor - Red
+    if (rank >= 4) return theme.colors.performance.perfect
+    if (rank >= 3) return theme.colors.performance.great
+    if (rank >= 2) return theme.colors.performance.good
+    return theme.colors.performance.poor
   }
 
+  const styles = createStyles(theme)
   const containerStyle = StyleSheet.flatten([styles.container, props.style])
 
   return (
@@ -168,126 +171,127 @@ function ListingCardComponent(props: Props) {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#ffffff',
-    marginBottom: 12,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  gameInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  gameTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  systemName: {
-    fontSize: 14,
-    color: '#3b82f6',
-    fontWeight: '500',
-  },
-  performanceBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  performanceText: {
-    fontSize: 12,
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  deviceInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  deviceName: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  emulatorName: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  stats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#f3f4f6',
-    marginBottom: 12,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  authorInfo: {
-    flex: 1,
-  },
-  authorName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  createdDate: {
-    fontSize: 12,
-    color: '#9ca3af',
-  },
-  voteButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  voteButton: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    minWidth: 50,
-    alignItems: 'center',
-  },
-  voteButtonActive: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6',
-  },
-  voteButtonDisabled: {
-    backgroundColor: '#f3f4f6',
-    borderColor: '#d1d5db',
-    opacity: 0.6,
-  },
-  voteButtonText: {
-    fontSize: 12,
-    color: '#6b7280',
-    fontWeight: '500',
-  },
-  voteButtonTextActive: {
-    color: '#ffffff',
-  },
-  voteButtonTextDisabled: {
-    color: '#9ca3af',
-  },
-})
+function createStyles(theme: any) {
+  return StyleSheet.create({
+    container: {
+      backgroundColor: theme.colors.card,
+      marginBottom: theme.spacing.sm,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: theme.spacing.sm,
+    },
+    gameInfo: {
+      flex: 1,
+      marginRight: theme.spacing.sm,
+    },
+    gameTitle: {
+      fontSize: theme.typography.fontSize.md,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+    systemName: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.primary,
+      fontWeight: theme.typography.fontWeight.medium,
+    },
+    performanceBadge: {
+      paddingHorizontal: theme.spacing.sm,
+      paddingVertical: 6,
+      borderRadius: theme.borderRadius.lg,
+    },
+    performanceText: {
+      fontSize: theme.typography.fontSize.xs,
+      color: '#ffffff',
+      fontWeight: theme.typography.fontWeight.semibold,
+    },
+    deviceInfo: {
+      gap: 6,
+      marginBottom: theme.spacing.sm,
+    },
+    deviceName: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.textSecondary,
+      fontWeight: theme.typography.fontWeight.medium,
+    },
+    emulatorName: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.textSecondary,
+      fontWeight: theme.typography.fontWeight.medium,
+    },
+    stats: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingVertical: theme.spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.borderLight,
+      marginBottom: theme.spacing.sm,
+    },
+    statItem: {
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: theme.typography.fontSize.lg,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.text,
+      marginBottom: 2,
+    },
+    statLabel: {
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    authorInfo: {
+      flex: 1,
+    },
+    authorName: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.textSecondary,
+      fontWeight: theme.typography.fontWeight.medium,
+      marginBottom: 2,
+    },
+    createdDate: {
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.textMuted,
+    },
+    voteButtons: {
+      flexDirection: 'row',
+      gap: theme.spacing.sm,
+    },
+    voteButton: {
+      backgroundColor: theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      minWidth: 50,
+      alignItems: 'center',
+    },
+    voteButtonActive: {
+      backgroundColor: theme.colors.primary,
+      borderColor: theme.colors.primary,
+    },
+    voteButtonDisabled: {
+      opacity: 0.5,
+    },
+    voteButtonText: {
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.textSecondary,
+      fontWeight: theme.typography.fontWeight.medium,
+    },
+    voteButtonTextActive: {
+      color: '#ffffff',
+    },
+    voteButtonTextDisabled: {
+      color: theme.colors.textMuted,
+    },
+  })
+}
 
-export const ListingCard = memo(ListingCardComponent)
+export default memo(ListingCardComponent)

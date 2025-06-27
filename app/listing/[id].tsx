@@ -41,7 +41,7 @@ export default function ListingDetailScreen() {
       duration: 300,
       useNativeDriver: true,
     }).start()
-  }, [])
+  }, [fadeAnim])
 
   const handleVote = async (type: 'up' | 'down') => {
     if (!isSignedIn) {

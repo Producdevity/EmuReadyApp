@@ -1,11 +1,16 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createTRPCReact } from '@trpc/react-query'
 import { createTRPCClient, httpBatchLink } from '@trpc/client'
+import { Platform } from 'react-native'
 import 'react-native-url-polyfill/auto'
 import { CONFIG } from '@/lib/constants/config'
 
-// Create the tRPC React client for hooks
-export const trpc = createTRPCReact<any>()
+// Use any for now since we can't import the actual AppRouter from backend in React Native
+// The backend's AppRouter will be automatically inferred through the network calls
+type BackendRouter = any
+
+// Use type assertion to bypass collision errors
+export const trpc = createTRPCReact() as any
 
 // Create React Query client with mobile-optimized settings
 export const queryClient = new QueryClient({
@@ -43,21 +48,29 @@ export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
 const getTRPCClientConfig = () => ({
   links: [
     httpBatchLink({
-      url: `${CONFIG.API_URL}/api/mobile/trpc`,
+      url: `${CONFIG.API_URL}/api/trpc`,
       async headers() {
         const token = getAuthToken ? await getAuthToken() : null
         return {
           'Content-Type': 'application/json',
+          'User-Agent': 'EmuReady-Mobile/1.0.0',
           'x-client-type': 'mobile',
+          'x-client-platform': Platform.OS,
           ...(token && { Authorization: `Bearer ${token}` }),
         }
+      },
+      fetch(url, options) {
+        return fetch(url, {
+          ...options,
+          credentials: 'include', // Important for session cookies
+        })
       },
     }),
   ],
 })
 
 // Create the standalone tRPC client for direct calls
-export const standaloneClient = createTRPCClient<any>(getTRPCClientConfig())
+export const standaloneClient = createTRPCClient(getTRPCClientConfig()) as any
 
 // Create client factory for React Provider
 export const createMobileTRPCClient = () => standaloneClient
@@ -69,20 +82,23 @@ export const httpClient = {
     options: RequestInit = {},
   ): Promise<T> {
     const token = getAuthToken ? await getAuthToken() : null
-    const url = `${CONFIG.API_URL}/api/mobile${endpoint}`
+    const url = `${CONFIG.API_URL}/api${endpoint}`
 
     const response = await fetch(url, {
       ...options,
+      credentials: 'include', // Important for NextAuth.js sessions
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': 'EmuReady-Mobile/1.0.0',
         'x-client-type': 'mobile',
+        'x-client-platform': Platform.OS,
         ...(token && { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
     })
 
     if (response.status === 401) {
-      // Handle unauthorized - Clerk will handle token refresh
+      // Handle unauthorized - redirect to login or refresh session
       throw new Error('Unauthorized')
     }
 
@@ -142,9 +158,36 @@ export const handleApiError = (error: any) => {
 
 // Network status utilities for mobile
 export const networkUtils = {
-  isOnline: () => {
-    // TODO: replace with actual network detection later
-    return true
+  isOnline: async (): Promise<boolean> => {
+    try {
+      // Test connectivity with a simple HEAD request to the API with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      
+      const response = await fetch(`${CONFIG.API_URL}/api/health`, {
+        method: 'HEAD',
+        signal: controller.signal,
+      })
+      
+      clearTimeout(timeoutId)
+      return response.ok
+    } catch {
+      // If health endpoint fails, try a basic connectivity test
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 3000)
+        
+        const response = await fetch(`${CONFIG.API_URL}`, {
+          method: 'HEAD', 
+          signal: controller.signal,
+        })
+        
+        clearTimeout(timeoutId)
+        return response.status < 500 // Accept any response that's not a server error
+      } catch {
+        return false
+      }
+    }
   },
 
   retryWithBackoff: async (fn: () => Promise<any>, maxRetries = 3) => {

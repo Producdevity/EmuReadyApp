@@ -1,72 +1,625 @@
-import { View, Text, StyleSheet } from 'react-native'
-import { useLocalSearchParams } from 'expo-router'
+import React, { useEffect, useState, useMemo } from 'react'
+import {
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Image,
+  Animated,
+} from 'react-native'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
+import { useAuth } from '@clerk/clerk-expo'
+import * as Sharing from 'expo-sharing'
+import { useTheme } from '@/contexts/ThemeContext'
+import { Button, Card } from '@/components/ui'
+import { ListingCard } from '@/components/cards'
+import { useUserProfile, useUserListings } from '@/lib/api/hooks'
 
-export default function UserProfilePage() {
+interface TabData {
+  key: 'listings' | 'activity' | 'stats'
+  title: string
+  count?: number
+}
+
+export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const router = useRouter()
+  const { userId: currentUserId } = useAuth()
+  const { theme } = useTheme()
+  const [selectedTab, setSelectedTab] = useState<'listings' | 'activity' | 'stats'>('listings')
+  const fadeAnim = useMemo(() => new Animated.Value(0), [])
+  const slideAnim = useMemo(() => new Animated.Value(50), [])
+
+  // Mock data for now since we don't have a real backend
+  const mockUser = {
+    id: id!,
+    firstName: 'Demo',
+    lastName: 'User',
+    username: `user_${id}`,
+    email: `user${id}@example.com`,
+    imageUrl: null,
+    createdAt: new Date().toISOString(),
+    bio: 'Passionate emulation enthusiast sharing performance insights.',
+    stats: {
+      totalListings: 12,
+      totalUpvotes: 156,
+      totalComments: 43,
+      joinedDate: 'March 2024',
+    },
+  }
+
+  const mockListings = [
+    {
+      id: '1',
+      author: { id: id!, firstName: mockUser.firstName, lastName: mockUser.lastName },
+      userId: id!,
+      game: { id: '1', title: 'Super Mario World', system: { name: 'SNES' } },
+      device: { id: '1', name: 'Steam Deck', type: 'handheld' },
+      emulator: { id: '1', name: 'Snes9x', version: '1.60' },
+      performance: { id: '1', rank: 5, label: 'Perfect' },
+      upvotes: 23,
+      downvotes: 1,
+      _count: { comments: 5 },
+      status: 'published' as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      notes: 'Runs flawlessly at 60fps',
+    },
+    {
+      id: '2',
+      author: { id: id!, firstName: mockUser.firstName, lastName: mockUser.lastName },
+      userId: id!,
+      game: { id: '2', title: 'Zelda: A Link to the Past', system: { name: 'SNES' } },
+      device: { id: '2', name: 'ROG Ally', type: 'handheld' },
+      emulator: { id: '1', name: 'Snes9x', version: '1.60' },
+      performance: { id: '2', rank: 4, label: 'Great' },
+      upvotes: 18,
+      downvotes: 0,
+      _count: { comments: 3 },
+      status: 'published' as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      notes: 'Minor audio stutters occasionally',
+    },
+  ] as any[]
+
+  const isOwnProfile = currentUserId === id
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }, [fadeAnim, slideAnim])
+
+  const handleShare = async () => {
+    try {
+      const shareContent = `Check out ${mockUser.firstName} ${mockUser.lastName}'s profile on EmuReady!\n\n` +
+        `${mockUser.stats.totalListings} performance listings\n` +
+        `${mockUser.stats.totalUpvotes} upvotes received\n` +
+        `Member since ${mockUser.stats.joinedDate}\n\n` +
+        `Discover amazing emulation performance insights!`
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(shareContent, {
+          mimeType: 'text/plain',
+          dialogTitle: 'Share Profile',
+        })
+      } else {
+        Alert.alert('Share Profile', shareContent)
+      }
+    } catch (error) {
+      console.error('Share error:', error)
+      Alert.alert('Error', 'Failed to share profile. Please try again.')
+    }
+  }
+
+  const handleListingPress = (listingId: string) => {
+    ;(router.push as any)(`/listing/${listingId}`)
+  }
+
+  const tabs: TabData[] = [
+    { key: 'listings', title: 'Listings', count: mockUser.stats.totalListings },
+    { key: 'activity', title: 'Activity', count: mockUser.stats.totalComments },
+    { key: 'stats', title: 'Stats' },
+  ]
+
+  const styles = createStyles(theme)
+
+  const renderTabContent = () => {
+    switch (selectedTab) {
+      case 'listings':
+        return (
+          <View style={styles.tabContent}>
+            {mockListings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                style={styles.listingCard}
+                onPress={() => handleListingPress(listing.id)}
+              />
+            ))}
+            {mockListings.length === 0 && (
+              <View style={styles.emptyState}>
+                <Ionicons name="list-outline" size={48} color={theme.colors.textMuted} />
+                <Text style={styles.emptyStateTitle}>No Listings Yet</Text>
+                <Text style={styles.emptyStateText}>
+                  {isOwnProfile 
+                    ? "Start creating performance listings to share your emulation experiences!"
+                    : "This user hasn't created any listings yet."}
+                </Text>
+                {isOwnProfile && (
+                  <Button
+                    title="Create Your First Listing"
+                    variant="primary"
+                    onPress={() => router.push('/(tabs)/create')}
+                    style={styles.emptyStateButton}
+                  />
+                )}
+              </View>
+            )}
+          </View>
+        )
+      
+      case 'activity':
+        return (
+          <View style={styles.tabContent}>
+            <View style={styles.activityItem}>
+              <View style={styles.activityIcon}>
+                <Ionicons name="thumbs-up" size={16} color={theme.colors.primary} />
+              </View>
+              <View style={styles.activityContent}>
+                <Text style={styles.activityText}>Upvoted "Super Mario World on Steam Deck"</Text>
+                <Text style={styles.activityTime}>2 hours ago</Text>
+              </View>
+            </View>
+            <View style={styles.activityItem}>
+              <View style={styles.activityIcon}>
+                <Ionicons name="chatbubble" size={16} color={theme.colors.secondary} />
+              </View>
+              <View style={styles.activityContent}>
+                <Text style={styles.activityText}>Commented on "Zelda: Breath of the Wild performance"</Text>
+                <Text style={styles.activityTime}>1 day ago</Text>
+              </View>
+            </View>
+            <View style={styles.activityItem}>
+              <View style={styles.activityIcon}>
+                <Ionicons name="add-circle" size={16} color={theme.colors.success} />
+              </View>
+              <View style={styles.activityContent}>
+                <Text style={styles.activityText}>Created listing for "Mario Kart 8 Deluxe"</Text>
+                <Text style={styles.activityTime}>3 days ago</Text>
+              </View>
+            </View>
+          </View>
+        )
+      
+      case 'stats':
+        return (
+          <View style={styles.tabContent}>
+            <View style={styles.statsGrid}>
+              <Card style={styles.statCard} padding="md">
+                <Text style={styles.statValue}>{mockUser.stats.totalListings}</Text>
+                <Text style={styles.statLabel}>Total Listings</Text>
+              </Card>
+              <Card style={styles.statCard} padding="md">
+                <Text style={styles.statValue}>{mockUser.stats.totalUpvotes}</Text>
+                <Text style={styles.statLabel}>Upvotes Received</Text>
+              </Card>
+              <Card style={styles.statCard} padding="md">
+                <Text style={styles.statValue}>{mockUser.stats.totalComments}</Text>
+                <Text style={styles.statLabel}>Comments Made</Text>
+              </Card>
+              <Card style={styles.statCard} padding="md">
+                <Text style={styles.statValue}>4.8</Text>
+                <Text style={styles.statLabel}>Avg Rating</Text>
+              </Card>
+            </View>
+            
+            <Card style={styles.achievementCard} padding="lg">
+              <Text style={styles.achievementTitle}>Achievements</Text>
+              <View style={styles.achievement}>
+                <Ionicons name="trophy" size={24} color="#FFD700" />
+                <View style={styles.achievementText}>
+                  <Text style={styles.achievementName}>Performance Expert</Text>
+                  <Text style={styles.achievementDesc}>Created 10+ detailed listings</Text>
+                </View>
+              </View>
+              <View style={styles.achievement}>
+                <Ionicons name="star" size={24} color="#FF6B6B" />
+                <View style={styles.achievementText}>
+                  <Text style={styles.achievementName}>Community Helper</Text>
+                  <Text style={styles.achievementDesc}>Received 100+ upvotes</Text>
+                </View>
+              </View>
+            </Card>
+          </View>
+        )
+      
+      default:
+        return null
+    }
+  }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>U</Text>
-        </View>
-        <Text style={styles.name}>User Profile</Text>
-        <Text style={styles.id}>ID: {id}</Text>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+        </Pressable>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {mockUser.firstName} {mockUser.lastName}
+        </Text>
+        <Pressable onPress={handleShare} style={styles.shareButton}>
+          <Ionicons name="share-outline" size={24} color={theme.colors.text} />
+        </Pressable>
       </View>
 
-      <View style={styles.content}>
-        <Text style={styles.message}>
-          User profile page is under development. The user ID is: {id}
-        </Text>
-      </View>
-    </View>
+      <Animated.ScrollView
+        style={[styles.scrollView, { opacity: fadeAnim }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Section */}
+        <Animated.View
+          style={[
+            styles.profileSection,
+            { transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <View style={styles.avatarContainer}>
+            {mockUser.imageUrl ? (
+              <Image
+                source={{ uri: mockUser.imageUrl }}
+                style={styles.avatar}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>
+                  {mockUser.firstName[0]}{mockUser.lastName[0]}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.profileInfo}>
+            <Text style={styles.displayName}>
+              {mockUser.firstName} {mockUser.lastName}
+            </Text>
+            <Text style={styles.username}>@{mockUser.username}</Text>
+            {mockUser.bio && (
+              <Text style={styles.bio}>{mockUser.bio}</Text>
+            )}
+            
+            <View style={styles.quickStats}>
+              <View style={styles.quickStat}>
+                <Text style={styles.quickStatValue}>{mockUser.stats.totalListings}</Text>
+                <Text style={styles.quickStatLabel}>Listings</Text>
+              </View>
+              <View style={styles.quickStat}>
+                <Text style={styles.quickStatValue}>{mockUser.stats.totalUpvotes}</Text>
+                <Text style={styles.quickStatLabel}>Upvotes</Text>
+              </View>
+              <View style={styles.quickStat}>
+                <Text style={styles.quickStatValue}>{mockUser.stats.totalComments}</Text>
+                <Text style={styles.quickStatLabel}>Comments</Text>
+              </View>
+            </View>
+
+            <Text style={styles.joinDate}>
+              Joined {mockUser.stats.joinedDate}
+            </Text>
+          </View>
+
+          {isOwnProfile && (
+            <Button
+              title="Edit Profile"
+              variant="outline"
+              onPress={() => {
+                Alert.alert(
+                  'Edit Profile',
+                  'Choose what you would like to edit:',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { 
+                      text: 'Profile Photo', 
+                      onPress: () => Alert.alert('Photo Update', 'Profile photo editing will be available soon.') 
+                    },
+                    { 
+                      text: 'Bio & Info', 
+                      onPress: () => Alert.alert('Profile Info', 'Profile information editing will be available soon.') 
+                    },
+                  ]
+                )
+              }}
+              style={styles.editButton}
+            />
+          )}
+        </Animated.View>
+
+        {/* Tab Navigation */}
+        <View style={styles.tabContainer}>
+          {tabs.map((tab) => (
+            <Pressable
+              key={tab.key}
+              style={[styles.tab, selectedTab === tab.key && styles.activeTab]}
+              onPress={() => setSelectedTab(tab.key)}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  selectedTab === tab.key && styles.activeTabText,
+                ]}
+              >
+                {tab.title}
+                {tab.count !== undefined && ` (${tab.count})`}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Tab Content */}
+        {renderTabContent()}
+      </Animated.ScrollView>
+    </SafeAreaView>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    padding: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#3b82f6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 4,
-  },
-  id: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  message: {
-    fontSize: 16,
-    color: '#4b5563',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-})
+function createStyles(theme: any) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+      backgroundColor: theme.colors.surface,
+    },
+    backButton: {
+      padding: 8,
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginHorizontal: 16,
+    },
+    shareButton: {
+      padding: 8,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    profileSection: {
+      padding: 20,
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    avatarContainer: {
+      marginBottom: 16,
+    },
+    avatar: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+    },
+    avatarPlaceholder: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: theme.colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatarText: {
+      fontSize: 36,
+      fontWeight: 'bold',
+      color: '#ffffff',
+    },
+    profileInfo: {
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    displayName: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+    username: {
+      fontSize: 16,
+      color: theme.colors.textMuted,
+      marginBottom: 12,
+    },
+    bio: {
+      fontSize: 14,
+      color: theme.colors.text,
+      textAlign: 'center',
+      lineHeight: 20,
+      marginBottom: 16,
+      paddingHorizontal: 20,
+    },
+    quickStats: {
+      flexDirection: 'row',
+      gap: 32,
+      marginBottom: 16,
+    },
+    quickStat: {
+      alignItems: 'center',
+    },
+    quickStatValue: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+    },
+    quickStatLabel: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+      marginTop: 2,
+    },
+    joinDate: {
+      fontSize: 14,
+      color: theme.colors.textMuted,
+    },
+    editButton: {
+      marginTop: 16,
+      minWidth: 120,
+    },
+    tabContainer: {
+      flexDirection: 'row',
+      backgroundColor: theme.colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: 16,
+      alignItems: 'center',
+      borderBottomWidth: 2,
+      borderBottomColor: 'transparent',
+    },
+    activeTab: {
+      borderBottomColor: theme.colors.primary,
+    },
+    tabText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: theme.colors.textMuted,
+    },
+    activeTabText: {
+      color: theme.colors.primary,
+      fontWeight: '600',
+    },
+    tabContent: {
+      padding: 16,
+    },
+    listingCard: {
+      marginBottom: 12,
+    },
+    emptyState: {
+      alignItems: 'center',
+      paddingVertical: 60,
+      paddingHorizontal: 32,
+    },
+    emptyStateTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    emptyStateText: {
+      fontSize: 14,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+      lineHeight: 20,
+      marginBottom: 24,
+    },
+    emptyStateButton: {
+      marginTop: 8,
+    },
+    activityItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    activityIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.colors.backgroundSecondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    activityContent: {
+      flex: 1,
+    },
+    activityText: {
+      fontSize: 14,
+      color: theme.colors.text,
+      lineHeight: 18,
+    },
+    activityTime: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+      marginTop: 4,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      marginBottom: 20,
+    },
+    statCard: {
+      flex: 1,
+      minWidth: '45%',
+      alignItems: 'center',
+    },
+    statValue: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.primary,
+      marginBottom: 4,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+    },
+    achievementCard: {
+      marginTop: 8,
+    },
+    achievementTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 16,
+    },
+    achievement: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    achievementText: {
+      marginLeft: 12,
+      flex: 1,
+    },
+    achievementName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.text,
+    },
+    achievementDesc: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+      marginTop: 2,
+    },
+  })
+}

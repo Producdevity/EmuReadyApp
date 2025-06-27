@@ -2,7 +2,7 @@ import { Platform } from 'react-native'
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api',
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'https://dev.emuready.com/api',
   TIMEOUT: 10000, // 10 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
@@ -139,8 +139,8 @@ export const FEATURES = {
   SHARING_ENABLED: true,
 
   // Advanced features
-  PUSH_NOTIFICATIONS_ENABLED: false, // Not implemented yet
-  OFFLINE_MODE_ENABLED: false, // Future feature
+  PUSH_NOTIFICATIONS_ENABLED: false, // Requires Apple/Google dev account setup and backend integration
+  OFFLINE_MODE_ENABLED: false, // Future feature for cached content
   ANALYTICS_ENABLED: !__DEV__,
 
   // Debug features

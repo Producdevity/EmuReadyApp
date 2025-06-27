@@ -19,6 +19,7 @@ import { BlurView } from 'expo-blur'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
 import { Home, Search, Plus, User } from 'lucide-react-native'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface TabBarProps {
   state: any
@@ -35,14 +36,15 @@ interface TabButtonProps {
 }
 
 const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabButtonProps) => {
+  const { theme } = useTheme()
   const scale = useSharedValue(1)
   const iconScale = useSharedValue(1)
   const translateY = useSharedValue(0)
   const opacity = useSharedValue(0.6)
 
   const getIcon = (routeName: string, focused: boolean) => {
-    const color = focused ? '#ffffff' : '#9ca3af'
-    const size = 24
+    const color = focused ? '#ffffff' : theme.colors.textMuted
+    const size = 22
 
     switch (routeName) {
       case 'index':
@@ -60,15 +62,15 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
 
   useEffect(() => {
     if (isFocused) {
-      scale.value = withSpring(1.1, {
+      scale.value = withSpring(1.05, {
         damping: 15,
         stiffness: 300,
       })
-      iconScale.value = withSpring(1.2, {
+      iconScale.value = withSpring(1.1, {
         damping: 12,
         stiffness: 350,
       })
-      translateY.value = withSpring(-4, {
+      translateY.value = withSpring(-2, {
         damping: 15,
         stiffness: 300,
       })
@@ -104,7 +106,7 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
   const backgroundAnimatedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(
       scale.value,
-      [1, 1.1],
+      [1, 1.05],
       [0, 1]
     ),
   }))
@@ -137,8 +139,8 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
         <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
           <LinearGradient
             colors={route.name === 'create' 
-              ? ['#10b981', '#059669'] 
-              : ['#3b82f6', '#2563eb']
+              ? [theme.colors.secondary, `${theme.colors.secondary}dd`] 
+              : [theme.colors.primary, theme.colors.primaryDark]
             }
             style={styles.gradientBackground}
             start={{ x: 0, y: 0 }}
@@ -155,7 +157,7 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
         <Animated.View style={[labelAnimatedStyle]}>
           <Text style={[
             styles.tabLabel,
-            { color: isFocused ? '#ffffff' : '#9ca3af' }
+            { color: isFocused ? '#ffffff' : theme.colors.textMuted }
           ]}>
             {label}
           </Text>
@@ -173,20 +175,24 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
 }
 
 export default function AnimatedTabBar({ state, descriptors, navigation }: TabBarProps) {
+  const { theme } = useTheme()
   const insets = useSafeAreaInsets()
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       {/* Blur background */}
       <BlurView
         intensity={80}
-        tint="dark"
+        tint={theme.isDark ? 'dark' : 'light'}
         style={StyleSheet.absoluteFillObject}
       />
       
       {/* Gradient overlay */}
       <LinearGradient
-        colors={['rgba(17, 24, 39, 0.95)', 'rgba(31, 41, 55, 0.98)']}
+        colors={theme.isDark 
+          ? ['rgba(17, 24, 39, 0.95)', 'rgba(31, 41, 55, 0.98)']
+          : ['rgba(255, 255, 255, 0.95)', 'rgba(248, 250, 252, 0.98)']
+        }
         style={StyleSheet.absoluteFillObject}
       />
 
@@ -236,16 +242,18 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 90 : 70,
+    height: Platform.OS === 'ios' ? 82 : 72,
     overflow: 'hidden',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
   },
   tabsContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   tabButton: {
     flex: 1,
@@ -255,10 +263,10 @@ const styles = StyleSheet.create({
   tabContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    minHeight: 50,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    minHeight: 44,
     position: 'relative',
   },
   focusBackground: {
@@ -267,32 +275,32 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 20,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   gradientBackground: {
     flex: 1,
-    borderRadius: 20,
+    borderRadius: 16,
   },
   iconContainer: {
-    marginBottom: 4,
+    marginBottom: 3,
     zIndex: 1,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
     zIndex: 1,
   },
   activeIndicator: {
     position: 'absolute',
-    top: -2,
+    top: -1,
     alignSelf: 'center',
   },
   indicatorDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
     backgroundColor: '#ffffff',
   },
 }) 

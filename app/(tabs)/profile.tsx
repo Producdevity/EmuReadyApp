@@ -29,8 +29,8 @@ export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const [isSigningOut, setIsSigningOut] = useState(false)
 
-  // Get listings - for now we'll get all listings and filter client-side
-  // TODO: Add userId filter support to API
+  // Get listings - we get all listings and filter client-side since the backend
+  // doesn't currently expose a userId filter on the listings endpoint
   const { data: userListingsData, isLoading: listingsLoading } = useListings({
     page: 1,
     limit: 50, // Get more to have better chance of finding user's listings
@@ -88,7 +88,7 @@ export default function ProfileScreen() {
           <View style={styles.tabContent}>
             {listingsLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#3b82f6" />
+                <ActivityIndicator size="large" color={theme.colors.primary} />
                 <Text style={styles.loadingText}>Loading your listings...</Text>
               </View>
             ) : userListings.length > 0 ? (
@@ -113,7 +113,7 @@ export default function ProfileScreen() {
                 <Ionicons
                   name="game-controller"
                   size={48}
-                  color="#9ca3af"
+                  color={theme.colors.textMuted}
                   style={styles.emptyIcon}
                 />
                 <Text style={styles.emptyTitle}>No Listings Yet</Text>
@@ -183,6 +183,9 @@ export default function ProfileScreen() {
         return null
     }
   }
+
+  // Create themed styles
+  const styles = createStyles(theme)
 
   return (
     <SafeAreaView style={styles.container}>
@@ -390,11 +393,12 @@ export default function ProfileScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
+function createStyles(theme: any) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
   scrollView: {
     flex: 1,
   },
@@ -420,17 +424,17 @@ const styles = StyleSheet.create({
   profileDetails: {
     flex: 1,
   },
-  profileName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  profileEmail: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 4,
-  },
+    profileName: {
+      fontSize: theme.typography.fontSize.xl + 4,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+    profileEmail: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.textMuted,
+      marginBottom: 4,
+    },
   profileStats: {
     fontSize: 14,
     color: '#374151',
@@ -555,7 +559,8 @@ const styles = StyleSheet.create({
   signOutButton: {
     borderColor: '#ef4444',
   },
-  bottomSpacing: {
-    height: 100,
-  },
-})
+    bottomSpacing: {
+      height: 100,
+    },
+  })
+}

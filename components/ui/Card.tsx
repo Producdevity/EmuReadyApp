@@ -14,6 +14,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface CardProps {
   children?: ReactNode
@@ -26,7 +27,6 @@ interface CardProps {
   elevation?: number
   borderRadius?: number
   disabled?: boolean
-  darkMode?: boolean
 }
 
 export default function Card({
@@ -38,10 +38,10 @@ export default function Card({
   size = 'md',
   padding = 'md',
   elevation = 2,
-  borderRadius = 16,
+  borderRadius,
   disabled = false,
-  darkMode = true,
 }: CardProps) {
+  const { theme } = useTheme()
   const scale = useSharedValue(1)
   const opacity = useSharedValue(1)
 
@@ -86,17 +86,18 @@ export default function Card({
       case 'none':
         return { padding: 0 }
       case 'sm':
-        return { padding: 12 }
+        return { padding: theme.spacing.sm }
       case 'lg':
-        return { padding: 24 }
+        return { padding: theme.spacing.lg }
       default:
-        return { padding: 16 }
+        return { padding: theme.spacing.md }
     }
   }
 
   const getVariantStyles = () => {
+    const cardBorderRadius = borderRadius || theme.borderRadius.lg
     const baseStyles = {
-      borderRadius,
+      borderRadius: cardBorderRadius,
       overflow: 'hidden' as const,
       ...getSizeStyles(),
       ...getPaddingStyles(),
@@ -106,11 +107,11 @@ export default function Card({
       case 'glass':
         return {
           ...baseStyles,
-          backgroundColor: darkMode
+          backgroundColor: theme.isDark
             ? 'rgba(31, 41, 55, 0.6)'
             : 'rgba(255, 255, 255, 0.6)',
           borderWidth: 1,
-          borderColor: darkMode
+          borderColor: theme.isDark
             ? 'rgba(75, 85, 99, 0.3)'
             : 'rgba(209, 213, 219, 0.3)',
         }
@@ -124,18 +125,18 @@ export default function Card({
           ...baseStyles,
           backgroundColor: 'transparent',
           borderWidth: 1,
-          borderColor: darkMode ? '#374151' : '#e5e7eb',
+          borderColor: theme.colors.border,
         }
       default:
         return {
           ...baseStyles,
-          backgroundColor: darkMode ? '#1f2937' : '#ffffff',
-          shadowColor: '#000',
+          backgroundColor: theme.colors.card,
+          shadowColor: theme.colors.shadow,
           shadowOffset: {
             width: 0,
             height: elevation,
           },
-          shadowOpacity: darkMode ? 0.3 : 0.1,
+          shadowOpacity: theme.isDark ? 0.3 : 0.1,
           shadowRadius: elevation * 2,
           elevation: Platform.OS === 'android' ? elevation : 0,
         }
@@ -147,14 +148,14 @@ export default function Card({
       {variant === 'glass' && (
         <BlurView
           intensity={20}
-          tint={darkMode ? 'dark' : 'light'}
+          tint={theme.isDark ? 'dark' : 'light'}
           style={StyleSheet.absoluteFillObject}
         />
       )}
       {variant === 'gradient' && (
         <LinearGradient
           colors={
-            darkMode
+            theme.isDark
               ? ['rgba(55, 65, 81, 0.8)', 'rgba(31, 41, 55, 0.9)']
               : ['rgba(248, 250, 252, 0.8)', 'rgba(241, 245, 249, 0.9)']
           }

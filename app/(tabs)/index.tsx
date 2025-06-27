@@ -14,9 +14,11 @@ import {
   useFeaturedListings,
   usePopularGames,
 } from '../../lib/api/hooks'
+import { useTheme } from '@/contexts/ThemeContext'
 
 export default function HomeScreen() {
   const router = useRouter()
+  const { theme } = useTheme()
 
   // Fetch data using our API hooks
   const {
@@ -51,12 +53,15 @@ export default function HomeScreen() {
     ;(router.push as any)(`/game/${gameId}`)
   }
 
+  // Create themed styles
+  const styles = createStyles(theme)
+
   // Loading state for critical data
   if (statsLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#3b82f6" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading EmuReady...</Text>
         </View>
       </SafeAreaView>
@@ -104,13 +109,13 @@ export default function HomeScreen() {
               {
                 label: 'Listings',
                 value: stats?.totalListings?.toLocaleString() || '0',
-                color: '#3b82f6',
+                color: theme.colors.primary,
                 icon: '📊',
               },
               {
                 label: 'Games',
                 value: stats?.totalGames?.toLocaleString() || '0',
-                color: '#10b981',
+                color: theme.colors.secondary,
                 icon: '🎮',
               },
               {
@@ -118,13 +123,13 @@ export default function HomeScreen() {
                 value: stats?.successRate
                   ? `${Math.round(stats.successRate)}%`
                   : '0%',
-                color: '#f59e0b',
+                color: theme.colors.warning,
                 icon: '⭐',
               },
               {
                 label: 'Users',
                 value: stats?.totalUsers?.toLocaleString() || '0',
-                color: '#ef4444',
+                color: theme.colors.error,
                 icon: '👥',
               },
             ].map((stat) => (
@@ -153,7 +158,7 @@ export default function HomeScreen() {
 
           {listingsLoading ? (
             <View style={styles.loadingSection}>
-              <ActivityIndicator size="small" color="#3b82f6" />
+              <ActivityIndicator size="small" color={theme.colors.primary} />
               <Text style={styles.loadingText}>Loading listings...</Text>
             </View>
           ) : listingsError ? (
@@ -202,24 +207,26 @@ export default function HomeScreen() {
                     </View>
                   </View>
                 </Card>
-              )) || (
-                <Card style={styles.emptyCard} padding="md">
-                  <Text style={styles.emptyText}>
-                    No featured listings available
-                  </Text>
-                </Card>
-              )}
+              ))}
             </ScrollView>
           )}
         </View>
 
         {/* Popular Games */}
         <View style={styles.gamesSection}>
-          <Text style={styles.sectionTitle}>Popular Games</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Popular Games</Text>
+            <Button
+              title="Browse All"
+              variant="ghost"
+              size="sm"
+              onPress={handleBrowseListings}
+            />
+          </View>
 
           {gamesLoading ? (
             <View style={styles.loadingSection}>
-              <ActivityIndicator size="small" color="#3b82f6" />
+              <ActivityIndicator size="small" color={theme.colors.primary} />
               <Text style={styles.loadingText}>Loading games...</Text>
             </View>
           ) : gamesError ? (
@@ -232,24 +239,18 @@ export default function HomeScreen() {
                 <Card
                   key={game.id}
                   style={styles.gameCard}
-                  padding="sm"
+                  padding="md"
                   onPress={() => handleViewGame(game.id)}
                 >
                   <Text style={styles.gameTitle} numberOfLines={2}>
                     {game.title}
                   </Text>
-                  <Text style={styles.gameSystem}>
-                    {game.system?.name || 'Multiple Systems'}
-                  </Text>
-                  <Text style={styles.gameListings}>Popular game</Text>
-                </Card>
-              )) || (
-                <Card style={styles.emptyCard} padding="md">
-                  <Text style={styles.emptyText}>
-                    No popular games available
+                  <Text style={styles.gameSystem}>{game.system?.name}</Text>
+                  <Text style={styles.gameListings}>
+                    {game._count?.listings || 0} listings
                   </Text>
                 </Card>
-              )}
+              ))}
             </View>
           )}
         </View>
@@ -264,14 +265,14 @@ export default function HomeScreen() {
               onPress={handleCreateListing}
             >
               <View style={styles.actionContent}>
-                <Text style={styles.actionIcon}>➕</Text>
+                <Text style={styles.actionIcon}>✨</Text>
                 <View style={styles.actionText}>
-                  <Text style={styles.actionTitle}>Add Listing</Text>
+                  <Text style={styles.actionTitle}>Create New Listing</Text>
                   <Text style={styles.actionDescription}>
-                    Share your emulation setup
+                    Share your emulation performance data
                   </Text>
                 </View>
-                <Text style={styles.actionArrow}>›</Text>
+                <Text style={styles.actionArrow}>→</Text>
               </View>
             </Card>
 
@@ -285,27 +286,10 @@ export default function HomeScreen() {
                 <View style={styles.actionText}>
                   <Text style={styles.actionTitle}>Browse Listings</Text>
                   <Text style={styles.actionDescription}>
-                    Find performance data
+                    Find performance data for your games
                   </Text>
                 </View>
-                <Text style={styles.actionArrow}>›</Text>
-              </View>
-            </Card>
-
-            <Card
-              style={styles.actionCard}
-              padding="md"
-              onPress={() => router.push('/(tabs)/profile')}
-            >
-              <View style={styles.actionContent}>
-                <Text style={styles.actionIcon}>👤</Text>
-                <View style={styles.actionText}>
-                  <Text style={styles.actionTitle}>Your Profile</Text>
-                  <Text style={styles.actionDescription}>
-                    Manage your account
-                  </Text>
-                </View>
-                <Text style={styles.actionArrow}>›</Text>
+                <Text style={styles.actionArrow}>→</Text>
               </View>
             </Card>
           </View>
@@ -317,237 +301,240 @@ export default function HomeScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  loadingSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    gap: 8,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  errorCard: {
-    alignItems: 'center',
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#ef4444',
-    marginBottom: 8,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  header: {
-    padding: 24,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
-  statsSection: {
-    padding: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    minWidth: '45%',
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  statIcon: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
-  featuredSection: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  horizontalScroll: {
-    marginHorizontal: -24,
-    paddingHorizontal: 24,
-  },
-  featuredCard: {
-    width: 280,
-    marginRight: 16,
-  },
-  featuredContent: {
-    gap: 8,
-  },
-  featuredTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  featuredSystem: {
-    fontSize: 14,
-    color: '#3b82f6',
-    fontWeight: '500',
-  },
-  featuredDevice: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  performanceBadge: {
-    backgroundColor: '#10b981',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    marginTop: 4,
-  },
-  performanceText: {
-    fontSize: 12,
-    color: '#ffffff',
-    fontWeight: '500',
-  },
-  listingStats: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 8,
-  },
-  listingVotes: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  listingComments: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  gamesSection: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  gamesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  gameCard: {
-    flex: 1,
-    minWidth: '45%',
-    maxWidth: '48%',
-  },
-  gameTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  gameSystem: {
-    fontSize: 12,
-    color: '#3b82f6',
-    marginBottom: 2,
-  },
-  gameListings: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  actionsSection: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  actionsList: {
-    gap: 12,
-  },
-  actionCard: {
-    backgroundColor: '#ffffff',
-  },
-  actionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  actionIcon: {
-    fontSize: 24,
-  },
-  actionText: {
-    flex: 1,
-  },
-  actionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  actionDescription: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  actionArrow: {
-    fontSize: 20,
-    color: '#9ca3af',
-  },
-  emptyCard: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
-  bottomSpacing: {
-    height: 24,
-  },
-})
+function createStyles(theme: any) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: theme.spacing.lg,
+    },
+    loadingSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: theme.spacing.lg,
+      gap: theme.spacing.sm,
+    },
+    loadingText: {
+      fontSize: theme.typography.fontSize.md,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: theme.spacing.lg,
+    },
+    errorCard: {
+      alignItems: 'center',
+    },
+    errorTitle: {
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.error,
+      marginBottom: theme.spacing.sm,
+    },
+    errorText: {
+      fontSize: theme.typography.fontSize.md,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+      marginBottom: theme.spacing.md,
+    },
+    header: {
+      padding: theme.spacing.lg,
+      alignItems: 'center',
+      marginTop: theme.spacing.md,
+    },
+    title: {
+      fontSize: theme.typography.fontSize.xxl + 8,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.text,
+      marginBottom: theme.spacing.sm,
+    },
+    subtitle: {
+      fontSize: theme.typography.fontSize.md,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+    },
+    statsSection: {
+      padding: theme.spacing.lg,
+    },
+    sectionTitle: {
+      fontSize: theme.typography.fontSize.xl,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.text,
+      marginBottom: theme.spacing.md,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: theme.spacing.md,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: theme.spacing.sm,
+    },
+    statCard: {
+      flex: 1,
+      minWidth: '45%',
+      alignItems: 'center',
+      paddingVertical: theme.spacing.md,
+    },
+    statIcon: {
+      fontSize: theme.typography.fontSize.lg + 4,
+      marginBottom: theme.spacing.sm,
+    },
+    statValue: {
+      fontSize: theme.typography.fontSize.lg + 4,
+      fontWeight: theme.typography.fontWeight.bold,
+      marginBottom: 4,
+    },
+    statLabel: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+    },
+    featuredSection: {
+      paddingHorizontal: theme.spacing.lg,
+      marginBottom: theme.spacing.lg,
+    },
+    horizontalScroll: {
+      marginHorizontal: -theme.spacing.lg,
+      paddingHorizontal: theme.spacing.lg,
+    },
+    featuredCard: {
+      width: 280,
+      marginRight: theme.spacing.md,
+    },
+    featuredContent: {
+      gap: theme.spacing.sm,
+    },
+    featuredTitle: {
+      fontSize: theme.typography.fontSize.md,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.text,
+    },
+    featuredSystem: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.primary,
+      fontWeight: theme.typography.fontWeight.medium,
+    },
+    featuredDevice: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.textMuted,
+    },
+    performanceBadge: {
+      backgroundColor: theme.colors.secondary,
+      paddingHorizontal: theme.spacing.sm,
+      paddingVertical: 4,
+      borderRadius: theme.borderRadius.md,
+      alignSelf: 'flex-start',
+      marginTop: 4,
+    },
+    performanceText: {
+      fontSize: theme.typography.fontSize.xs,
+      color: '#ffffff',
+      fontWeight: theme.typography.fontWeight.medium,
+    },
+    listingStats: {
+      flexDirection: 'row',
+      gap: theme.spacing.md,
+      marginTop: theme.spacing.sm,
+    },
+    listingVotes: {
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.textMuted,
+    },
+    listingComments: {
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.textMuted,
+    },
+    gamesSection: {
+      paddingHorizontal: theme.spacing.lg,
+      marginBottom: theme.spacing.lg,
+    },
+    gamesGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: theme.spacing.sm,
+    },
+    gameCard: {
+      flex: 1,
+      minWidth: '45%',
+      maxWidth: '48%',
+    },
+    gameTitle: {
+      fontSize: theme.typography.fontSize.sm,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+    gameSystem: {
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.primary,
+      marginBottom: 2,
+    },
+    gameListings: {
+      fontSize: theme.typography.fontSize.xs,
+      color: theme.colors.textMuted,
+    },
+    actionsSection: {
+      paddingHorizontal: theme.spacing.lg,
+      marginBottom: theme.spacing.lg,
+    },
+    actionsList: {
+      gap: theme.spacing.sm,
+    },
+    actionCard: {
+      backgroundColor: theme.colors.card,
+    },
+    actionContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.spacing.md,
+    },
+    actionIcon: {
+      fontSize: theme.typography.fontSize.lg + 4,
+    },
+    actionText: {
+      flex: 1,
+    },
+    actionTitle: {
+      fontSize: theme.typography.fontSize.md,
+      fontWeight: theme.typography.fontWeight.semibold,
+      color: theme.colors.text,
+      marginBottom: 2,
+    },
+    actionDescription: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.textMuted,
+    },
+    actionArrow: {
+      fontSize: theme.typography.fontSize.xl,
+      color: theme.colors.textSecondary,
+    },
+    emptyCard: {
+      alignItems: 'center',
+      paddingVertical: theme.spacing.md,
+    },
+    emptyText: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+    },
+    bottomSpacing: {
+      height: theme.spacing.lg,
+    },
+  })
+}

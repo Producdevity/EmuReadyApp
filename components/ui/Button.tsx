@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface ButtonProps {
   title: string
@@ -49,6 +50,7 @@ export default function Button({
   fullWidth = false,
   hapticFeedback = true,
 }: ButtonProps) {
+  const { theme } = useTheme()
   const scale = useSharedValue(1)
   const opacity = useSharedValue(1)
   const backgroundOpacity = useSharedValue(1)
@@ -98,21 +100,21 @@ export default function Button({
           paddingHorizontal: 12,
           paddingVertical: 8,
           minHeight: 36,
-          borderRadius: 8,
+          borderRadius: theme.borderRadius.sm,
         }
       case 'lg':
         return {
           paddingHorizontal: 24,
           paddingVertical: 16,
           minHeight: 56,
-          borderRadius: 16,
+          borderRadius: theme.borderRadius.lg,
         }
       default:
         return {
           paddingHorizontal: 20,
           paddingVertical: 12,
           minHeight: 48,
-          borderRadius: 12,
+          borderRadius: theme.borderRadius.md,
         }
     }
   }
@@ -120,11 +122,11 @@ export default function Button({
   const getTextSize = () => {
     switch (size) {
       case 'sm':
-        return { fontSize: 14, fontWeight: '600' as const }
+        return { fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.semibold }
       case 'lg':
-        return { fontSize: 16, fontWeight: '700' as const }
+        return { fontSize: theme.typography.fontSize.lg, fontWeight: theme.typography.fontWeight.bold }
       default:
-        return { fontSize: 15, fontWeight: '600' as const }
+        return { fontSize: theme.typography.fontSize.md, fontWeight: theme.typography.fontWeight.semibold }
     }
   }
 
@@ -134,23 +136,23 @@ export default function Button({
       justifyContent: 'center' as const,
       flexDirection: 'row' as const,
       ...getSizeStyles(),
-      ...(fullWidth && { width: '100%' as any }),
+      ...(fullWidth && { width: '100%' as '100%' }),
     }
 
     switch (variant) {
       case 'secondary':
         return {
           ...baseStyles,
-          backgroundColor: '#374151',
+          backgroundColor: theme.colors.surface,
           borderWidth: 1,
-          borderColor: '#4b5563',
+          borderColor: theme.colors.border,
         }
       case 'outline':
         return {
           ...baseStyles,
           backgroundColor: 'transparent',
           borderWidth: 1.5,
-          borderColor: '#3b82f6',
+          borderColor: theme.colors.primary,
         }
       case 'ghost':
         return {
@@ -165,21 +167,21 @@ export default function Button({
       default:
         return {
           ...baseStyles,
-          backgroundColor: '#3b82f6',
+          backgroundColor: theme.colors.primary,
         }
     }
   }
 
   const getTextColor = () => {
-    if (disabled) return '#6b7280'
+    if (disabled) return theme.colors.textMuted
 
     switch (variant) {
       case 'secondary':
-        return '#e5e7eb'
+        return theme.colors.text
       case 'outline':
-        return '#3b82f6'
+        return theme.colors.primary
       case 'ghost':
-        return '#3b82f6'
+        return theme.colors.primary
       default:
         return '#ffffff'
     }
@@ -198,12 +200,14 @@ export default function Button({
         <ActivityIndicator
           size="small"
           color={getTextColor()}
-          style={styles.loadingIndicator}
+          style={styles.loadingIcon}
         />
       )}
-      {!loading && leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
+      {leftIcon && !loading && (
+        <View style={styles.leftIcon}>{leftIcon}</View>
+      )}
       <Text style={textStyles}>{title}</Text>
-      {!loading && rightIcon && (
+      {rightIcon && (
         <View style={styles.rightIcon}>{rightIcon}</View>
       )}
     </View>
@@ -212,27 +216,17 @@ export default function Button({
   if (variant === 'gradient') {
     return (
       <AnimatedTouchableOpacity
+        style={[buttonStyles, style, animatedStyle]}
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}
-        style={[
-          buttonStyles as any,
-          { opacity: disabled ? 0.5 : 1 },
-          style,
-          animatedStyle,
-        ]}
-        activeOpacity={1}
+        activeOpacity={0.8}
       >
-        <Animated.View
-          style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}
-        >
+        <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
           <LinearGradient
-            colors={disabled ? ['#6b7280', '#4b5563'] : ['#3b82f6', '#1d4ed8']}
-            style={[
-              StyleSheet.absoluteFillObject,
-              { borderRadius: buttonStyles.borderRadius },
-            ]}
+            colors={[theme.colors.primary, theme.colors.primaryDark]}
+            style={StyleSheet.absoluteFillObject}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           />
@@ -244,21 +238,18 @@ export default function Button({
 
   return (
     <AnimatedTouchableOpacity
+      style={[
+        buttonStyles,
+        style,
+        animatedStyle,
+        disabled && styles.disabled,
+      ]}
       onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       disabled={disabled || loading}
-      style={[
-        buttonStyles as any,
-        { opacity: disabled ? 0.5 : 1 },
-        style,
-        animatedStyle,
-      ]}
-      activeOpacity={1}
+      activeOpacity={0.8}
     >
-      <Animated.View
-        style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}
-      />
       {renderContent()}
     </AnimatedTouchableOpacity>
   )
@@ -269,15 +260,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1,
+    gap: 8,
   },
-  loadingIndicator: {
+  loadingIcon: {
     marginRight: 8,
   },
   leftIcon: {
-    marginRight: 8,
+    marginRight: 4,
   },
   rightIcon: {
-    marginLeft: 8,
+    marginLeft: 4,
+  },
+  disabled: {
+    opacity: 0.6,
   },
 })

@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Card, Button, SearchSuggestions } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
 import { useListings, useSystems } from '@/lib/api/hooks'
+import { useTheme } from '@/contexts/ThemeContext'
 import { appStorage } from '@/lib/storage'
 
 interface SearchFilters {
@@ -27,6 +28,7 @@ interface SearchFilters {
 
 export default function BrowseScreen() {
   const router = useRouter()
+  const { theme } = useTheme()
   const [filters, setFilters] = useState<SearchFilters>({
     query: '',
     systemId: null,
@@ -75,7 +77,7 @@ export default function BrowseScreen() {
     return () => {
       if (timeout) clearTimeout(timeout)
     }
-  }, [filters.query])
+  }, [filters.query, searchTimeout])
 
   // Load recent searches on mount
   useEffect(() => {
@@ -203,11 +205,11 @@ export default function BrowseScreen() {
   }
 
   const performanceOptions = [
-    { rank: 5, label: 'Perfect', color: '#10b981' },
-    { rank: 4, label: 'Great', color: '#3b82f6' },
-    { rank: 3, label: 'Good', color: '#f59e0b' },
-    { rank: 2, label: 'Poor', color: '#ef4444' },
-    { rank: 1, label: 'Unplayable', color: '#6b7280' },
+    { rank: 5, label: 'Perfect', color: theme.colors.performance.perfect },
+    { rank: 4, label: 'Great', color: theme.colors.performance.great },
+    { rank: 3, label: 'Good', color: theme.colors.performance.good },
+    { rank: 2, label: 'Poor', color: theme.colors.performance.poor },
+    { rank: 1, label: 'Unplayable', color: theme.colors.performance.unplayable },
   ]
 
   const sortOptions = [
@@ -216,6 +218,9 @@ export default function BrowseScreen() {
     { value: 'rating', label: 'Highest Rated' },
     { value: 'performance', label: 'Best Performance' },
   ]
+
+  // Create themed styles
+  const styles = createStyles(theme)
 
   return (
     <SafeAreaView style={styles.container}>
@@ -261,7 +266,7 @@ export default function BrowseScreen() {
                   setShowSuggestions(false)
                 }
               }}
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={theme.colors.textMuted}
             />
             <Button
               title="Filters"
@@ -527,11 +532,12 @@ export default function BrowseScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
+function createStyles(theme: any) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
   scrollView: {
     flex: 1,
   },
@@ -540,12 +546,12 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 16,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 4,
-  },
+    title: {
+      fontSize: theme.typography.fontSize.xxl + 8,
+      fontWeight: theme.typography.fontWeight.bold,
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
   subtitle: {
     fontSize: 16,
     color: '#6b7280',
@@ -562,12 +568,12 @@ const styles = StyleSheet.create({
   searchIcon: {
     marginLeft: 4,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#111827',
-    paddingVertical: 4,
-  },
+    searchInput: {
+      flex: 1,
+      fontSize: theme.typography.fontSize.md,
+      color: theme.colors.text,
+      paddingVertical: 4,
+    },
   filtersPanel: {
     marginHorizontal: 20,
     marginBottom: 16,
@@ -652,11 +658,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 40,
   },
-  loadingText: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginTop: 12,
-  },
+    loadingText: {
+      fontSize: theme.typography.fontSize.md,
+      color: theme.colors.textMuted,
+      marginTop: 12,
+    },
   errorCard: {
     alignItems: 'center',
     paddingVertical: 40,
@@ -738,7 +744,8 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textAlign: 'center',
   },
-  bottomSpacing: {
-    height: 100,
-  },
-})
+    bottomSpacing: {
+      height: 100,
+    },
+  })
+}

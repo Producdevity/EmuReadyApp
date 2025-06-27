@@ -50,9 +50,20 @@ class ErrorBoundary extends Component<Props, State> {
     // Log error in development
     if (__DEV__) {
       console.error('ErrorBoundary caught an error:', error, errorInfo)
+    } else {
+      // Production error handling - log to console and could integrate with crash reporting
+      console.error('Production Error:', {
+        error: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString(),
+      })
+      
+      // In a real app, you would send this to a crash reporting service like:
+      // - Sentry: Sentry.captureException(error, { contexts: { react: errorInfo } })
+      // - Bugsnag: Bugsnag.notify(error, { metadata: { react: errorInfo } })
+      // - Firebase Crashlytics: crashlytics().recordError(error)
     }
-
-    // TODO: In production, we might want to send this to an error reporting service like Sentry, Bugsnag, etc.
   }
 
   resetError = () => {
