@@ -8,13 +8,22 @@ import TabBarBackground from '@/components/ui/TabBarBackground'
 import { Colors } from '@/constants/Colors'
 import { useColorScheme } from '@/hooks/useColorScheme'
 import AnimatedTabBar from '@/components/ui/AnimatedTabBar'
+import GamepadTabBar from '@/components/ui/GamepadTabBar'
+import { useGamepadEventHandler, useOrientationOptimized } from '@/hooks/useGamepadNavigation'
 
 export default function TabLayout() {
   const colorScheme = useColorScheme()
+  const { isLandscape } = useOrientationOptimized()
+  
+  // Initialize gamepad event handling
+  useGamepadEventHandler()
+
+  // Use gamepad-optimized tab bar on Android for gaming handhelds
+  const TabBarComponent = Platform.OS === 'android' ? GamepadTabBar : AnimatedTabBar
 
   return (
     <Tabs
-      tabBar={(props) => <AnimatedTabBar {...props} />}
+      tabBar={(props) => <TabBarComponent {...props} />}
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
@@ -24,6 +33,11 @@ export default function TabLayout() {
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
+          },
+          android: {
+            // Optimize for landscape gaming handhelds
+            height: isLandscape ? 60 : 85,
+            paddingHorizontal: isLandscape ? 8 : 0,
           },
           default: {},
         }),

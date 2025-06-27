@@ -8,6 +8,7 @@ import com.facebook.react.ReactApplication
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.ReactHost
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
@@ -22,19 +23,25 @@ class MainApplication : Application(), ReactApplication {
         this,
         object : DefaultReactNativeHost(this) {
           override fun getPackages(): List<ReactPackage> {
-            val packages = PackageList(this).packages
-            // Packages that cannot be autolinked yet can be added manually here, for example:
-            // packages.add(MyReactNativePackage())
-            return packages
+            return PackageList(this).packages
           }
 
-          override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"
+          override fun getUseDeveloperSupport(): Boolean {
+            return BuildConfig.DEBUG
+          }
 
-          override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
+          override fun getJSMainModuleName(): String {
+            return "index"
+          }
 
-          override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
-          override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
-      }
+          override fun isNewArchEnabled(): Boolean {
+            return BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+          }
+
+          override fun isHermesEnabled(): Boolean {
+            return BuildConfig.IS_HERMES_ENABLED
+          }
+        }
   )
 
   override val reactHost: ReactHost
@@ -42,10 +49,14 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
-    SoLoader.init(this, OpenSourceMergedSoMapping)
+    SoLoader.init(this, false)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
       load()
+    }
+    if (BuildConfig.IS_HERMES_ENABLED) {
+      // If using Hermes, we need to initialize it before loading the app
+      com.facebook.hermes.reactexecutor.HermesExecutorFactory.initHermes()
     }
     ApplicationLifecycleDispatcher.onApplicationCreate(this)
   }

@@ -23,6 +23,7 @@ import {
   useAuthHelpers,
 } from '@/lib/auth/clerk'
 import { useTheme, ThemeProvider } from '@/contexts/ThemeContext'
+import { useGamepadEventHandler } from '@/hooks/useGamepadNavigation'
 
 function AppContent() {
   const { getAuthToken } = useAuthHelpers()
@@ -31,6 +32,9 @@ function AppContent() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   })
+
+  // Initialize global gamepad event handling for Android gaming handhelds
+  useGamepadEventHandler()
 
   useEffect(() => {
     // Connect Clerk auth token getter to API client
