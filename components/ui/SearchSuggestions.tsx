@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Card } from './index'
+import Card from './Card'
 
 interface SearchSuggestionsProps {
   visible: boolean

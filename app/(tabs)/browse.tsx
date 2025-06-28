@@ -17,6 +17,7 @@ import { ListingCard } from '@/components/cards'
 import { useListings, useSystems } from '@/lib/api/hooks'
 import { useTheme } from '@/contexts/ThemeContext'
 import { appStorage } from '@/lib/storage'
+import type { Listing, System } from '@/types'
 
 interface SearchFilters {
   query: string
@@ -93,7 +94,7 @@ export default function BrowseScreen() {
   }, [])
 
   // Filter listings based on search query and performance
-  const filteredListings = listings.filter((listing) => {
+  const filteredListings = listings.filter((listing: Listing) => {
     const matchesQuery =
       !debouncedQuery ||
       listing.game?.title
@@ -121,7 +122,7 @@ export default function BrowseScreen() {
       case 'oldest':
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       case 'rating':
-        return (b.upvotes || 0) - (a.upvotes || 0)
+        return (b.upVotes || 0) - (a.upVotes || 0)
       case 'performance':
         return (b.performance?.rank || 0) - (a.performance?.rank || 0)
       default:
@@ -331,7 +332,7 @@ export default function BrowseScreen() {
                     >
                       <Text style={styles.filterOptionText}>All</Text>
                     </Card>
-                    {systems?.map((system) => (
+                    {systems?.map((system: System) => (
                       <Card
                         key={system.id}
                         style={StyleSheet.flatten([
@@ -436,7 +437,7 @@ export default function BrowseScreen() {
               <Text style={styles.resultsSubtitle}>
                 {filters.query && `"${filters.query}"`}
                 {filters.systemId &&
-                  ` in ${systems?.find((s) => s.id === filters.systemId)?.name}`}
+                  ` in ${systems?.find((s: System) => s.id === filters.systemId)?.name}`}
                 {filters.performanceRank &&
                   ` with ${performanceOptions.find((p) => p.rank === filters.performanceRank)?.label} performance`}
               </Text>

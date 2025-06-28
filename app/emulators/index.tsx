@@ -16,6 +16,7 @@ import Card from '@/components/ui/Card'
 import { IconSymbol } from '@/components/ui/IconSymbol'
 import { router } from 'expo-router'
 import Animated, { FadeInUp } from 'react-native-reanimated'
+import type { Emulator, System } from '@/types'
 
 export default function EmulatorsScreen() {
   const { theme } = useTheme()
@@ -28,7 +29,7 @@ export default function EmulatorsScreen() {
     isLoading: emulatorsLoading,
     refetch: refetchEmulators,
     error: emulatorsError,
-  } = useEmulators(selectedSystem, searchQuery)
+  } = useEmulators({ systemId: selectedSystem, search: searchQuery })
 
   const {
     data: systems,
@@ -134,7 +135,7 @@ export default function EmulatorsScreen() {
               </ThemedText>
             </TouchableOpacity>
             
-            {availableSystems.map((system) => (
+            {availableSystems.map((system: System) => (
               <TouchableOpacity
                 key={system.id}
                 onPress={() => setSelectedSystem(system.id)}
@@ -185,7 +186,7 @@ export default function EmulatorsScreen() {
             </View>
           ) : (
             <View style={{ padding: 16 }}>
-              {filteredEmulators.map((emulator, index) => (
+              {filteredEmulators.map((emulator: Emulator, index: number) => (
                 <Animated.View
                   key={emulator.id}
                   entering={FadeInUp.delay(index * 50)}
@@ -229,7 +230,7 @@ export default function EmulatorsScreen() {
                               color: theme.colors.textSecondary,
                               marginBottom: 2,
                             }}>
-                              {emulator.systems?.map(s => s.name).join(', ')}
+                              {emulator.systems?.map((s: System) => s.name).join(', ')}
                             </ThemedText>
                           )}
 

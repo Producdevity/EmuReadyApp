@@ -1,164 +1,360 @@
 import { trpc } from './client'
+import type {
+  AppStats,
+  Game,
+  Listing,
+  Device,
+  DeviceBrand,
+  Emulator,
+  System,
+  Soc,
+  PerformanceScale,
+  Comment,
+  User,
+  UserProfile,
+  UserPreferences,
+  SearchSuggestion,
+  GetListingsInput,
+  GetListingsResponse,
+  GetGamesInput,
+  GetEmulatorsInput,
+  GetDevicesInput,
+  GetGameByIdInput,
+  GetListingByIdInput,
+  GetListingCommentsInput,
+  GetUserProfileInput,
+  GetUserListingsInput,
+  GetUserVoteInput,
+  GetNotificationsInput,
+  GetNotificationsResponse,
+  SearchGamesInput,
+  SearchSuggestionsInput,
+  CreateListingInput,
+  UpdateListingInput,
+  DeleteListingInput,
+  CreateCommentInput,
+  UpdateCommentInput,
+  DeleteCommentInput,
+  VoteListingInput,
+  UpdateProfileInput,
+  MarkNotificationReadInput,
+} from '@/types'
+
+/**
+ * Type-safe hook wrapper that extracts data from tRPC response structure
+ */
+function createTypedHook<TInput, TOutput>(
+  hookFn: (input?: TInput) => any
+): TInput extends void 
+  ? () => {
+      data: TOutput | undefined
+      isLoading: boolean
+      error: any
+      refetch: () => void
+    }
+  : (input: TInput) => {
+      data: TOutput | undefined
+      isLoading: boolean
+      error: any
+      refetch: () => void
+    } {
+  return ((input?: TInput) => {
+    const result = hookFn(input)
+    return {
+      ...result,
+      // Extract data from tRPC's nested structure: result.data.json
+      data: result.data?.result?.data?.json ?? result.data,
+    }
+  }) as any
+}
 
 /**
  * Hook to fetch application statistics
  * This includes counts of listings, games, users, etc.
  */
-export function useAppStats() {
-  return trpc.mobile.getAppStats.useQuery()
-}
+export const useAppStats = createTypedHook<void, AppStats>(
+  () => trpc.mobile.getAppStats.useQuery()
+)
 
 /**
  * Hook to fetch popular games with their stats
  */
-export function usePopularGames() {
-  return trpc.mobile.getPopularGames.useQuery()
-}
+export const usePopularGames = createTypedHook<void, Game[]>(
+  () => trpc.mobile.getPopularGames.useQuery()
+)
 
-// Direct hooks for EmuReady mobile tRPC endpoints
-export function useFeaturedListings() {
-  return trpc.mobile.getFeaturedListings.useQuery()
-}
+/**
+ * Hook to fetch featured listings
+ */
+export const useFeaturedListings = createTypedHook<void, Listing[]>(
+  () => trpc.mobile.getFeaturedListings.useQuery()
+)
 
-export function useListings(params?: {
-  page?: number
-  limit?: number
-  gameId?: string
-  systemId?: string
-  deviceId?: string
-  emulatorId?: string
-  search?: string
-}) {
-  return trpc.mobile.getListings.useQuery({
-    page: params?.page ?? 1,
-    limit: params?.limit ?? 20,
-    gameId: params?.gameId,
-    systemId: params?.systemId,
-    deviceId: params?.deviceId,
-    emulatorId: params?.emulatorId,
-    search: params?.search,
+/**
+ * Hook to fetch listings with optional filters
+ */
+export const useListings = createTypedHook<GetListingsInput, GetListingsResponse>(
+  (params: GetListingsInput = {}) => trpc.mobile.getListings.useQuery({
+    page: params.page ?? 1,
+    limit: params.limit ?? 20,
+    gameId: params.gameId,
+    systemId: params.systemId,
+    deviceId: params.deviceId,
+    emulatorId: params.emulatorId,
+    search: params.search,
   })
+)
+
+/**
+ * Hook to fetch a single listing by ID
+ */
+export function useListing(input: GetListingByIdInput) {
+  const result = trpc.mobile.getListingById.useQuery(input)
+  return {
+    ...result,
+    data: result.data?.result?.data?.json ?? result.data,
+  } as {
+    data: Listing | null | undefined
+    isLoading: boolean
+    error: any
+    refetch: () => void
+  }
 }
 
-export function useListing(id: string) {
-  return trpc.mobile.getListingById.useQuery({ id })
+/**
+ * Hook to fetch comments for a listing
+ */
+export function useListingComments(input: GetListingCommentsInput) {
+  const result = trpc.mobile.getListingComments.useQuery(input)
+  return {
+    ...result,
+    data: result.data?.result?.data?.json ?? result.data,
+  } as {
+    data: Comment[] | undefined
+    isLoading: boolean
+    error: any
+    refetch: () => void
+  }
 }
 
-export function useListingComments(listingId: string) {
-  return trpc.mobile.getListingComments.useQuery({ listingId })
+/**
+ * Hook to fetch a single game by ID
+ */
+export function useGame(input: GetGameByIdInput) {
+  const result = trpc.mobile.getGameById.useQuery(input)
+  return {
+    ...result,
+    data: result.data?.result?.data?.json ?? result.data,
+  } as {
+    data: Game | null | undefined
+    isLoading: boolean
+    error: any
+    refetch: () => void
+  }
 }
 
-export function useGame(id: string) {
-  return trpc.mobile.getGameById.useQuery({ gameId: id })
-}
-
-export function useGames(query?: string, systemId?: string) {
-  return trpc.mobile.getGames.useQuery({
-    search: query,
-    systemId,
-    limit: 20,
+/**
+ * Hook to fetch games with optional search and filters
+ */
+export const useGames = createTypedHook<GetGamesInput, Game[]>(
+  (input: GetGamesInput = {}) => trpc.mobile.getGames.useQuery({
+    search: input.search,
+    systemId: input.systemId,
+    limit: input.limit ?? 20,
   })
-}
+)
 
-export function useDevices(search?: string, brandId?: string) {
-  return trpc.mobile.getDevices.useQuery({
-    search,
-    brandId,
-    limit: 50,
+/**
+ * Hook to fetch devices with optional search and brand filter
+ */
+export const useDevices = createTypedHook<GetDevicesInput, Device[]>(
+  (input: GetDevicesInput = {}) => trpc.mobile.getDevices.useQuery({
+    search: input.search,
+    brandId: input.brandId,
+    limit: input.limit ?? 50,
   })
-}
+)
 
-export function useEmulators(systemId?: string, search?: string) {
-  return trpc.mobile.getEmulators.useQuery({
-    systemId,
-    search,
-    limit: 50,
+/**
+ * Hook to fetch emulators with optional filters
+ */
+export const useEmulators = createTypedHook<GetEmulatorsInput, Emulator[]>(
+  (input: GetEmulatorsInput = {}) => trpc.mobile.getEmulators.useQuery({
+    systemId: input.systemId,
+    search: input.search,
+    limit: input.limit ?? 50,
   })
-}
+)
 
-export function useSystems() {
-  return trpc.mobile.getSystems.useQuery()
-}
+/**
+ * Hook to fetch all systems
+ */
+export const useSystems = createTypedHook<void, System[]>(
+  () => trpc.mobile.getSystems.useQuery()
+)
 
+/**
+ * Hook to fetch current authenticated user
+ */
+export const useMe = createTypedHook<void, User>(
+  () => trpc.mobile.me.useQuery()
+)
+
+/**
+ * Hook to fetch user profile (with conditional enabling)
+ */
 export function useUserProfile(userId?: string) {
-  return trpc.mobile.getUserProfile.useQuery(
-    { userId: userId! },
+  const result = trpc.mobile.getUserProfile.useQuery(
+    { userId: userId || '' },
     { enabled: !!userId }
   )
+  return {
+    ...result,
+    data: result.data?.result?.data?.json ?? result.data,
+  } as {
+    data: UserProfile | null | undefined
+    isLoading: boolean
+    error: any
+    refetch: () => void
+  }
 }
 
-export function useUserListings(userId: string) {
-  return trpc.mobile.getUserListings.useQuery({ userId })
+/**
+ * Hook to fetch user listings
+ */
+export function useUserListings(input: GetUserListingsInput) {
+  const result = trpc.mobile.getUserListings.useQuery(input)
+  return {
+    ...result,
+    data: result.data?.result?.data?.json ?? result.data,
+  } as {
+    data: Listing[] | undefined
+    isLoading: boolean
+    error: any
+    refetch: () => void
+  }
 }
 
-export function useNotifications(page = 1, unreadOnly = false) {
-  return trpc.mobile.getNotifications.useQuery({
-    page,
-    limit: 20,
-    unreadOnly,
+/**
+ * Hook to fetch notifications
+ */
+export const useNotifications = createTypedHook<GetNotificationsInput, GetNotificationsResponse>(
+  (input: GetNotificationsInput = {}) => trpc.mobile.getNotifications.useQuery({
+    page: input.page ?? 1,
+    limit: input.limit ?? 20,
+    unreadOnly: input.unreadOnly ?? false,
   })
+)
+
+/**
+ * Type-safe mutation hook wrapper
+ */
+function createTypedMutation<TInput, TOutput>(
+  mutationFn: () => any
+) {
+  return () => {
+    const result = mutationFn()
+    return {
+      ...result,
+      data: result.data?.result?.data?.json ?? result.data,
+      isPending: result.isLoading || result.isPending,
+    } as {
+      mutate: (input: TInput) => void
+      mutateAsync: (input: TInput) => Promise<TOutput>
+      data: TOutput | undefined
+      isLoading: boolean
+      isPending: boolean
+      error: any
+    }
+  }
 }
 
 // Mutation hooks using tRPC
-export function useCreateListing() {
-  return trpc.mobile.createListing.useMutation()
-}
+export const useCreateListing = createTypedMutation<CreateListingInput, Listing>(
+  () => trpc.mobile.createListing.useMutation()
+)
 
-export function useUpdateListing() {
-  return trpc.mobile.updateListing.useMutation()
-}
+export const useUpdateListing = createTypedMutation<UpdateListingInput, Listing>(
+  () => trpc.mobile.updateListing.useMutation()
+)
 
-export function useDeleteListing() {
-  return trpc.mobile.deleteListing.useMutation()
-}
+export const useDeleteListing = createTypedMutation<DeleteListingInput, Listing>(
+  () => trpc.mobile.deleteListing.useMutation()
+)
 
-export function useVoteListing() {
-  return trpc.mobile.voteListing.useMutation()
-}
+export const useVoteListing = createTypedMutation<VoteListingInput, { id: string; value: boolean }>(
+  () => trpc.mobile.voteListing.useMutation()
+)
 
-export function useAddComment() {
-  return trpc.mobile.createComment.useMutation()
-}
+export const useAddComment = createTypedMutation<CreateCommentInput, Comment>(
+  () => trpc.mobile.createComment.useMutation()
+)
 
-export function useUpdateComment() {
-  return trpc.mobile.updateComment.useMutation()
-}
+export const useUpdateComment = createTypedMutation<UpdateCommentInput, Comment>(
+  () => trpc.mobile.updateComment.useMutation()
+)
 
-export function useDeleteComment() {
-  return trpc.mobile.deleteComment.useMutation()
-}
+export const useDeleteComment = createTypedMutation<DeleteCommentInput, Comment>(
+  () => trpc.mobile.deleteComment.useMutation()
+)
 
-export function useUpdateProfile() {
-  return trpc.mobile.updateProfile.useMutation()
-}
+export const useUpdateProfile = createTypedMutation<UpdateProfileInput, UserProfile>(
+  () => trpc.mobile.updateProfile.useMutation()
+)
 
-export function useMarkNotificationRead() {
-  return trpc.mobile.markNotificationAsRead.useMutation()
-}
+export const useMarkNotificationRead = createTypedMutation<MarkNotificationReadInput, { success: boolean }>(
+  () => trpc.mobile.markNotificationAsRead.useMutation()
+)
 
-export function useMarkAllNotificationsRead() {
-  return trpc.mobile.markAllNotificationsAsRead.useMutation()
-}
+export const useMarkAllNotificationsRead = createTypedMutation<void, { success: boolean }>(
+  () => trpc.mobile.markAllNotificationsAsRead.useMutation()
+)
 
-// Search and suggestions
+/**
+ * Hook to fetch search suggestions (with conditional enabling)
+ */
 export function useSearchSuggestions(query: string) {
-  return trpc.mobile.getSearchSuggestions.useQuery(
+  const result = trpc.mobile.getSearchSuggestions.useQuery(
     { query, limit: 10 },
     { enabled: query.length > 0 }
   )
+  return {
+    ...result,
+    data: result.data?.result?.data?.json ?? result.data,
+  } as {
+    data: SearchSuggestion[] | undefined
+    isLoading: boolean
+    error: any
+    refetch: () => void
+  }
 }
 
+/**
+ * Hook to fetch user vote for a listing (with conditional enabling)
+ */
 export function useUserVote(listingId: string) {
-  return trpc.mobile.getUserVote.useQuery(
+  const result = trpc.mobile.getUserVote.useQuery(
     { listingId },
     { enabled: !!listingId }
   )
+  return {
+    ...result,
+    data: result.data?.result?.data?.json ?? result.data,
+  } as {
+    data: boolean | null | undefined
+    isLoading: boolean
+    error: any
+    refetch: () => void
+  }
 }
+
+/**
+ * Hook to fetch device brands
+ */
+export const useDeviceBrands = createTypedHook<void, DeviceBrand[]>(
+  () => trpc.mobile.getDeviceBrands.useQuery()
+)
 
 // Aliases for backward compatibility
 export { useGame as useGameById }
 export { useListing as useListingById }
-
-export function useDeviceBrands() {
-  return trpc.mobile.getDeviceBrands.useQuery()
-}

@@ -13,6 +13,7 @@ import { useAuth } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
 import { Button, Card } from '@/components/ui'
 import { useGames, useDevices, useCreateListing } from '@/lib/api/hooks'
+import type { Game, Device } from '@/types'
 
 interface FormData {
   gameId: string | null
@@ -35,8 +36,8 @@ export default function CreateScreen() {
     notes: '',
   })
 
-  const { data: games, isLoading: gamesLoading } = useGames(searchQuery)
-  const { data: devices, isLoading: devicesLoading } = useDevices()
+  const { data: games, isLoading: gamesLoading } = useGames({ search: searchQuery })
+  const { data: devices, isLoading: devicesLoading } = useDevices({})
   const createListingMutation = useCreateListing()
 
   const fadeAnim = new Animated.Value(1)
@@ -111,6 +112,7 @@ export default function CreateScreen() {
       return
     }
 
+    // Type guard to ensure all required fields are present
     if (
       !formData.gameId ||
       !formData.deviceId ||
@@ -121,14 +123,26 @@ export default function CreateScreen() {
       return
     }
 
+    // At this point TypeScript knows all fields are non-null due to the guard above
+    const gameId: string = formData.gameId
+    const deviceId: string = formData.deviceId
+    const emulatorId: string = formData.emulatorId
+    const performanceIdStr: string = formData.performanceId
+    const performanceId = parseInt(performanceIdStr)
+
+    if (isNaN(performanceId)) {
+      Alert.alert('Error', 'Invalid performance rating selected.')
+      return
+    }
+
     try {
       const listing = await createListingMutation.mutateAsync({
-        game: { id: formData.gameId! },
-        device: { id: formData.deviceId! },
-        emulator: { id: formData.emulatorId! },
-        performance: { id: formData.performanceId! },
+        gameId,
+        deviceId,
+        emulatorId,
+        performanceId,
         notes: formData.notes,
-      } as any)
+      })
 
       Alert.alert('Success!', 'Your listing has been created successfully.', [
         {
@@ -178,7 +192,7 @@ export default function CreateScreen() {
               {gamesLoading ? (
                 <Text style={styles.loadingText}>Loading games...</Text>
               ) : games && games.length > 0 ? (
-                games.slice(0, 10).map((game) => (
+                games.slice(0, 10).map((game: Game) => (
                   <Card
                     key={game.id}
                     style={StyleSheet.flatten([
@@ -219,7 +233,7 @@ export default function CreateScreen() {
               {devicesLoading ? (
                 <Text style={styles.loadingText}>Loading devices...</Text>
               ) : devices && devices.length > 0 ? (
-                devices.map((device) => (
+                devices.map((device: Device) => (
                   <Card
                     key={device.id}
                     style={StyleSheet.flatten([
@@ -366,14 +380,14 @@ export default function CreateScreen() {
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Game:</Text>
                 <Text style={styles.summaryValue}>
-                  {games?.find((g) => g.id === formData.gameId)?.title ||
+                  {games?.find((g: Game) => g.id === formData.gameId)?.title ||
                     'Selected'}
                 </Text>
               </View>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Device:</Text>
                 <Text style={styles.summaryValue}>
-                  {devices?.find((d) => d.id === formData.deviceId)
+                  {devices?.find((d: Device) => d.id === formData.deviceId)
                     ?.modelName || 'Selected'}
                 </Text>
               </View>

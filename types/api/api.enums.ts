@@ -4,6 +4,8 @@
 export const Role = {
   USER: 'USER',
   AUTHOR: 'AUTHOR',
+  DEVELOPER: 'DEVELOPER',
+  MODERATOR: 'MODERATOR',
   ADMIN: 'ADMIN',
   SUPER_ADMIN: 'SUPER_ADMIN',
 } as const

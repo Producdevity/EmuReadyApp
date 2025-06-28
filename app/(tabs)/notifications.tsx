@@ -21,6 +21,7 @@ import Button from '@/components/ui/Button'
 import { IconSymbol } from '@/components/ui/IconSymbol'
 import { router } from 'expo-router'
 import Animated, { FadeInUp } from 'react-native-reanimated'
+import type { Notification as ApiNotification } from '@/types/api/api.response'
 
 export default function NotificationsScreen() {
   const { theme } = useTheme()
@@ -32,7 +33,7 @@ export default function NotificationsScreen() {
     isLoading,
     error,
     refetch,
-  } = useNotifications(1, showUnreadOnly)
+  } = useNotifications({ page: 1, unreadOnly: showUnreadOnly })
 
   const markAsReadMutation = useMarkNotificationRead()
   const markAllAsReadMutation = useMarkAllNotificationsRead()
@@ -159,8 +160,8 @@ export default function NotificationsScreen() {
     )
   }
 
-  const notifications = notificationsData?.notifications || []
-  const unreadCount = notifications.filter(n => !n.read).length // Changed from isRead to read
+  const notifications = (notificationsData?.notifications || []) as unknown as ApiNotification[]
+  const unreadCount = notifications.filter((n) => !n.isRead).length
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -249,11 +250,11 @@ export default function NotificationsScreen() {
                   >
                     <Card style={{
                       padding: 16,
-                      backgroundColor: notification.read
+                      backgroundColor: notification.isRead
                                                  ? theme.colors.card
                         : `${theme.colors.primary}10`,
-                      borderLeftWidth: notification.read ? 0 : 3,
-                      borderLeftColor: notification.read ? 'transparent' : theme.colors.primary,
+                      borderLeftWidth: notification.isRead ? 0 : 3,
+                      borderLeftColor: notification.isRead ? 'transparent' : theme.colors.primary,
                     }}>
                       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
                         {/* Notification Icon */}
@@ -277,7 +278,7 @@ export default function NotificationsScreen() {
                         <View style={{ flex: 1 }}>
                           <ThemedText style={{
                             fontSize: 16,
-                            fontWeight: notification.read ? '400' : '600',
+                            fontWeight: notification.isRead ? '400' : '600',
                             marginBottom: 4,
                           }}>
                             {notification.title}
@@ -300,7 +301,7 @@ export default function NotificationsScreen() {
                         </View>
 
                         {/* Unread Indicator */}
-                        {!notification.read && ( // Changed from isRead to read
+                        {!notification.isRead && (
                           <View style={{
                             width: 8,
                             height: 8,

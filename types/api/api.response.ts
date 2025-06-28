@@ -89,9 +89,7 @@ export interface Pagination {
 export interface User extends BaseResource {
   id: string
   name: string
-  email?: string
-  profileImage: string | null
-  createdAt: string
+  email: string
   role: Role
 }
 

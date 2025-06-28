@@ -37,7 +37,7 @@ function ListingCardComponent(props: Props) {
     try {
       await voteMutation.mutateAsync({
         listingId: props.listing.id,
-        voteType: vote,
+        value: vote === 'up',
       })
     } catch {
       Alert.alert('Error', 'Failed to submit vote. Please try again.')

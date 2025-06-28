@@ -5,11 +5,8 @@ import { Platform } from 'react-native'
 import 'react-native-url-polyfill/auto'
 import { CONFIG } from '@/lib/constants/config'
 
-// Use any for now since we can't import the actual AppRouter from backend in React Native
-// The backend's AppRouter will be automatically inferred through the network calls
-type BackendRouter = any // TODO: Replace with actual backend router type
-
-// Create tRPC client with any casting to bypass type issues
+// Create tRPC client (using any for runtime compatibility)
+// Type safety is provided through wrapper hooks in ./hooks.ts
 export const trpc = createTRPCReact() as any
 
 // Create React Query client with mobile-optimized settings
@@ -20,11 +17,9 @@ export const queryClient = new QueryClient({
       gcTime: CONFIG.CACHE_TTL * 6, // 30 minutes (formerly cacheTime)
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors
-        if (error?.status >= 400 && error?.status < 500) {
-          return false
-        }
-        // Limit retries to 3 for server errors
-        return failureCount < 3
+        return error?.status >= 400 && error?.status < 500
+          ? false
+          : failureCount < 3 // Limit retries to 3 for server errors
       },
       refetchOnWindowFocus: false,
       refetchOnMount: true,
@@ -49,21 +44,21 @@ export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
 export const checkApiAvailability = async (): Promise<boolean> => {
   try {
     // Try a simple HEAD request to check if the API is reachable
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
     const response = await fetch(`${CONFIG.API_URL}/api/health`, {
       method: 'HEAD',
       signal: controller.signal,
-    });
+    })
 
-    clearTimeout(timeoutId);
-    return response.ok;
+    clearTimeout(timeoutId)
+    return response.ok
   } catch (error) {
-    console.warn('API availability check failed:', error);
-    return false;
+    console.warn('API availability check failed:', error)
+    return false
   }
-};
+}
 
 // Create tRPC client configuration
 const getTRPCClientConfig = () => ({

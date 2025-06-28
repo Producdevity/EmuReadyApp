@@ -16,6 +16,7 @@ import {
 } from '@/lib/api/hooks'
 import { useTheme } from '@/contexts/ThemeContext'
 import { checkApiAvailability } from '@/lib/api/client'
+import type { Listing, Game } from '@/types'
 
 export default function HomeScreen() {
   const router = useRouter()
@@ -23,7 +24,7 @@ export default function HomeScreen() {
   const [isApiAvailable, setIsApiAvailable] = useState<boolean | null>(null)
   const [retryCount, setRetryCount] = useState(0)
 
-  // Fetch data using our API hooks
+  // Fetch data using our API hooks (now with proper type safety)
   const {
     data: stats,
     isLoading: statsLoading,
@@ -167,14 +168,6 @@ export default function HomeScreen() {
                 icon: '🎮',
               },
               {
-                label: 'Success Rate',
-                value: stats?.successRate
-                  ? `${Math.round(stats.successRate)}%`
-                  : '0%',
-                color: theme.colors.warning,
-                icon: '⭐',
-              },
-              {
                 label: 'Users',
                 value: stats?.totalUsers?.toLocaleString() || '0',
                 color: theme.colors.error,
@@ -221,7 +214,7 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               style={styles.horizontalScroll}
             >
-              {featuredListings?.slice(0, 5).map((listing) => (
+              {(featuredListings || []).slice(0, 5).map((listing: Listing) => (
                 <Card
                   key={listing.id}
                   style={styles.featuredCard}
@@ -247,7 +240,7 @@ export default function HomeScreen() {
 
                     <View style={styles.listingStats}>
                       <Text style={styles.listingVotes}>
-                        👍 {listing.upvotes || 0}
+                        👍 {listing.upVotes || 0}
                       </Text>
                       <Text style={styles.listingComments}>
                         💬 {listing._count?.comments || 0}
@@ -283,7 +276,7 @@ export default function HomeScreen() {
             </Card>
           ) : (
             <View style={styles.gamesGrid}>
-              {popularGames?.slice(0, 6).map((game) => (
+              {(popularGames || []).slice(0, 6).map((game: Game) => (
                 <Card
                   key={game.id}
                   style={styles.gameCard}

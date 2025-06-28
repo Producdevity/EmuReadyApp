@@ -6,7 +6,6 @@ import {
   View,
   Alert,
   Pressable,
-  Image,
   Animated,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -17,6 +16,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { Button, Card } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
 import { useUserProfile, useUserListings } from '@/lib/api/hooks'
+import type { Listing } from '@/types'
 
 interface TabData {
   key: 'listings' | 'activity' | 'stats'
@@ -33,7 +33,7 @@ export default function UserProfileScreen() {
   const fadeAnim = useMemo(() => new Animated.Value(0), [])
   const slideAnim = useMemo(() => new Animated.Value(50), [])
 
-  // Fetch user profile data
+  // Fetch user profile data (always call hooks before conditionals)
   const {
     data: userProfile,
   } = useUserProfile(id)
@@ -41,11 +41,13 @@ export default function UserProfileScreen() {
   // Fetch user listings
   const {
     data: userListings,
-  } = useUserListings(id!)
+  } = useUserListings({ userId: id || '' })
 
   const isOwnProfile = currentUserId === id
 
   useEffect(() => {
+    if (!id) return  // Guard against missing id in effect
+    
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -58,14 +60,27 @@ export default function UserProfileScreen() {
         useNativeDriver: true,
       }),
     ]).start()
-  }, [fadeAnim, slideAnim])
+  }, [fadeAnim, slideAnim, id])
+
+  // Guard against missing id parameter
+  if (!id) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Invalid user ID</Text>
+        <Button
+          title="Go Back"
+          onPress={() => router.back()}
+        />
+      </SafeAreaView>
+    )
+  }
 
   const handleShare = async () => {
     try {
-      const shareContent = `Check out ${userProfile?.firstName} ${userProfile?.lastName}'s profile on EmuReady!\n\n` +
-        `${userProfile?.stats?.totalListings} performance listings\n` +
-        `${userProfile?.stats?.totalUpvotes} upvotes received\n` +
-        `Member since ${userProfile?.stats?.joinedDate}\n\n` +
+      const shareContent = `Check out ${userProfile?.name}'s profile on EmuReady!\n\n` +
+        `${userProfile?._count?.listings || 0} performance listings\n` +
+        `${userProfile?._count?.votes || 0} votes cast\n` +
+        `Member since ${userProfile?.createdAt ? new Date(userProfile.createdAt).toLocaleDateString() : 'Unknown'}\n\n` +
         `Discover amazing emulation performance insights!`
 
       if (await Sharing.isAvailableAsync()) {
@@ -87,8 +102,8 @@ export default function UserProfileScreen() {
   }
 
   const tabs: TabData[] = [
-    { key: 'listings', title: 'Listings', count: userProfile?.stats?.totalListings },
-    { key: 'activity', title: 'Activity', count: userProfile?.stats?.totalComments },
+    { key: 'listings', title: 'Listings', count: userProfile?._count?.listings },
+    { key: 'activity', title: 'Activity', count: userProfile?._count?.comments },
     { key: 'stats', title: 'Stats' },
   ]
 
@@ -99,7 +114,7 @@ export default function UserProfileScreen() {
       case 'listings':
         return (
           <View style={styles.tabContent}>
-            {userListings?.map((listing) => (
+            {userListings?.map((listing: Listing) => (
               <ListingCard
                 key={listing.id}
                 listing={listing}
@@ -167,15 +182,15 @@ export default function UserProfileScreen() {
           <View style={styles.tabContent}>
             <View style={styles.statsGrid}>
               <Card style={styles.statCard} padding="md">
-                <Text style={styles.statValue}>{userProfile?.stats?.totalListings}</Text>
+                <Text style={styles.statValue}>{userProfile?._count?.listings || 0}</Text>
                 <Text style={styles.statLabel}>Total Listings</Text>
               </Card>
               <Card style={styles.statCard} padding="md">
-                <Text style={styles.statValue}>{userProfile?.stats?.totalUpvotes}</Text>
-                <Text style={styles.statLabel}>Upvotes Received</Text>
+                <Text style={styles.statValue}>{userProfile?._count?.votes || 0}</Text>
+                <Text style={styles.statLabel}>Total Votes</Text>
               </Card>
               <Card style={styles.statCard} padding="md">
-                <Text style={styles.statValue}>{userProfile?.stats?.totalComments}</Text>
+                <Text style={styles.statValue}>{userProfile?._count?.comments || 0}</Text>
                 <Text style={styles.statLabel}>Comments Made</Text>
               </Card>
               <Card style={styles.statCard} padding="md">
@@ -217,7 +232,7 @@ export default function UserProfileScreen() {
           <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {userProfile?.firstName} {userProfile?.lastName}
+          {userProfile?.name || 'User Profile'}
         </Text>
         <Pressable onPress={handleShare} style={styles.shareButton}>
           <Ionicons name="share-outline" size={24} color={theme.colors.text} />
@@ -236,47 +251,39 @@ export default function UserProfileScreen() {
           ]}
         >
           <View style={styles.avatarContainer}>
-            {userProfile?.imageUrl ? (
-              <Image
-                source={{ uri: userProfile.imageUrl }}
-                style={styles.avatar}
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>
-                  {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0]}
-                </Text>
-              </View>
-            )}
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>
+                {userProfile?.name?.[0] || 'U'}
+              </Text>
+            </View>
           </View>
 
           <View style={styles.profileInfo}>
             <Text style={styles.displayName}>
-              {userProfile?.firstName} {userProfile?.lastName}
+              {userProfile?.name}
             </Text>
-            <Text style={styles.username}>@{userProfile?.username}</Text>
+            <Text style={styles.username}>@{userProfile?.email}</Text>
             {userProfile?.bio && (
               <Text style={styles.bio}>{userProfile.bio}</Text>
             )}
 
             <View style={styles.quickStats}>
               <View style={styles.quickStat}>
-                <Text style={styles.quickStatValue}>{userProfile?.stats?.totalListings}</Text>
+                <Text style={styles.quickStatValue}>{userProfile?._count?.listings || 0}</Text>
                 <Text style={styles.quickStatLabel}>Listings</Text>
               </View>
               <View style={styles.quickStat}>
-                <Text style={styles.quickStatValue}>{userProfile?.stats?.totalUpvotes}</Text>
-                <Text style={styles.quickStatLabel}>Upvotes</Text>
+                <Text style={styles.quickStatValue}>{userProfile?._count?.votes || 0}</Text>
+                <Text style={styles.quickStatLabel}>Votes</Text>
               </View>
               <View style={styles.quickStat}>
-                <Text style={styles.quickStatValue}>{userProfile?.stats?.totalComments}</Text>
+                <Text style={styles.quickStatValue}>{userProfile?._count?.comments || 0}</Text>
                 <Text style={styles.quickStatLabel}>Comments</Text>
               </View>
             </View>
 
             <Text style={styles.joinDate}>
-              Joined {userProfile?.stats?.joinedDate}
+              Joined {userProfile?.createdAt ? new Date(userProfile.createdAt).toLocaleDateString() : 'Unknown'}
             </Text>
           </View>
 

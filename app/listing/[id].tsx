@@ -21,6 +21,7 @@ import {
 } from '@/lib/api/hooks'
 import { Button, Card } from '@/components/ui'
 import { useAuth } from '@/lib/auth/clerk'
+import type { Comment, CustomFieldValue } from '@/types'
 
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -30,18 +31,33 @@ export default function ListingDetailScreen() {
   const [showCommentForm, setShowCommentForm] = useState(false)
   const fadeAnim = useMemo(() => new Animated.Value(0), [])
 
-  const { data: listing, isLoading, refetch } = useListing(id!)
-  const { data: comments, isLoading: commentsLoading } = useListingComments(id!)
+  const { data: listing, isLoading, refetch } = useListing({ id: id || '' })
+  const { data: comments, isLoading: commentsLoading } = useListingComments({ listingId: id || '' })
   const voteMutation = useVoteListing()
   const addCommentMutation = useAddComment()
 
   useEffect(() => {
+    if (!id) return  // Guard against missing id in effect
+    
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
     }).start()
-  }, [fadeAnim])
+  }, [fadeAnim, id])
+
+  // Guard against missing id parameter
+  if (!id) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Invalid listing ID</Text>
+        <Button
+          title="Go Back"
+          onPress={() => router.back()}
+        />
+      </SafeAreaView>
+    )
+  }
 
   const handleVote = async (type: 'up' | 'down') => {
     if (!isSignedIn) {
@@ -51,8 +67,8 @@ export default function ListingDetailScreen() {
 
     try {
       await voteMutation.mutateAsync({
-        listingId: id!,
-        voteType: type,
+        listingId: id,
+        value: type === 'up',
       })
       refetch()
     } catch {
@@ -73,7 +89,7 @@ export default function ListingDetailScreen() {
 
     try {
       await addCommentMutation.mutateAsync({
-        listingId: id!,
+        listingId: id,
         content: commentText.trim(),
       })
       setCommentText('')
@@ -212,13 +228,13 @@ export default function ListingDetailScreen() {
               disabled={voteMutation.isPending}
             >
               <Ionicons name="thumbs-up" size={20} color="#10b981" />
-              <Text style={styles.voteCount}>{listing.upvotes || 0}</Text>
+              <Text style={styles.voteCount}>{listing.upVotes || 0}</Text>
             </Pressable>
 
             <View style={styles.votingStats}>
               <Text style={styles.votingLabel}>Community Rating</Text>
               <Text style={styles.votingScore}>
-                {(listing.upvotes || 0) - (listing.downvotes || 0)} points
+                {(listing.upVotes || 0) - (listing.downVotes || 0)} points
               </Text>
             </View>
 
@@ -228,7 +244,7 @@ export default function ListingDetailScreen() {
               disabled={voteMutation.isPending}
             >
               <Ionicons name="thumbs-down" size={20} color="#ef4444" />
-              <Text style={styles.voteCount}>{listing.downvotes || 0}</Text>
+              <Text style={styles.voteCount}>{listing.downVotes || 0}</Text>
             </Pressable>
           </View>
         </Card>
@@ -237,7 +253,7 @@ export default function ListingDetailScreen() {
         {listing.customFieldValues && listing.customFieldValues.length > 0 && (
           <Card style={styles.customFieldsCard} padding="md">
             <Text style={styles.sectionTitle}>Configuration Details</Text>
-            {listing.customFieldValues.map((field, index) => (
+            {listing.customFieldValues.map((field: CustomFieldValue, index: number) => (
               <View key={index} style={styles.customField}>
                 <Text style={styles.customFieldLabel}>
                   {field.customFieldDefinition.label}:
@@ -311,11 +327,11 @@ export default function ListingDetailScreen() {
             </View>
           ) : comments && comments.length > 0 ? (
             <View style={styles.commentsList}>
-              {comments.map((comment) => (
+              {comments.map((comment: Comment) => (
                 <View key={comment.id} style={styles.comment}>
                   <View style={styles.commentHeader}>
                     <Text style={styles.commentAuthor}>
-                      {comment.author?.name || 'Anonymous'}
+                      {comment.user?.name || 'Anonymous'}
                     </Text>
                     <Text style={styles.commentDate}>
                       {new Date(comment.createdAt).toLocaleDateString()}

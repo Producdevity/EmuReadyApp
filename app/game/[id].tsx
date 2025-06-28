@@ -16,6 +16,7 @@ import * as Sharing from 'expo-sharing'
 import { useGame, useListings } from '@/lib/api/hooks'
 import { Button, Card } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
+import type { Listing } from '@/types'
 
 export default function GameDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -26,12 +27,14 @@ export default function GameDetailScreen() {
   const fadeAnim = useMemo(() => new Animated.Value(0), [])
   const slideAnim = useMemo(() => new Animated.Value(50), [])
 
-  const { data: game, isLoading, error } = useGame(id!)
+  const { data: game, isLoading, error } = useGame({ gameId: id || '' })
   const { data: listingsData, isLoading: listingsLoading } = useListings({
-    gameId: id!,
+    gameId: id || '',
   })
 
   useEffect(() => {
+    if (!id) return  // Guard against missing id in effect
+    
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -44,7 +47,20 @@ export default function GameDetailScreen() {
         useNativeDriver: true,
       }),
     ]).start()
-  }, [fadeAnim, slideAnim])
+  }, [fadeAnim, slideAnim, id])
+
+  // Guard against missing id parameter
+  if (!id) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Invalid game ID</Text>
+        <Button
+          title="Go Back"
+          onPress={() => router.back()}
+        />
+      </SafeAreaView>
+    )
+  }
 
   const handleShare = async () => {
     try {
@@ -141,9 +157,9 @@ export default function GameDetailScreen() {
             { transform: [{ translateY: slideAnim }] },
           ]}
         >
-          {game.imageUrl ? (
+          {(game.coverImageUrl || game.boxArtUrl) ? (
             <Image
-              source={{ uri: game.imageUrl }}
+              source={{ uri: game.coverImageUrl || game.boxArtUrl || undefined }}
               style={styles.gameImage}
               resizeMode="cover"
             />
@@ -165,7 +181,7 @@ export default function GameDetailScreen() {
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>
                   {listings.reduce(
-                    (sum, listing) => sum + (listing.upvotes || 0),
+                    (sum: number, listing: Listing) => sum + (listing.upVotes || 0),
                     0,
                   )}
                 </Text>
@@ -174,7 +190,7 @@ export default function GameDetailScreen() {
               <View style={styles.statItem}>
                 <Text style={styles.statValue}>
                   {listings.reduce(
-                    (sum, listing) => sum + (listing._count?.comments || 0),
+                    (sum: number, listing: Listing) => sum + (listing._count?.comments || 0),
                     0,
                   )}
                 </Text>
@@ -303,7 +319,7 @@ export default function GameDetailScreen() {
               </View>
             ) : listings.length > 0 ? (
               <View style={styles.listingsContainer}>
-                {listings.map((listing) => (
+                {listings.map((listing: Listing) => (
                   <ListingCard
                     key={listing.id}
                     listing={listing}

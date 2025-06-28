@@ -5,42 +5,48 @@ import {
   StyleSheet,
   Text,
   View,
-  Image,
   Alert,
   ActivityIndicator,
   Switch,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useAuth, useUser } from '@clerk/clerk-expo'
+import { useAuth } from '@clerk/clerk-expo'
 import { Ionicons } from '@expo/vector-icons'
 import { Card, Button } from '../../components/ui'
 import { ListingCard } from '@/components/cards'
-import { useListings } from '@/lib/api/hooks'
+import { useListings, useMe } from '@/lib/api/hooks'
 import { useTheme } from '@/contexts/ThemeContext'
+import type { Listing } from '@/types'
 
 type ProfileTab = 'listings' | 'favorites' | 'activity'
 
 export default function ProfileScreen() {
   const router = useRouter()
-  const { signOut } = useAuth()
-  const { user } = useUser()
+  const { isSignedIn, signOut } = useAuth()
   const { theme, themeMode, setThemeMode } = useTheme()
   const [activeTab, setActiveTab] = useState<ProfileTab>('listings')
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const [isSigningOut, setIsSigningOut] = useState(false)
 
-  // Get listings - we get all listings and filter client-side since the backend
-  // doesn't currently expose a userId filter on the listings endpoint
-  const { data: userListingsData, isLoading: listingsLoading } = useListings({
+  // Create themed styles (needs to be before early returns)
+  const styles = createStyles(theme)
+
+  // Only fetch user data and listings when authenticated
+  const { data: currentUser, isLoading: userLoading, error: userError } = useMe()
+  const { 
+    data: userListingsData, 
+    isLoading: listingsLoading 
+  } = useListings({
     page: 1,
-    limit: 50, // Get more to have better chance of finding user's listings
+    limit: 50,
   })
 
-  // Filter listings to show only user's listings (when userId is available in API)
-  const userListings =
-    userListingsData?.listings?.filter(
-      (listing) => listing.author?.id === user?.id,
-    ) || []
+  // Filter listings to show only user's listings when authenticated
+  const userListings = isSignedIn && currentUser 
+    ? userListingsData?.listings?.filter(
+        (listing: Listing) => listing.author?.id === currentUser.id,
+      ) || []
+    : []
 
   const handleSignOut = async () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -63,6 +69,36 @@ export default function ProfileScreen() {
     ])
   }
 
+  const handleSignIn = () => {
+    // Navigate to sign in screen or show sign in modal
+    Alert.alert(
+      'Sign In Required',
+      'Please sign in to access your profile and create listings.',
+      [
+        { text: 'Cancel' },
+        { text: 'Sign In', onPress: () => {
+          // TODO: Navigate to sign in screen
+          console.log('Navigate to sign in')
+        }}
+      ]
+    )
+  }
+
+  const handleSignUp = () => {
+    // Navigate to sign up screen or show sign up modal
+    Alert.alert(
+      'Create Account',
+      'Join EmuReady to share your emulation experiences.',
+      [
+        { text: 'Cancel' },
+        { text: 'Sign Up', onPress: () => {
+          // TODO: Navigate to sign up screen
+          console.log('Navigate to sign up')
+        }}
+      ]
+    )
+  }
+
   const handleEditProfile = () => {
     Alert.alert(
       'Edit Profile',
@@ -72,13 +108,118 @@ export default function ProfileScreen() {
   }
 
   const handleListingPress = (listingId: string) => {
-    ;(router.push as any)(`/listing/${listingId}`)
+    router.push(`/listing/${listingId}` as any)
   }
 
   const handleSettingsPress = (setting: string) => {
     Alert.alert(setting, 'This setting will be available in a future update.', [
       { text: 'OK' },
     ])
+  }
+
+  // Show sign in/up screen when not authenticated
+  if (!isSignedIn) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.authContainer}>
+          <View style={styles.authContent}>
+            <Ionicons 
+              name="person-circle" 
+              size={100} 
+              color={theme.colors.textSecondary} 
+              style={styles.authIcon}
+            />
+            <Text style={styles.authTitle}>Welcome to EmuReady</Text>
+            <Text style={styles.authDescription}>
+              Sign in to access your profile, create listings, and connect with the emulation community.
+            </Text>
+            
+            <View style={styles.authButtons}>
+              <Button
+                title="Sign In"
+                variant="primary"
+                onPress={handleSignIn}
+                style={styles.authButton}
+              />
+              <Button
+                title="Create Account"
+                variant="outline"
+                onPress={handleSignUp}
+                style={styles.authButton}
+              />
+            </View>
+          </View>
+          
+          {/* Theme setting for unauthenticated users */}
+          <View style={styles.guestSettings}>
+            <Card style={styles.settingCard} padding="md">
+              <View style={styles.settingRow}>
+                <View style={styles.settingInfo}>
+                  <Ionicons
+                    name={theme.isDark ? "moon" : "sunny"}
+                    size={20}
+                    color={theme.colors.text}
+                    style={styles.settingIcon}
+                  />
+                  <View>
+                    <Text style={styles.settingTitle}>Theme</Text>
+                    <Text style={styles.settingDescription}>
+                      {themeMode === 'system' ? 'Follow system' : themeMode === 'dark' ? 'Dark mode' : 'Light mode'}
+                    </Text>
+                  </View>
+                </View>
+                <Button
+                  title={themeMode === 'system' ? 'Auto' : themeMode === 'dark' ? 'Dark' : 'Light'}
+                  variant="outline"
+                  size="sm"
+                  onPress={() => {
+                    const nextMode = themeMode === 'light' ? 'dark' : themeMode === 'dark' ? 'system' : 'light'
+                    setThemeMode(nextMode)
+                  }}
+                />
+              </View>
+            </Card>
+          </View>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  // Show loading state while fetching user data
+  if (userLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  // Show error state if user data failed to load
+  if (userError || !currentUser) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Ionicons 
+            name="alert-circle" 
+            size={64} 
+            color={theme.colors.error} 
+          />
+          <Text style={styles.errorTitle}>Failed to Load Profile</Text>
+          <Text style={styles.errorDescription}>
+            There was an error loading your profile data.
+          </Text>
+          <Button
+            title="Try Again"
+            variant="primary"
+            onPress={() => window.location.reload()}
+            style={styles.retryButton}
+          />
+        </View>
+      </SafeAreaView>
+    )
   }
 
   const renderTabContent = () => {
@@ -93,7 +234,7 @@ export default function ProfileScreen() {
               </View>
             ) : userListings.length > 0 ? (
               <View style={styles.listingsContainer}>
-                {userListings.map((listing) => (
+                {userListings.map((listing: Listing) => (
                   <ListingCard
                     key={listing.id}
                     listing={listing}
@@ -138,7 +279,7 @@ export default function ProfileScreen() {
               <Ionicons
                 name="heart"
                 size={48}
-                color="#9ca3af"
+                color={theme.colors.textMuted}
                 style={styles.emptyIcon}
               />
               <Text style={styles.emptyTitle}>No Favorites Yet</Text>
@@ -162,7 +303,7 @@ export default function ProfileScreen() {
               <Ionicons
                 name="time"
                 size={48}
-                color="#9ca3af"
+                color={theme.colors.textMuted}
                 style={styles.emptyIcon}
               />
               <Text style={styles.emptyTitle}>No Recent Activity</Text>
@@ -184,9 +325,6 @@ export default function ProfileScreen() {
     }
   }
 
-  // Create themed styles
-  const styles = createStyles(theme)
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -196,20 +334,19 @@ export default function ProfileScreen() {
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.profileInfo}>
-            <Image
-              source={{
-                uri:
-                  user?.imageUrl ||
-                  'https://via.placeholder.com/80x80?text=User',
-              }}
-              style={styles.profileImage}
-            />
+            <View style={styles.profileImageContainer}>
+              <Ionicons
+                name="person-circle"
+                size={80}
+                color={theme.colors.textSecondary}
+              />
+            </View>
             <View style={styles.profileDetails}>
               <Text style={styles.profileName}>
-                {user?.fullName || user?.firstName || 'User'}
+                {currentUser.name}
               </Text>
               <Text style={styles.profileEmail}>
-                {user?.primaryEmailAddress?.emailAddress || 'No email'}
+                {currentUser.email}
               </Text>
               <Text style={styles.profileStats}>
                 {userListings.length} listing
@@ -222,7 +359,7 @@ export default function ProfileScreen() {
             variant="outline"
             size="sm"
             onPress={handleEditProfile}
-            rightIcon={<Ionicons name="pencil" size={14} color="#374151" />}
+            rightIcon={<Ionicons name="pencil" size={14} color={theme.colors.text} />}
           />
         </View>
 
@@ -246,7 +383,7 @@ export default function ProfileScreen() {
                 <Ionicons
                   name={tab.icon as any}
                   size={16}
-                  color={activeTab === tab.key ? '#3b82f6' : '#6b7280'}
+                  color={activeTab === tab.key ? theme.colors.primary : theme.colors.textSecondary}
                   style={styles.tabIcon}
                 />
                 <Text
@@ -276,7 +413,7 @@ export default function ProfileScreen() {
                 <Ionicons
                   name="notifications"
                   size={20}
-                  color="#374151"
+                  color={theme.colors.text}
                   style={styles.settingIcon}
                 />
                 <View>
@@ -289,8 +426,8 @@ export default function ProfileScreen() {
               <Switch
                 value={notificationsEnabled}
                 onValueChange={setNotificationsEnabled}
-                trackColor={{ false: '#e5e7eb', true: '#3b82f6' }}
-                thumbColor={notificationsEnabled ? '#ffffff' : '#f3f4f6'}
+                trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+                thumbColor={notificationsEnabled ? theme.colors.card : theme.colors.background}
               />
             </View>
           </Card>
@@ -302,7 +439,7 @@ export default function ProfileScreen() {
                 <Ionicons
                   name={theme.isDark ? "moon" : "sunny"}
                   size={20}
-                  color="#374151"
+                  color={theme.colors.text}
                   style={styles.settingIcon}
                 />
                 <View>
@@ -353,7 +490,7 @@ export default function ProfileScreen() {
                   <Ionicons
                     name={setting.icon as any}
                     size={20}
-                    color="#374151"
+                    color={theme.colors.text}
                     style={styles.settingIcon}
                   />
                   <View>
@@ -363,7 +500,7 @@ export default function ProfileScreen() {
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+                <Ionicons name="chevron-forward" size={16} color={theme.colors.textMuted} />
               </View>
             </Card>
           ))}
@@ -379,9 +516,9 @@ export default function ProfileScreen() {
             style={styles.signOutButton}
             leftIcon={
               isSigningOut ? (
-                <ActivityIndicator size="small" color="#ef4444" />
+                <ActivityIndicator size="small" color={theme.colors.error} />
               ) : (
-                <Ionicons name="log-out" size={16} color="#ef4444" />
+                <Ionicons name="log-out" size={16} color={theme.colors.error} />
               )
             }
           />
@@ -399,168 +536,243 @@ function createStyles(theme: any) {
       flex: 1,
       backgroundColor: theme.colors.background,
     },
-  scrollView: {
-    flex: 1,
-  },
-  profileHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 24,
-  },
-  profileInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 16,
-  },
-  profileDetails: {
-    flex: 1,
-  },
+    scrollView: {
+      flex: 1,
+    },
+    
+    // Auth screen styles
+    authContainer: {
+      flex: 1,
+      justifyContent: 'space-between',
+      padding: 20,
+    },
+    authContent: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    authIcon: {
+      marginBottom: 24,
+    },
+    authTitle: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
+    authDescription: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 32,
+      lineHeight: 24,
+      paddingHorizontal: 20,
+    },
+    authButtons: {
+      width: '100%',
+      gap: 12,
+    },
+    authButton: {
+      width: '100%',
+    },
+    guestSettings: {
+      paddingBottom: 20,
+    },
+    
+    // Loading and error states
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
+    },
+    loadingText: {
+      marginTop: 16,
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
+    },
+    errorTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    errorDescription: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
+    retryButton: {
+      minWidth: 120,
+    },
+    
+    // Profile styles
+    profileHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 24,
+    },
+    profileInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    profileImageContainer: {
+      marginRight: 16,
+    },
+    profileDetails: {
+      flex: 1,
+    },
     profileName: {
-      fontSize: theme.typography.fontSize.xl + 4,
-      fontWeight: theme.typography.fontWeight.bold,
+      fontSize: 22,
+      fontWeight: 'bold',
       color: theme.colors.text,
       marginBottom: 4,
     },
     profileEmail: {
-      fontSize: theme.typography.fontSize.sm,
+      fontSize: 14,
       color: theme.colors.textMuted,
       marginBottom: 4,
     },
-  profileStats: {
-    fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
-  },
-  tabsContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  tabs: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  activeTab: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#3b82f6',
-  },
-  tabIcon: {
-    marginRight: 6,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6b7280',
-  },
-  activeTabText: {
-    color: '#3b82f6',
-  },
-  tabContent: {
-    paddingHorizontal: 20,
-    marginBottom: 32,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6b7280',
-    marginTop: 12,
-  },
-  listingsContainer: {
-    gap: 16,
-  },
-  listingCard: {
-    marginBottom: 0,
-  },
-  viewAllButton: {
-    marginTop: 8,
-  },
-  emptyCard: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyIcon: {
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  emptyButton: {
-    width: '100%',
-  },
-  settingsSection: {
-    paddingHorizontal: 20,
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 16,
-  },
-  settingCard: {
-    marginBottom: 8,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  settingInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  settingIcon: {
-    marginRight: 12,
-  },
-  settingTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  settingDescription: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  signOutSection: {
-    paddingHorizontal: 20,
-    marginBottom: 32,
-  },
-  signOutButton: {
-    borderColor: '#ef4444',
-  },
+    profileStats: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+    },
+    
+    // Tabs
+    tabsContainer: {
+      paddingHorizontal: 20,
+      marginBottom: 20,
+    },
+    tabs: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    tab: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+    },
+    activeTab: {
+      backgroundColor: `${theme.colors.primary}15`,
+      borderColor: theme.colors.primary,
+      borderWidth: 1,
+    },
+    tabIcon: {
+      marginRight: 6,
+    },
+    tabText: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: theme.colors.textSecondary,
+    },
+    activeTabText: {
+      color: theme.colors.primary,
+      fontWeight: '600',
+    },
+    
+    // Tab content
+    tabContent: {
+      paddingHorizontal: 20,
+      marginBottom: 32,
+    },
+    listingsContainer: {
+      gap: 12,
+    },
+    listingCard: {
+      marginBottom: 8,
+    },
+    viewAllButton: {
+      marginTop: 8,
+    },
+    emptyCard: {
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+    },
+    emptyIcon: {
+      marginBottom: 16,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 8,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      marginBottom: 20,
+      lineHeight: 20,
+    },
+    emptyButton: {
+      minWidth: 180,
+    },
+    
+    // Settings
+    settingsSection: {
+      paddingHorizontal: 20,
+      marginBottom: 32,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginBottom: 16,
+    },
+    settingCard: {
+      backgroundColor: theme.colors.surface,
+      marginBottom: 8,
+    },
+    settingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    settingInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    settingIcon: {
+      marginRight: 12,
+    },
+    settingTitle: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.colors.text,
+      marginBottom: 2,
+    },
+    settingDescription: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+    },
+    
+    // Sign out
+    signOutSection: {
+      paddingHorizontal: 20,
+      marginBottom: 20,
+    },
+    signOutButton: {
+      borderColor: theme.colors.error,
+    },
     bottomSpacing: {
-      height: 100,
+      height: 20,
     },
   })
 }

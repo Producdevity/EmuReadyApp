@@ -37,7 +37,7 @@ interface ListingCardProps {
     performance?: {
       rank: number
     }
-    upvotes?: number
+    upVotes?: number
     _count?: {
       comments: number
     }
@@ -229,7 +229,7 @@ export default function ListingCard({
                     fill={liked.value === 1 ? '#ef4444' : 'transparent'}
                   />
                 </Animated.View>
-                <Text style={styles.statText}>{listing.upvotes || 0}</Text>
+                <Text style={styles.statText}>{listing.upVotes || 0}</Text>
               </TouchableOpacity>
 
               <View style={styles.statButton}>
@@ -331,7 +331,7 @@ export default function ListingCard({
                   fill={liked.value === 1 ? '#ef4444' : 'transparent'}
                 />
               </Animated.View>
-              <Text style={styles.likeCount}>{listing.upvotes || 0}</Text>
+              <Text style={styles.likeCount}>{listing.upVotes || 0}</Text>
             </TouchableOpacity>
 
             <View style={styles.commentCount}>

@@ -16,6 +16,7 @@ import Card from '@/components/ui/Card'
 import { IconSymbol } from '@/components/ui/IconSymbol'
 import { router } from 'expo-router'
 import Animated, { FadeInUp } from 'react-native-reanimated'
+import type { Device, DeviceBrand } from '@/types'
 
 export default function DevicesScreen() {
   const { theme } = useTheme()
@@ -28,7 +29,7 @@ export default function DevicesScreen() {
     isLoading: devicesLoading,
     refetch: refetchDevices,
     error: devicesError,
-  } = useDevices(searchQuery, selectedBrand)
+  } = useDevices({ search: searchQuery, brandId: selectedBrand })
 
   const {
     data: brands,
@@ -134,7 +135,7 @@ export default function DevicesScreen() {
               </ThemedText>
             </TouchableOpacity>
 
-            {deviceBrands.map((brand) => (
+            {deviceBrands.map((brand: DeviceBrand) => (
               <TouchableOpacity
                 key={brand.id}
                 onPress={() => setSelectedBrand(brand.id)}
@@ -185,7 +186,7 @@ export default function DevicesScreen() {
             </View>
           ) : (
             <View style={{ padding: 16 }}>
-              {filteredDevices.map((device, index) => (
+              {filteredDevices.map((device: Device, index: number) => (
                 <Animated.View
                   key={device.id}
                   entering={FadeInUp.delay(index * 50)}
