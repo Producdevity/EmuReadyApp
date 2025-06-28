@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   SafeAreaView,
   ScrollView,
@@ -13,29 +13,60 @@ import {
   useAppStats,
   useFeaturedListings,
   usePopularGames,
-} from '../../lib/api/hooks'
+} from '@/lib/api/hooks'
 import { useTheme } from '@/contexts/ThemeContext'
+import { checkApiAvailability } from '@/lib/api/client'
 
 export default function HomeScreen() {
   const router = useRouter()
   const { theme } = useTheme()
+  const [isApiAvailable, setIsApiAvailable] = useState<boolean | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   // Fetch data using our API hooks
   const {
     data: stats,
     isLoading: statsLoading,
     error: statsError,
+    refetch: refetchStats,
   } = useAppStats()
   const {
     data: featuredListings,
     isLoading: listingsLoading,
     error: listingsError,
+    refetch: refetchListings,
   } = useFeaturedListings()
   const {
     data: popularGames,
     isLoading: gamesLoading,
     error: gamesError,
+    refetch: refetchGames,
   } = usePopularGames()
+
+  // Check API availability on mount and when retry is attempted
+  useEffect(() => {
+    const checkApi = async () => {
+      const available = await checkApiAvailability()
+      setIsApiAvailable(available)
+
+      // If API is available but we had errors, retry the data fetches
+      if (available && (statsError || listingsError || gamesError)) {
+        refetchStats()
+        refetchListings()
+        refetchGames()
+      }
+    }
+
+    checkApi()
+  }, [
+    retryCount,
+    statsError,
+    listingsError,
+    gamesError,
+    refetchGames,
+    refetchListings,
+    refetchStats,
+  ])
 
   const handleCreateListing = () => {
     router.push('/(tabs)/create')
@@ -51,6 +82,10 @@ export default function HomeScreen() {
 
   const handleViewGame = (gameId: string) => {
     ;(router.push as any)(`/game/${gameId}`)
+  }
+
+  const handleRetry = () => {
+    setRetryCount((prev) => prev + 1)
   }
 
   // Create themed styles
@@ -73,14 +108,27 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>Unable to Connect</Text>
-          <Text style={styles.errorText}>
-            Please check your internet connection and try again.
+          <Text style={styles.errorTitle}>
+            {isApiAvailable === false
+              ? 'Unable to Connect'
+              : 'Error Loading Data'}
           </Text>
+          <Text style={styles.errorText}>
+            {isApiAvailable === false
+              ? "We couldn't connect to the EmuReady server. Please check your internet connection and try again."
+              : 'We encountered an error while loading data. Please try again.'}
+          </Text>
+          {isApiAvailable === false && (
+            <Text style={styles.errorDetail}>
+              Server:{' '}
+              {process.env.EXPO_PUBLIC_API_URL || 'https://dev.emuready.com'}
+            </Text>
+          )}
           <Button
             title="Retry"
             variant="primary"
-            onPress={() => window.location.reload()}
+            onPress={handleRetry}
+            style={styles.retryButton}
           />
         </View>
       </SafeAreaView>
@@ -348,6 +396,16 @@ function createStyles(theme: any) {
       color: theme.colors.textMuted,
       textAlign: 'center',
       marginBottom: theme.spacing.md,
+    },
+    errorDetail: {
+      fontSize: theme.typography.fontSize.sm,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+      marginBottom: theme.spacing.md,
+    },
+    retryButton: {
+      marginTop: theme.spacing.md,
+      width: '100%',
     },
     header: {
       padding: theme.spacing.lg,

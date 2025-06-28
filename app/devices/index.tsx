@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import {
   ScrollView,
   View,
-  Text,
   TouchableOpacity,
   RefreshControl,
   TextInput,
@@ -73,15 +72,15 @@ export default function DevicesScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ThemedView style={{ flex: 1 }}>
         {/* Header */}
-        <View style={{ 
-          padding: 20, 
-          borderBottomWidth: 1, 
-          borderBottomColor: theme.colors.border 
+        <View style={{
+          padding: 20,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.colors.border
         }}>
           <ThemedText style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>
             Devices
           </ThemedText>
-          
+
           {/* Search Bar */}
           <View style={{
             flexDirection: 'row',
@@ -110,8 +109,8 @@ export default function DevicesScreen() {
           </View>
 
           {/* Brand Filter */}
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             style={{ marginBottom: 8 }}
           >
@@ -134,7 +133,7 @@ export default function DevicesScreen() {
                 All Brands
               </ThemedText>
             </TouchableOpacity>
-            
+
             {deviceBrands.map((brand) => (
               <TouchableOpacity
                 key={brand.id}
@@ -168,18 +167,18 @@ export default function DevicesScreen() {
           showsVerticalScrollIndicator={false}
         >
           {filteredDevices.length === 0 ? (
-            <View style={{ 
-              flex: 1, 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              padding: 40 
+            <View style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: 40
             }}>
               <IconSymbol name="iphone" size={64} color={theme.colors.textSecondary} />
-              <ThemedText style={{ 
-                textAlign: 'center', 
-                marginTop: 16, 
+              <ThemedText style={{
+                textAlign: 'center',
+                marginTop: 16,
                 fontSize: 16,
-                color: theme.colors.textSecondary 
+                color: theme.colors.textSecondary
               }}>
                 No devices found
               </ThemedText>
@@ -216,26 +215,26 @@ export default function DevicesScreen() {
 
                         {/* Device Info */}
                         <View style={{ flex: 1 }}>
-                          <ThemedText style={{ 
-                            fontSize: 16, 
+                          <ThemedText style={{
+                            fontSize: 16,
                             fontWeight: '600',
                             marginBottom: 4,
                           }}>
                             {device.modelName}
                           </ThemedText>
-                          
-                          <ThemedText style={{ 
-                            fontSize: 14, 
+
+                          <ThemedText style={{
+                            fontSize: 14,
                             color: theme.colors.textSecondary,
                             marginBottom: 2,
                           }}>
-                            {device.brand.name}
+                            {device.brand?.name}
                           </ThemedText>
 
                           {device.soc && (
-                            <ThemedText style={{ 
-                              fontSize: 12, 
-                              color: theme.colors.textMuted 
+                            <ThemedText style={{
+                              fontSize: 12,
+                              color: theme.colors.textMuted
                             }}>
                               {device.soc.manufacturer} {device.soc.name}
                             </ThemedText>
@@ -249,7 +248,7 @@ export default function DevicesScreen() {
                             fontWeight: 'bold',
                             color: theme.colors.primary,
                           }}>
-                            {device._count.listings}
+                            {device._count?.listings}
                           </ThemedText>
                           <ThemedText style={{
                             fontSize: 12,
@@ -277,4 +276,4 @@ export default function DevicesScreen() {
       </ThemedView>
     </SafeAreaView>
   )
-} 
+}

@@ -4,10 +4,8 @@ import {
   StyleSheet,
   Text,
   View,
-  ActivityIndicator,
   Alert,
   Pressable,
-  ScrollView,
   Image,
   Animated,
 } from 'react-native'
@@ -35,58 +33,15 @@ export default function UserProfileScreen() {
   const fadeAnim = useMemo(() => new Animated.Value(0), [])
   const slideAnim = useMemo(() => new Animated.Value(50), [])
 
-  // Mock data for now since we don't have a real backend
-  const mockUser = {
-    id: id!,
-    firstName: 'Demo',
-    lastName: 'User',
-    username: `user_${id}`,
-    email: `user${id}@example.com`,
-    imageUrl: null,
-    createdAt: new Date().toISOString(),
-    bio: 'Passionate emulation enthusiast sharing performance insights.',
-    stats: {
-      totalListings: 12,
-      totalUpvotes: 156,
-      totalComments: 43,
-      joinedDate: 'March 2024',
-    },
-  }
+  // Fetch user profile data
+  const {
+    data: userProfile,
+  } = useUserProfile(id)
 
-  const mockListings = [
-    {
-      id: '1',
-      author: { id: id!, firstName: mockUser.firstName, lastName: mockUser.lastName },
-      userId: id!,
-      game: { id: '1', title: 'Super Mario World', system: { name: 'SNES' } },
-      device: { id: '1', name: 'Steam Deck', type: 'handheld' },
-      emulator: { id: '1', name: 'Snes9x', version: '1.60' },
-      performance: { id: '1', rank: 5, label: 'Perfect' },
-      upvotes: 23,
-      downvotes: 1,
-      _count: { comments: 5 },
-      status: 'published' as const,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      notes: 'Runs flawlessly at 60fps',
-    },
-    {
-      id: '2',
-      author: { id: id!, firstName: mockUser.firstName, lastName: mockUser.lastName },
-      userId: id!,
-      game: { id: '2', title: 'Zelda: A Link to the Past', system: { name: 'SNES' } },
-      device: { id: '2', name: 'ROG Ally', type: 'handheld' },
-      emulator: { id: '1', name: 'Snes9x', version: '1.60' },
-      performance: { id: '2', rank: 4, label: 'Great' },
-      upvotes: 18,
-      downvotes: 0,
-      _count: { comments: 3 },
-      status: 'published' as const,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      notes: 'Minor audio stutters occasionally',
-    },
-  ] as any[]
+  // Fetch user listings
+  const {
+    data: userListings,
+  } = useUserListings(id!)
 
   const isOwnProfile = currentUserId === id
 
@@ -107,10 +62,10 @@ export default function UserProfileScreen() {
 
   const handleShare = async () => {
     try {
-      const shareContent = `Check out ${mockUser.firstName} ${mockUser.lastName}'s profile on EmuReady!\n\n` +
-        `${mockUser.stats.totalListings} performance listings\n` +
-        `${mockUser.stats.totalUpvotes} upvotes received\n` +
-        `Member since ${mockUser.stats.joinedDate}\n\n` +
+      const shareContent = `Check out ${userProfile?.firstName} ${userProfile?.lastName}'s profile on EmuReady!\n\n` +
+        `${userProfile?.stats?.totalListings} performance listings\n` +
+        `${userProfile?.stats?.totalUpvotes} upvotes received\n` +
+        `Member since ${userProfile?.stats?.joinedDate}\n\n` +
         `Discover amazing emulation performance insights!`
 
       if (await Sharing.isAvailableAsync()) {
@@ -132,8 +87,8 @@ export default function UserProfileScreen() {
   }
 
   const tabs: TabData[] = [
-    { key: 'listings', title: 'Listings', count: mockUser.stats.totalListings },
-    { key: 'activity', title: 'Activity', count: mockUser.stats.totalComments },
+    { key: 'listings', title: 'Listings', count: userProfile?.stats?.totalListings },
+    { key: 'activity', title: 'Activity', count: userProfile?.stats?.totalComments },
     { key: 'stats', title: 'Stats' },
   ]
 
@@ -144,7 +99,7 @@ export default function UserProfileScreen() {
       case 'listings':
         return (
           <View style={styles.tabContent}>
-            {mockListings.map((listing) => (
+            {userListings?.map((listing) => (
               <ListingCard
                 key={listing.id}
                 listing={listing}
@@ -152,12 +107,12 @@ export default function UserProfileScreen() {
                 onPress={() => handleListingPress(listing.id)}
               />
             ))}
-            {mockListings.length === 0 && (
+            {userListings?.length === 0 && (
               <View style={styles.emptyState}>
                 <Ionicons name="list-outline" size={48} color={theme.colors.textMuted} />
                 <Text style={styles.emptyStateTitle}>No Listings Yet</Text>
                 <Text style={styles.emptyStateText}>
-                  {isOwnProfile 
+                  {isOwnProfile
                     ? "Start creating performance listings to share your emulation experiences!"
                     : "This user hasn't created any listings yet."}
                 </Text>
@@ -173,7 +128,7 @@ export default function UserProfileScreen() {
             )}
           </View>
         )
-      
+
       case 'activity':
         return (
           <View style={styles.tabContent}>
@@ -182,7 +137,7 @@ export default function UserProfileScreen() {
                 <Ionicons name="thumbs-up" size={16} color={theme.colors.primary} />
               </View>
               <View style={styles.activityContent}>
-                <Text style={styles.activityText}>Upvoted "Super Mario World on Steam Deck"</Text>
+                <Text style={styles.activityText}>Upvoted &quot;Super Mario World on Steam Deck&quot;</Text>
                 <Text style={styles.activityTime}>2 hours ago</Text>
               </View>
             </View>
@@ -191,7 +146,7 @@ export default function UserProfileScreen() {
                 <Ionicons name="chatbubble" size={16} color={theme.colors.secondary} />
               </View>
               <View style={styles.activityContent}>
-                <Text style={styles.activityText}>Commented on "Zelda: Breath of the Wild performance"</Text>
+                <Text style={styles.activityText}>Commented on &quot;Zelda: Breath of the Wild performance&quot;</Text>
                 <Text style={styles.activityTime}>1 day ago</Text>
               </View>
             </View>
@@ -200,27 +155,27 @@ export default function UserProfileScreen() {
                 <Ionicons name="add-circle" size={16} color={theme.colors.success} />
               </View>
               <View style={styles.activityContent}>
-                <Text style={styles.activityText}>Created listing for "Mario Kart 8 Deluxe"</Text>
+                <Text style={styles.activityText}>Created listing for &quot;Mario Kart 8 Deluxe&quot;</Text>
                 <Text style={styles.activityTime}>3 days ago</Text>
               </View>
             </View>
           </View>
         )
-      
+
       case 'stats':
         return (
           <View style={styles.tabContent}>
             <View style={styles.statsGrid}>
               <Card style={styles.statCard} padding="md">
-                <Text style={styles.statValue}>{mockUser.stats.totalListings}</Text>
+                <Text style={styles.statValue}>{userProfile?.stats?.totalListings}</Text>
                 <Text style={styles.statLabel}>Total Listings</Text>
               </Card>
               <Card style={styles.statCard} padding="md">
-                <Text style={styles.statValue}>{mockUser.stats.totalUpvotes}</Text>
+                <Text style={styles.statValue}>{userProfile?.stats?.totalUpvotes}</Text>
                 <Text style={styles.statLabel}>Upvotes Received</Text>
               </Card>
               <Card style={styles.statCard} padding="md">
-                <Text style={styles.statValue}>{mockUser.stats.totalComments}</Text>
+                <Text style={styles.statValue}>{userProfile?.stats?.totalComments}</Text>
                 <Text style={styles.statLabel}>Comments Made</Text>
               </Card>
               <Card style={styles.statCard} padding="md">
@@ -228,7 +183,7 @@ export default function UserProfileScreen() {
                 <Text style={styles.statLabel}>Avg Rating</Text>
               </Card>
             </View>
-            
+
             <Card style={styles.achievementCard} padding="lg">
               <Text style={styles.achievementTitle}>Achievements</Text>
               <View style={styles.achievement}>
@@ -248,7 +203,7 @@ export default function UserProfileScreen() {
             </Card>
           </View>
         )
-      
+
       default:
         return null
     }
@@ -262,7 +217,7 @@ export default function UserProfileScreen() {
           <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {mockUser.firstName} {mockUser.lastName}
+          {userProfile?.firstName} {userProfile?.lastName}
         </Text>
         <Pressable onPress={handleShare} style={styles.shareButton}>
           <Ionicons name="share-outline" size={24} color={theme.colors.text} />
@@ -281,16 +236,16 @@ export default function UserProfileScreen() {
           ]}
         >
           <View style={styles.avatarContainer}>
-            {mockUser.imageUrl ? (
+            {userProfile?.imageUrl ? (
               <Image
-                source={{ uri: mockUser.imageUrl }}
+                source={{ uri: userProfile.imageUrl }}
                 style={styles.avatar}
                 resizeMode="cover"
               />
             ) : (
               <View style={styles.avatarPlaceholder}>
                 <Text style={styles.avatarText}>
-                  {mockUser.firstName[0]}{mockUser.lastName[0]}
+                  {userProfile?.firstName?.[0]}{userProfile?.lastName?.[0]}
                 </Text>
               </View>
             )}
@@ -298,30 +253,30 @@ export default function UserProfileScreen() {
 
           <View style={styles.profileInfo}>
             <Text style={styles.displayName}>
-              {mockUser.firstName} {mockUser.lastName}
+              {userProfile?.firstName} {userProfile?.lastName}
             </Text>
-            <Text style={styles.username}>@{mockUser.username}</Text>
-            {mockUser.bio && (
-              <Text style={styles.bio}>{mockUser.bio}</Text>
+            <Text style={styles.username}>@{userProfile?.username}</Text>
+            {userProfile?.bio && (
+              <Text style={styles.bio}>{userProfile.bio}</Text>
             )}
-            
+
             <View style={styles.quickStats}>
               <View style={styles.quickStat}>
-                <Text style={styles.quickStatValue}>{mockUser.stats.totalListings}</Text>
+                <Text style={styles.quickStatValue}>{userProfile?.stats?.totalListings}</Text>
                 <Text style={styles.quickStatLabel}>Listings</Text>
               </View>
               <View style={styles.quickStat}>
-                <Text style={styles.quickStatValue}>{mockUser.stats.totalUpvotes}</Text>
+                <Text style={styles.quickStatValue}>{userProfile?.stats?.totalUpvotes}</Text>
                 <Text style={styles.quickStatLabel}>Upvotes</Text>
               </View>
               <View style={styles.quickStat}>
-                <Text style={styles.quickStatValue}>{mockUser.stats.totalComments}</Text>
+                <Text style={styles.quickStatValue}>{userProfile?.stats?.totalComments}</Text>
                 <Text style={styles.quickStatLabel}>Comments</Text>
               </View>
             </View>
 
             <Text style={styles.joinDate}>
-              Joined {mockUser.stats.joinedDate}
+              Joined {userProfile?.stats?.joinedDate}
             </Text>
           </View>
 
@@ -335,13 +290,13 @@ export default function UserProfileScreen() {
                   'Choose what you would like to edit:',
                   [
                     { text: 'Cancel', style: 'cancel' },
-                    { 
-                      text: 'Profile Photo', 
-                      onPress: () => Alert.alert('Photo Update', 'Profile photo editing will be available soon.') 
+                    {
+                      text: 'Profile Photo',
+                      onPress: () => Alert.alert('Photo Update', 'Profile photo editing will be available soon.')
                     },
-                    { 
-                      text: 'Bio & Info', 
-                      onPress: () => Alert.alert('Profile Info', 'Profile information editing will be available soon.') 
+                    {
+                      text: 'Bio & Info',
+                      onPress: () => Alert.alert('Profile Info', 'Profile information editing will be available soon.')
                     },
                   ]
                 )

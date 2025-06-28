@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import {
   View,
   Text,
   StyleSheet,
   Platform,
-  Dimensions,
   Pressable,
 } from 'react-native'
 import Animated, {
@@ -39,18 +38,18 @@ interface GamepadTabButtonProps {
   totalTabs: number
 }
 
-const GamepadTabButton = ({ 
-  route, 
-  isFocused, 
-  onPress, 
-  onLongPress, 
+const GamepadTabButton = ({
+  route,
+  isFocused,
+  onPress,
+  onLongPress,
   descriptors,
   index,
   totalTabs
 }: GamepadTabButtonProps) => {
   const { theme } = useTheme()
   const { isLandscape } = useOrientationOptimized()
-  
+
   // Gamepad navigation setup
   const gamepadNav = useGamepadNavigation({
     id: `tab-${route.name}`,
@@ -74,8 +73,8 @@ const GamepadTabButton = ({
   const focusScale = useSharedValue(gamepadNav.isFocused ? 1.1 : 1)
 
   const getIcon = (routeName: string, focused: boolean, gamepadFocused: boolean) => {
-    const color = focused || gamepadFocused 
-      ? '#ffffff' 
+    const color = focused || gamepadFocused
+      ? '#ffffff'
       : theme.colors.textMuted
     const size = isLandscape ? 20 : 22
 
@@ -136,7 +135,7 @@ const GamepadTabButton = ({
         stiffness: 400,
       })
     }
-  }, [isFocused, gamepadNav.isFocused, isLandscape])
+  }, [isFocused, gamepadNav.isFocused, isLandscape, scale, iconScale, translateY, opacity, focusScale])
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -192,8 +191,8 @@ const GamepadTabButton = ({
         {/* Animated background for focused state */}
         <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
           <LinearGradient
-            colors={route.name === 'create' 
-              ? [theme.colors.secondary, `${theme.colors.secondary}dd`] 
+            colors={route.name === 'create'
+              ? [theme.colors.secondary, `${theme.colors.secondary}dd`]
               : [theme.colors.primary, theme.colors.primaryDark]
             }
             style={styles.gradientBackground}
@@ -212,10 +211,10 @@ const GamepadTabButton = ({
           <Animated.View style={labelAnimatedStyle}>
             <Text style={[
               styles.tabLabel,
-              { 
-                color: isFocused || gamepadNav.isFocused 
-                  ? '#ffffff' 
-                  : theme.colors.textMuted 
+              {
+                color: isFocused || gamepadNav.isFocused
+                  ? '#ffffff'
+                  : theme.colors.textMuted
               }
             ]}>
               {label}
@@ -249,10 +248,10 @@ export default function GamepadTabBar({ state, descriptors, navigation }: Gamepa
         tint={theme.isDark ? 'dark' : 'light'}
         style={StyleSheet.absoluteFillObject}
       />
-      
+
       {/* Gradient overlay */}
       <LinearGradient
-        colors={theme.isDark 
+        colors={theme.isDark
           ? ['rgba(17, 24, 39, 0.95)', 'rgba(31, 41, 55, 0.98)']
           : ['rgba(255, 255, 255, 0.95)', 'rgba(248, 250, 252, 0.98)']
         }
@@ -394,4 +393,4 @@ const createStyles = (theme: any, isLandscape: boolean, insets: any) => StyleShe
     color: theme.colors.primary,
     fontWeight: '500',
   },
-}) 
+})

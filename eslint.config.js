@@ -11,16 +11,15 @@ module.exports = defineConfig([
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     rules: {
-      'prefer-template': 'error',
-      'no-useless-escape': 'off',
-      'no-case-declarations': 'off',
-      'no-prototype-builtins': 'off',
-      'no-redeclare': 'error',
       '@typescript-eslint/consistent-type-imports': [
         'error',
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
       ],
       '@typescript-eslint/no-namespace': 'off',
+      '@typescript-eslint/no-redeclare': [
+        'error',
+        { ignoreDeclarationMerge: true },
+      ],
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -29,6 +28,18 @@ module.exports = defineConfig([
           ignoreRestSiblings: true,
         },
       ],
+      'no-case-declarations': 'off',
+      'no-prototype-builtins': 'off',
+      'no-redeclare': 'off',
+      'no-useless-escape': 'off',
+      'prefer-template': 'error',
+    },
+  },
+  // files in types folder
+  {
+    files: ['types/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-redeclare': 'off',
     },
   },
 ])

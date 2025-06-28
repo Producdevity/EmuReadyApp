@@ -4,7 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   Platform,
-  ViewStyle,
+  type ViewStyle,
   SafeAreaView,
   Dimensions,
 } from 'react-native'

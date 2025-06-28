@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import {
   ScrollView,
   View,
-  Text,
   TouchableOpacity,
   RefreshControl,
   Alert,
@@ -11,10 +10,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { ThemedView } from '@/components/ThemedView'
 import { ThemedText } from '@/components/ThemedText'
 import { useTheme } from '@/contexts/ThemeContext'
-import { 
-  useNotifications, 
-  useMarkNotificationRead, 
-  useMarkAllNotificationsRead 
+import {
+  useNotifications,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead
 } from '@/lib/api/hooks'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Card from '@/components/ui/Card'
@@ -31,8 +30,8 @@ export default function NotificationsScreen() {
   const {
     data: notificationsData,
     isLoading,
-    refetch,
     error,
+    refetch,
   } = useNotifications(1, showUnreadOnly)
 
   const markAsReadMutation = useMarkNotificationRead()
@@ -45,14 +44,14 @@ export default function NotificationsScreen() {
   }
 
   const handleNotificationPress = async (notification: any) => {
-    if (!notification.isRead) {
+    if (!notification.read) {
       try {
         await markAsReadMutation.mutateAsync({
           notificationId: notification.id,
         })
         refetch()
-      } catch (error) {
-        console.error('Failed to mark notification as read:', error)
+      } catch (err) {
+        console.error('Failed to mark notification as read:', err)
       }
     }
 
@@ -74,7 +73,8 @@ export default function NotificationsScreen() {
             try {
               await markAllAsReadMutation.mutateAsync()
               refetch()
-            } catch (error) {
+            } catch (err) {
+              console.error(err)
               Alert.alert('Error', 'Failed to mark all notifications as read')
             }
           },
@@ -125,13 +125,13 @@ export default function NotificationsScreen() {
 
     if (diffInMinutes < 1) return 'Just now'
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`
-    
+
     const diffInHours = Math.floor(diffInMinutes / 60)
     if (diffInHours < 24) return `${diffInHours}h ago`
-    
+
     const diffInDays = Math.floor(diffInHours / 24)
     if (diffInDays < 7) return `${diffInDays}d ago`
-    
+
     return notificationDate.toLocaleDateString()
   }
 
@@ -160,26 +160,26 @@ export default function NotificationsScreen() {
   }
 
   const notifications = notificationsData?.notifications || []
-  const unreadCount = notifications.filter(n => !n.isRead).length
+  const unreadCount = notifications.filter(n => !n.read).length // Changed from isRead to read
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ThemedView style={{ flex: 1 }}>
         {/* Header */}
-        <View style={{ 
-          padding: 20, 
-          borderBottomWidth: 1, 
-          borderBottomColor: theme.colors.border 
+        <View style={{
+          padding: 20,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.colors.border
         }}>
           <ThemedText style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>
             Notifications
           </ThemedText>
-          
+
           {/* Filter Toggle */}
-          <View style={{ 
-            flexDirection: 'row', 
-            justifyContent: 'space-between', 
-            alignItems: 'center' 
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
             <TouchableOpacity
               onPress={() => setShowUnreadOnly(!showUnreadOnly)}
@@ -192,7 +192,7 @@ export default function NotificationsScreen() {
                 borderRadius: 16,
               }}
             >
-              <ThemedText style={{ 
+              <ThemedText style={{
                                  color: showUnreadOnly ? theme.colors.card : theme.colors.text,
                 fontSize: 14,
                 fontWeight: '500'
@@ -220,18 +220,18 @@ export default function NotificationsScreen() {
           showsVerticalScrollIndicator={false}
         >
           {notifications.length === 0 ? (
-            <View style={{ 
-              flex: 1, 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              padding: 40 
+            <View style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: 40
             }}>
               <IconSymbol name="bell" size={64} color={theme.colors.textSecondary} />
-              <ThemedText style={{ 
-                textAlign: 'center', 
-                marginTop: 16, 
+              <ThemedText style={{
+                textAlign: 'center',
+                marginTop: 16,
                 fontSize: 16,
-                color: theme.colors.textSecondary 
+                color: theme.colors.textSecondary
               }}>
                 {showUnreadOnly ? 'No unread notifications' : 'No notifications yet'}
               </ThemedText>
@@ -249,11 +249,11 @@ export default function NotificationsScreen() {
                   >
                     <Card style={{
                       padding: 16,
-                      backgroundColor: notification.isRead 
-                                                 ? theme.colors.card 
+                      backgroundColor: notification.read
+                                                 ? theme.colors.card
                         : `${theme.colors.primary}10`,
-                      borderLeftWidth: notification.isRead ? 0 : 3,
-                      borderLeftColor: notification.isRead ? 'transparent' : theme.colors.primary,
+                      borderLeftWidth: notification.read ? 0 : 3,
+                      borderLeftColor: notification.read ? 'transparent' : theme.colors.primary,
                     }}>
                       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
                         {/* Notification Icon */}
@@ -275,32 +275,32 @@ export default function NotificationsScreen() {
 
                         {/* Notification Content */}
                         <View style={{ flex: 1 }}>
-                          <ThemedText style={{ 
-                            fontSize: 16, 
-                            fontWeight: notification.isRead ? '400' : '600',
+                          <ThemedText style={{
+                            fontSize: 16,
+                            fontWeight: notification.read ? '400' : '600',
                             marginBottom: 4,
                           }}>
                             {notification.title}
                           </ThemedText>
-                          
-                          <ThemedText style={{ 
-                            fontSize: 14, 
+
+                          <ThemedText style={{
+                            fontSize: 14,
                             color: theme.colors.textSecondary,
                             marginBottom: 8,
                           }}>
                             {notification.message}
                           </ThemedText>
-                          
-                          <ThemedText style={{ 
-                            fontSize: 12, 
-                            color: theme.colors.textSecondary 
+
+                          <ThemedText style={{
+                            fontSize: 12,
+                            color: theme.colors.textSecondary
                           }}>
                             {formatTimeAgo(notification.createdAt)}
                           </ThemedText>
                         </View>
 
                         {/* Unread Indicator */}
-                        {!notification.isRead && (
+                        {!notification.read && ( // Changed from isRead to read
                           <View style={{
                             width: 8,
                             height: 8,
@@ -321,4 +321,4 @@ export default function NotificationsScreen() {
       </ThemedView>
     </SafeAreaView>
   )
-} 
+}

@@ -4,9 +4,10 @@ import {
   View,
   StyleSheet,
   Platform,
-  ViewStyle,
+  type ViewStyle,
 } from 'react-native'
-import Animated, {
+import Animated,
+{
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -102,11 +103,11 @@ export default function GamepadCard({
       focusBorder.value = withTiming(0, { duration: 200 })
       focusGlow.value = withTiming(0, { duration: 300 })
     }
-  }, [gamepadNav.isFocused, disabled, isLandscape, variant])
+  }, [gamepadNav.isFocused, disabled, isLandscape, variant, scale, elevation, focusBorder, focusGlow])
 
   React.useEffect(() => {
     opacity.value = withTiming(disabled ? 0.5 : 1, { duration: 200 })
-  }, [disabled])
+  }, [disabled, opacity])
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -206,7 +207,7 @@ export default function GamepadCard({
               style={[StyleSheet.absoluteFillObject, { borderRadius: isLandscape ? 8 : 12 }]}
             />
           )}
-          
+
           <View style={styles.content}>
             {children}
           </View>
@@ -216,7 +217,7 @@ export default function GamepadCard({
   )
 }
 
-const createStyles = (theme: any, padding: string, isLandscape: boolean, variant: string) => {
+const createStyles = (theme: any, padding: string, isLandscape: boolean, _variant: string) => {
   const paddingConfig = {
     none: 0,
     sm: isLandscape ? 8 : 12,
@@ -252,4 +253,4 @@ const createStyles = (theme: any, padding: string, isLandscape: boolean, variant
       borderRadius: isLandscape ? 12 : 16,
     },
   })
-} 
+}

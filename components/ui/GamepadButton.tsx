@@ -4,10 +4,11 @@ import {
   Text,
   StyleSheet,
   Platform,
-  ViewStyle,
-  TextStyle,
+  type ViewStyle,
+  type TextStyle,
 } from 'react-native'
-import Animated, {
+import Animated,
+{
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -103,11 +104,11 @@ export default function GamepadButton({
       })
       focusBorder.value = withTiming(0, { duration: 200 })
     }
-  }, [gamepadNav.isFocused, disabled, isLandscape])
+  }, [gamepadNav.isFocused, disabled, isLandscape, scale, focusScale, focusBorder])
 
   React.useEffect(() => {
     opacity.value = withTiming(disabled ? 0.5 : 1, { duration: 200 })
-  }, [disabled])
+  }, [disabled, opacity])
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -249,4 +250,4 @@ const createStyles = (theme: any, variant: string, size: string, isLandscape: bo
       fontSize: config.fontSize,
     },
   })
-} 
+}

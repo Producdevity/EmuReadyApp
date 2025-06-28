@@ -9,7 +9,7 @@ import { CONFIG } from '@/lib/constants/config'
 // The backend's AppRouter will be automatically inferred through the network calls
 type BackendRouter = any
 
-// Use type assertion to bypass collision errors
+// Create tRPC client with any casting to bypass type issues
 export const trpc = createTRPCReact() as any
 
 // Create React Query client with mobile-optimized settings
@@ -23,6 +23,7 @@ export const queryClient = new QueryClient({
         if (error?.status >= 400 && error?.status < 500) {
           return false
         }
+        // Limit retries to 3 for server errors
         return failureCount < 3
       },
       refetchOnWindowFocus: false,
@@ -44,11 +45,31 @@ export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
   getAuthToken = getter
 }
 
+// Function to check API availability
+export const checkApiAvailability = async (): Promise<boolean> => {
+  try {
+    // Try a simple HEAD request to check if the API is reachable
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    const response = await fetch(`${CONFIG.API_URL}/api/health`, {
+      method: 'HEAD',
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    return response.ok;
+  } catch (error) {
+    console.warn('API availability check failed:', error);
+    return false;
+  }
+};
+
 // Create tRPC client configuration
 const getTRPCClientConfig = () => ({
   links: [
     httpBatchLink({
-      url: `${CONFIG.API_URL}/api/trpc`,
+      url: `${CONFIG.API_URL}/api/mobile/trpc`,
       async headers() {
         const token = getAuthToken ? await getAuthToken() : null
         return {
@@ -69,7 +90,7 @@ const getTRPCClientConfig = () => ({
   ],
 })
 
-// Create the standalone tRPC client for direct calls
+// Create the standalone tRPC client for direct calls  
 export const standaloneClient = createTRPCClient(getTRPCClientConfig()) as any
 
 // Create client factory for React Provider
@@ -163,12 +184,12 @@ export const networkUtils = {
       // Test connectivity with a simple HEAD request to the API with timeout
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5000)
-      
+
       const response = await fetch(`${CONFIG.API_URL}/api/health`, {
         method: 'HEAD',
         signal: controller.signal,
       })
-      
+
       clearTimeout(timeoutId)
       return response.ok
     } catch {
@@ -176,12 +197,12 @@ export const networkUtils = {
       try {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 3000)
-        
+
         const response = await fetch(`${CONFIG.API_URL}`, {
-          method: 'HEAD', 
+          method: 'HEAD',
           signal: controller.signal,
         })
-        
+
         clearTimeout(timeoutId)
         return response.status < 500 // Accept any response that's not a server error
       } catch {

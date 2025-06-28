@@ -223,13 +223,13 @@ export default function EmulatorsScreen() {
                             {emulator.name}
                           </ThemedText>
                           
-                          {emulator.systems.length > 0 && (
+                          {emulator.systems && emulator.systems.length > 0 && (
                             <ThemedText style={{ 
                               fontSize: 14, 
                               color: theme.colors.textSecondary,
                               marginBottom: 2,
                             }}>
-                              {emulator.systems.map(s => s.name).join(', ')}
+                              {emulator.systems?.map(s => s.name).join(', ')}
                             </ThemedText>
                           )}
 
@@ -237,7 +237,7 @@ export default function EmulatorsScreen() {
                             fontSize: 12, 
                             color: theme.colors.textMuted 
                           }}>
-                            {emulator._count.listings} compatible listings
+                            {emulator._count?.listings} compatible listings
                           </ThemedText>
                         </View>
 
@@ -248,7 +248,7 @@ export default function EmulatorsScreen() {
                             fontWeight: 'bold',
                             color: theme.colors.primary,
                           }}>
-                            {emulator._count.listings}
+                            {emulator._count?.listings}
                           </ThemedText>
                           <ThemedText style={{
                             fontSize: 12,

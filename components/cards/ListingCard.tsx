@@ -101,7 +101,7 @@ function ListingCardComponent(props: Props) {
           </View>
 
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{props.listing.upvotes || 0}</Text>
+            <Text style={styles.statValue}>{props.listing.upVotes || 0}</Text>
             <Text style={styles.statLabel}>Upvotes</Text>
           </View>
 
@@ -128,7 +128,7 @@ function ListingCardComponent(props: Props) {
           <Card
             style={StyleSheet.flatten([
               styles.voteButton,
-              props.listing.userVote === 'UP' && styles.voteButtonActive,
+              props.listing.userVote === true && styles.voteButtonActive,
               voteMutation.isPending && styles.voteButtonDisabled,
             ])}
             padding="sm"
@@ -137,18 +137,18 @@ function ListingCardComponent(props: Props) {
             <Text
               style={[
                 styles.voteButtonText,
-                props.listing.userVote === 'UP' && styles.voteButtonTextActive,
+                props.listing.userVote === true && styles.voteButtonTextActive,
                 voteMutation.isPending && styles.voteButtonTextDisabled,
               ]}
             >
-              👍 {props.listing.upvotes || 0}
+              👍 {props.listing.upVotes || 0}
             </Text>
           </Card>
 
           <Card
             style={StyleSheet.flatten([
               styles.voteButton,
-              props.listing.userVote === 'DOWN' && styles.voteButtonActive,
+              props.listing.userVote === false && styles.voteButtonActive,
               voteMutation.isPending && styles.voteButtonDisabled,
             ])}
             padding="sm"
@@ -157,12 +157,12 @@ function ListingCardComponent(props: Props) {
             <Text
               style={[
                 styles.voteButtonText,
-                props.listing.userVote === 'DOWN' &&
+                props.listing.userVote === false &&
                   styles.voteButtonTextActive,
                 voteMutation.isPending && styles.voteButtonTextDisabled,
               ]}
             >
-              👎 {props.listing.downvotes || 0}
+              👎 {props.listing.downVotes || 0}
             </Text>
           </Card>
         </View>
