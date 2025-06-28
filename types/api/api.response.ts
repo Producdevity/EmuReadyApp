@@ -6,7 +6,7 @@ import type {
   CustomFieldType,
   ApprovalStatus,
   Role,
-} from './api.enums'
+} from '@/types'
 
 /**
  * Represents a generic API resource interface that defines the structure of an API result.

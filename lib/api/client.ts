@@ -7,7 +7,7 @@ import { CONFIG } from '@/lib/constants/config'
 
 // Use any for now since we can't import the actual AppRouter from backend in React Native
 // The backend's AppRouter will be automatically inferred through the network calls
-type BackendRouter = any
+type BackendRouter = any // TODO: Replace with actual backend router type
 
 // Create tRPC client with any casting to bypass type issues
 export const trpc = createTRPCReact() as any
@@ -90,7 +90,7 @@ const getTRPCClientConfig = () => ({
   ],
 })
 
-// Create the standalone tRPC client for direct calls  
+// Create the standalone tRPC client for direct calls
 export const standaloneClient = createTRPCClient(getTRPCClientConfig()) as any
 
 // Create client factory for React Provider
