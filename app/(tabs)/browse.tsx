@@ -27,7 +27,7 @@ import {
   SkeletonListingCard,
 } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
-import { trpc } from '@/lib/api/client'
+import { useListings, useSystems, useSearchSuggestions } from '@/lib/api/hooks'
 import { useTheme } from '@/contexts/ThemeContext'
 import { appStorage } from '@/lib/storage'
 import type { Listing, System } from '@/types'
@@ -61,7 +61,7 @@ export default function BrowseScreen() {
   const filtersHeight = useSharedValue(0)
 
   // API calls
-  const listingsQuery = trpc.mobile.getListings.useQuery({
+  const listingsQuery = useListings({
     gameId:     undefined,
     systemId:   filters.systemId || undefined,
     deviceId:   filters.deviceId || undefined,
@@ -69,8 +69,8 @@ export default function BrowseScreen() {
     page:       1,
     limit:      50,
   })
-  const systemsQuery = trpc.mobile.getSystems.useQuery()
-  const suggestionsQuery = trpc.mobile.getSearchSuggestions.useQuery(
+  const systemsQuery = useSystems()
+  const suggestionsQuery = useSearchSuggestions(
     { query: debouncedQuery, limit: 10 },
     { enabled: debouncedQuery.length > 0 }
   )
@@ -344,7 +344,7 @@ export default function BrowseScreen() {
           }
           recentSearches={recentSearches}
           popularSuggestions={
-            suggestionsQuery.data?.map(s => s.title || '') || [
+            suggestionsQuery.data?.map((s: any) => s.title || '') || [
               'Super Mario',
               'Zelda',
               'Pokemon',

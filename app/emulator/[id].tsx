@@ -23,7 +23,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import * as Sharing from 'expo-sharing'
-import { trpc } from '@/lib/api/client'
+// TODO: Update to use new hooks when implementing emulator details
 import { Button, Card, SkeletonLoader, SkeletonListingCard } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
 import { useTheme } from '@/contexts/ThemeContext'

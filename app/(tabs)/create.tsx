@@ -12,7 +12,7 @@ import {
 import { useAuth } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
 import { Button, Card } from '@/components/ui'
-import { trpc } from '@/lib/api/client'
+import { useGames, useDevices, useCreateListing } from '@/lib/api/hooks'
 import type { Game, Device } from '@/types'
 
 interface FormData {
@@ -36,9 +36,9 @@ export default function CreateScreen() {
     notes: '',
   })
 
-  const gamesQuery = trpc.mobile.getGames.useQuery({ search: searchQuery })
-  const devicesQuery = trpc.mobile.getDevices.useQuery({})
-  const createListingMutation = trpc.mobile.createListing.useMutation()
+  const gamesQuery = useGames({ search: searchQuery })
+  const devicesQuery = useDevices({})
+  const createListingMutation = useCreateListing()
 
   const fadeAnim = new Animated.Value(1)
 

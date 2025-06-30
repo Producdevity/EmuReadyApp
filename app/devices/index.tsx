@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { ThemedView } from '@/components/ThemedView'
 import { ThemedText } from '@/components/ThemedText'
 import { useTheme } from '@/contexts/ThemeContext'
-import { trpc } from '@/lib/api/client'
+import { useDevices, useDeviceBrands } from '@/lib/api/hooks'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Card from '@/components/ui/Card'
 import { IconSymbol } from '@/components/ui/IconSymbol'
@@ -24,12 +24,12 @@ export default function DevicesScreen() {
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>()
   const [refreshing, setRefreshing] = useState(false)
 
-  const devicesQuery = trpc.mobile.getDevices.useQuery({
+  const devicesQuery = useDevices({
     search: searchQuery,
     brandId: selectedBrand,
     limit: 50,
   })
-  const brandsQuery = trpc.mobile.getDeviceBrands.useQuery()
+  const brandsQuery = useDeviceBrands()
 
   const onRefresh = async () => {
     setRefreshing(true)

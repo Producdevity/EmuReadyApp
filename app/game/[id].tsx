@@ -19,7 +19,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import * as Sharing from 'expo-sharing'
-import { trpc } from '@/lib/api/client'
+import { useGameById, useListingsByGame } from '@/lib/api/hooks'
 import {
   Button,
   Card,

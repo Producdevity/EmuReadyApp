@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import * as Haptics from 'expo-haptics'
 import { Card } from '../ui'
-import { trpc } from '@/lib/api/client'
+import { useVoteListing } from '@/lib/api/hooks'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
 
@@ -25,7 +25,7 @@ interface ListingCardProps {
 function ListingCardComponent(props: ListingCardProps) {
   const { isSignedIn } = useAuth()
   const { theme } = useTheme()
-  const voteMutation = trpc.mobile.voteListing.useMutation()
+  const voteMutation = useVoteListing()
   const [isVoting, setIsVoting] = useState<'up' | 'down' | null>(null)
 
   // Animation values

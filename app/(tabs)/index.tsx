@@ -23,7 +23,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 
 import { useTheme } from '@/contexts/ThemeContext'
-import { trpc } from '@/lib/api/client'
+import { useAppStats, useFeaturedListings, usePopularGames } from '@/lib/api/hooks'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import { ListingCard } from '@/components/cards'
@@ -38,9 +38,9 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const scrollY = useSharedValue(0)
   
-  const statsQuery = trpc.mobile.getAppStats.useQuery()
-  const featuredListingsQuery = trpc.mobile.getFeaturedListings.useQuery()
-  const popularGamesQuery = trpc.mobile.getPopularGames.useQuery()
+  const statsQuery = useAppStats()
+  const featuredListingsQuery = useFeaturedListings()
+  const popularGamesQuery = usePopularGames()
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {

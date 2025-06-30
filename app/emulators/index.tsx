@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { ThemedView } from '@/components/ThemedView'
 import { ThemedText } from '@/components/ThemedText'
 import { useTheme } from '@/contexts/ThemeContext'
-import { trpc } from '@/lib/api/client'
+import { useEmulators, useSystems } from '@/lib/api/hooks'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Card from '@/components/ui/Card'
 import { IconSymbol } from '@/components/ui/IconSymbol'
@@ -24,12 +24,12 @@ export default function EmulatorsScreen() {
   const [selectedSystem, setSelectedSystem] = useState<string | undefined>()
   const [refreshing, setRefreshing] = useState(false)
 
-  const emulatorsQuery = trpc.mobile.getEmulators.useQuery({
+  const emulatorsQuery = useEmulators({
     systemId: selectedSystem,
     search: searchQuery,
     limit: 50,
   })
-  const systemsQuery = trpc.mobile.getSystems.useQuery()
+  const systemsQuery = useSystems()
 
   const onRefresh = async () => {
     setRefreshing(true)

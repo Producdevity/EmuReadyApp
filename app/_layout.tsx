@@ -1,4 +1,4 @@
-import React, { useEffect, createElement } from 'react'
+import React, { useEffect } from 'react'
 import {
   DarkTheme,
   DefaultTheme,
@@ -10,12 +10,8 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import 'react-native-reanimated'
 
-import {
-  queryClient,
-  setAuthTokenGetter,
-  trpc,
-  createMobileTRPCClient,
-} from '@/lib/api/client'
+import { queryClient } from '@/lib/api/client'
+import { setAuthTokenGetter } from '@/lib/api/http'
 import {
   ClerkProvider,
   tokenCache,
@@ -59,8 +55,14 @@ function AppContent() {
       <NavigationThemeProvider value={navigationTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)/sign-in" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)/sign-up" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(auth)/sign-in"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="(auth)/sign-up"
+            options={{ headerShown: false }}
+          />
           <Stack.Screen name="listing/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="game/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="user/[id]" options={{ headerShown: false }} />
@@ -79,16 +81,9 @@ export default function RootLayout() {
         publishableKey={CLERK_PUBLISHABLE_KEY}
         tokenCache={tokenCache}
       >
-        {createElement(
-          (trpc as any).Provider,
-          {
-            client: createMobileTRPCClient(),
-            queryClient: queryClient,
-          },
-          <QueryClientProvider client={queryClient}>
-            <AppContent />
-          </QueryClientProvider>,
-        )}
+        <QueryClientProvider client={queryClient}>
+          <AppContent />
+        </QueryClientProvider>
       </ClerkProvider>
     </ThemeProvider>
   )

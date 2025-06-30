@@ -14,7 +14,7 @@ import { useAuth } from '@clerk/clerk-expo'
 import { Ionicons } from '@expo/vector-icons'
 import { Card, Button } from '../../components/ui'
 import { ListingCard } from '@/components/cards'
-import { trpc } from '@/lib/api/client'
+import { useListings, useUnreadNotificationCount } from '@/lib/api/hooks'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
 
@@ -32,9 +32,10 @@ export default function ProfileScreen() {
   const styles = createStyles(theme)
 
   // Only fetch user data and listings when authenticated
-  const currentUserQuery = trpc.mobile.me.useQuery()
-  const _unreadCountQuery = trpc.mobile.getUnreadNotificationCount.useQuery()
-  const userListingsQuery = trpc.mobile.getListings.useQuery({
+  // TODO: Implement current user query with Clerk user data
+  const currentUserQuery = { data: null, isLoading: false }
+  const _unreadCountQuery = useUnreadNotificationCount()
+  const userListingsQuery = useListings({
     page: 1,
     limit: 50,
   })

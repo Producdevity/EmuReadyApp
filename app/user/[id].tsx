@@ -29,7 +29,7 @@ import * as Haptics from 'expo-haptics'
 import { useTheme } from '@/contexts/ThemeContext'
 import { Button, Card } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
-import { trpc } from '@/lib/api/client'
+import { useUserProfile, useUserListings } from '@/lib/api/hooks'
 import type { Listing } from '@/types'
 
 interface TabData {
@@ -53,13 +53,13 @@ export default function UserProfileScreen() {
   const slideAnim = useMemo(() => new Animated.Value(50), [])
 
   // Fetch user profile data (always call hooks before conditionals)
-  const userProfileQuery = trpc.mobile.getUserProfile.useQuery(
+  const userProfileQuery = useUserProfile(
     { userId: id || '' },
     { enabled: !!id }
   )
 
   // Fetch user listings
-  const userListingsQuery = trpc.mobile.getUserListings.useQuery({ userId: id || '' })
+  const userListingsQuery = useUserListings({ userId: id || '' })
 
   const isOwnProfile = currentUserId === id
 

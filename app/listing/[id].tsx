@@ -13,7 +13,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import * as Sharing from 'expo-sharing'
-import { trpc } from '@/lib/api/client'
+import { useListingById, useListingComments, useCreateComment, useVoteListing, useUserVote } from '@/lib/api/hooks'
 import { Button, Card } from '@/components/ui'
 import { useAuth } from '@/lib/auth/clerk'
 import type { Comment, CustomFieldValue } from '@/types'

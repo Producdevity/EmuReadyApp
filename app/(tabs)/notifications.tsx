@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { ThemedView } from '@/components/ThemedView'
 import { ThemedText } from '@/components/ThemedText'
 import { useTheme } from '@/contexts/ThemeContext'
-import { trpc } from '@/lib/api/client'
+import { useNotifications, useUnreadNotificationCount, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from '@/lib/api/hooks'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -24,11 +24,11 @@ export default function NotificationsScreen() {
   const [showUnreadOnly, setShowUnreadOnly] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
 
-  const notificationsQuery = trpc.mobile.getNotifications.useQuery({ page: 1, unreadOnly: showUnreadOnly })
-  const unreadCountQuery = trpc.mobile.getUnreadNotificationCount.useQuery()
+  const notificationsQuery = useNotifications({ page: 1, unreadOnly: showUnreadOnly })
+  const unreadCountQuery = useUnreadNotificationCount()
 
-  const markAsReadMutation = trpc.mobile.markNotificationAsRead.useMutation()
-  const markAllAsReadMutation = trpc.mobile.markAllNotificationsAsRead.useMutation()
+  const markAsReadMutation = useMarkNotificationAsRead()
+  const markAllAsReadMutation = useMarkAllNotificationsAsRead()
 
   const onRefresh = async () => {
     setRefreshing(true)
