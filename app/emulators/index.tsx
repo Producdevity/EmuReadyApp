@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { ThemedView } from '@/components/ThemedView'
 import { ThemedText } from '@/components/ThemedText'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useEmulators, useSystems } from '@/lib/api/hooks'
+import { trpc } from '@/lib/api/client'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Card from '@/components/ui/Card'
 import { IconSymbol } from '@/components/ui/IconSymbol'
@@ -24,33 +24,28 @@ export default function EmulatorsScreen() {
   const [selectedSystem, setSelectedSystem] = useState<string | undefined>()
   const [refreshing, setRefreshing] = useState(false)
 
-  const {
-    data: emulators,
-    isLoading: emulatorsLoading,
-    refetch: refetchEmulators,
-    error: emulatorsError,
-  } = useEmulators({ systemId: selectedSystem, search: searchQuery })
-
-  const {
-    data: systems,
-    isLoading: systemsLoading,
-  } = useSystems()
+  const emulatorsQuery = trpc.mobile.getEmulators.useQuery({
+    systemId: selectedSystem,
+    search: searchQuery,
+    limit: 50,
+  })
+  const systemsQuery = trpc.mobile.getSystems.useQuery()
 
   const onRefresh = async () => {
     setRefreshing(true)
-    await refetchEmulators()
+    await emulatorsQuery.refetch()
     setRefreshing(false)
   }
 
   const handleEmulatorPress = (emulatorId: string) => {
-    // Navigate to emulator detail or listings filtered by emulator
-    router.push(`/browse?emulatorId=${emulatorId}`)
+    // Navigate to emulator detail page
+    router.push(`/emulator/${emulatorId}`)
   }
 
-  const filteredEmulators = emulators || []
-  const availableSystems = systems || []
+  const filteredEmulators = emulatorsQuery.data || []
+  const availableSystems = systemsQuery.data || []
 
-  if (emulatorsLoading || systemsLoading) {
+  if (emulatorsQuery.isLoading || systemsQuery.isLoading) {
     return (
       <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <LoadingSpinner size="large" />
@@ -58,7 +53,7 @@ export default function EmulatorsScreen() {
     )
   }
 
-  if (emulatorsError) {
+  if (emulatorsQuery.error) {
     return (
       <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
         <IconSymbol name="exclamationmark.triangle" size={48} color={theme.colors.error} />

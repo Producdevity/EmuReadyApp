@@ -120,6 +120,9 @@ export interface Emulator extends BaseResource {
   name: string
   logo: string | null
   systems: System[]
+  description?: string | null
+  repositoryUrl?: string | null
+  officialUrl?: string | null
   _count?: {
     listings: number
   }

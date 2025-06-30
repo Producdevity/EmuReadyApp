@@ -12,7 +12,7 @@ import {
 import { useAuth } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
 import { Button, Card } from '@/components/ui'
-import { useGames, useDevices, useCreateListing } from '@/lib/api/hooks'
+import { trpc } from '@/lib/api/client'
 import type { Game, Device } from '@/types'
 
 interface FormData {
@@ -36,9 +36,9 @@ export default function CreateScreen() {
     notes: '',
   })
 
-  const { data: games, isLoading: gamesLoading } = useGames({ search: searchQuery })
-  const { data: devices, isLoading: devicesLoading } = useDevices({})
-  const createListingMutation = useCreateListing()
+  const gamesQuery = trpc.mobile.getGames.useQuery({ search: searchQuery })
+  const devicesQuery = trpc.mobile.getDevices.useQuery({})
+  const createListingMutation = trpc.mobile.createListing.useMutation()
 
   const fadeAnim = new Animated.Value(1)
 
@@ -189,10 +189,10 @@ export default function CreateScreen() {
             </View>
 
             <View style={styles.optionsList}>
-              {gamesLoading ? (
+              {gamesQuery.isLoading ? (
                 <Text style={styles.loadingText}>Loading games...</Text>
-              ) : games && games.length > 0 ? (
-                games.slice(0, 10).map((game: Game) => (
+              ) : gamesQuery.data && gamesQuery.data.length > 0 ? (
+                gamesQuery.data.slice(0, 10).map((game: Game) => (
                   <Card
                     key={game.id}
                     style={StyleSheet.flatten([
@@ -230,10 +230,10 @@ export default function CreateScreen() {
             </Text>
 
             <View style={styles.optionsList}>
-              {devicesLoading ? (
+              {devicesQuery.isLoading ? (
                 <Text style={styles.loadingText}>Loading devices...</Text>
-              ) : devices && devices.length > 0 ? (
-                devices.map((device: Device) => (
+              ) : devicesQuery.data && devicesQuery.data.length > 0 ? (
+                devicesQuery.data.map((device: Device) => (
                   <Card
                     key={device.id}
                     style={StyleSheet.flatten([
@@ -380,14 +380,14 @@ export default function CreateScreen() {
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Game:</Text>
                 <Text style={styles.summaryValue}>
-                  {games?.find((g: Game) => g.id === formData.gameId)?.title ||
+                  {gamesQuery.data?.find((g: Game) => g.id === formData.gameId)?.title ||
                     'Selected'}
                 </Text>
               </View>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>Device:</Text>
                 <Text style={styles.summaryValue}>
-                  {devices?.find((d: Device) => d.id === formData.deviceId)
+                  {devicesQuery.data?.find((d: Device) => d.id === formData.deviceId)
                     ?.modelName || 'Selected'}
                 </Text>
               </View>

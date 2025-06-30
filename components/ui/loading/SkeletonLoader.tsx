@@ -1,11 +1,20 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import {
-  Animated,
   StyleSheet,
   View,
   type DimensionValue,
   type ViewStyle,
 } from 'react-native'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withRepeat,
+  withSequence,
+  interpolate,
+} from 'react-native-reanimated'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface SkeletonLoaderProps {
   width?: DimensionValue
@@ -15,47 +24,62 @@ interface SkeletonLoaderProps {
 }
 
 export function SkeletonLoader(props: SkeletonLoaderProps) {
-  const borderRadius = props.borderRadius ?? 4
-  const animatedValue = useRef(new Animated.Value(0)).current
+  const { theme } = useTheme()
+  const borderRadius = props.borderRadius ?? 8
+  const shimmerValue = useSharedValue(0)
 
   useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(animatedValue, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: false,
-        }),
-        Animated.timing(animatedValue, {
-          toValue: 0,
-          duration: 1000,
-          useNativeDriver: false,
-        }),
-      ]),
+    shimmerValue.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 1200 }),
+        withTiming(0, { duration: 1200 })
+      ),
+      -1,
+      false
+    )
+  }, [shimmerValue])
+
+  const shimmerStyle = useAnimatedStyle(() => {
+    const translateX = interpolate(
+      shimmerValue.value,
+      [0, 1],
+      [-200, 200]
     )
 
-    animation.start()
-
-    return () => animation.stop()
-  }, [animatedValue])
-
-  const backgroundColor = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#e5e7eb', '#f3f4f6'],
+    return {
+      transform: [{ translateX }],
+    }
   })
+
+  const baseColor = theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'
+  const highlightColor = theme.isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'
 
   return (
     <View style={[{ width: props.width ?? '100%' }, props.style]}>
-      <Animated.View
+      <View
         style={[
           styles.skeleton,
           {
             height: props.height ?? 20,
             borderRadius,
-            backgroundColor,
+            backgroundColor: baseColor,
+            overflow: 'hidden',
           },
         ]}
-      />
+      >
+        <Animated.View style={[StyleSheet.absoluteFillObject, shimmerStyle]}>
+          <LinearGradient
+            colors={[
+              'transparent',
+              highlightColor,
+              'transparent',
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+        </Animated.View>
+      </View>
     </View>
   )
 }
@@ -78,8 +102,10 @@ export function SkeletonText(props: { lines?: number; style?: ViewStyle }) {
 }
 
 export function SkeletonCard(props: { style?: ViewStyle }) {
+  const { theme } = useTheme()
+  
   return (
-    <View style={[styles.card, props.style]}>
+    <View style={[styles.card, { backgroundColor: theme.colors.card }, props.style]}>
       <View style={styles.cardHeader}>
         <SkeletonLoader width="60%" height={20} />
         <SkeletonLoader width={60} height={24} borderRadius={12} />
@@ -99,8 +125,10 @@ export function SkeletonCard(props: { style?: ViewStyle }) {
 }
 
 export function SkeletonListingCard(props: { style?: ViewStyle }) {
+  const { theme } = useTheme()
+  
   return (
-    <View style={[styles.listingCard, props.style]}>
+    <View style={[styles.listingCard, { backgroundColor: theme.colors.card }, props.style]}>
       <View style={styles.listingHeader}>
         <View style={styles.listingGameInfo}>
           <SkeletonLoader width="80%" height={18} style={{ marginBottom: 4 }} />
@@ -114,7 +142,7 @@ export function SkeletonListingCard(props: { style?: ViewStyle }) {
         <SkeletonLoader width="45%" height={14} />
       </View>
 
-      <View style={styles.listingStats}>
+      <View style={[styles.listingStats, { borderColor: theme.colors.borderLight }]}>
         <View style={styles.statItem}>
           <SkeletonLoader width={30} height={16} style={{ marginBottom: 4 }} />
           <SkeletonLoader width={50} height={12} />
@@ -151,15 +179,9 @@ const styles = StyleSheet.create({
     // No specific styles needed
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -177,15 +199,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   listingCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   listingHeader: {
     flexDirection: 'row',
@@ -208,7 +224,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#f3f4f6',
     marginBottom: 12,
   },
   statItem: {

@@ -1,7 +1,7 @@
 import { SymbolView, type SymbolViewProps, type SymbolWeight } from 'expo-symbols'
 import { type StyleProp, type ViewStyle } from 'react-native'
 
-interface Props {
+interface IconSymbolProps {
   name: SymbolViewProps['name']
   size?: number
   color: string
@@ -9,7 +9,7 @@ interface Props {
   weight?: SymbolWeight
 }
 
-export function IconSymbol(props: Props) {
+export function IconSymbol(props: IconSymbolProps) {
   const size = props.size ?? 24
   return (
     <SymbolView

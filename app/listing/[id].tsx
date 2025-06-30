@@ -13,12 +13,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import * as Sharing from 'expo-sharing'
-import {
-  useListing,
-  useVoteListing,
-  useListingComments,
-  useAddComment,
-} from '@/lib/api/hooks'
+import { trpc } from '@/lib/api/client'
 import { Button, Card } from '@/components/ui'
 import { useAuth } from '@/lib/auth/clerk'
 import type { Comment, CustomFieldValue } from '@/types'
@@ -31,10 +26,10 @@ export default function ListingDetailScreen() {
   const [showCommentForm, setShowCommentForm] = useState(false)
   const fadeAnim = useMemo(() => new Animated.Value(0), [])
 
-  const { data: listing, isLoading, refetch } = useListing({ id: id || '' })
-  const { data: comments, isLoading: commentsLoading } = useListingComments({ listingId: id || '' })
-  const voteMutation = useVoteListing()
-  const addCommentMutation = useAddComment()
+  const listingQuery = trpc.mobile.getListingById.useQuery({ id: id || '' })
+  const commentsQuery = trpc.mobile.getListingComments.useQuery({ listingId: id || '' })
+  const voteMutation = trpc.mobile.voteListing.useMutation()
+  const addCommentMutation = trpc.mobile.createComment.useMutation()
 
   useEffect(() => {
     if (!id) return  // Guard against missing id in effect
@@ -70,7 +65,7 @@ export default function ListingDetailScreen() {
         listingId: id,
         value: type === 'up',
       })
-      refetch()
+      listingQuery.refetch()
     } catch {
       Alert.alert('Error', 'Failed to submit vote. Please try again.')
     }
@@ -94,7 +89,7 @@ export default function ListingDetailScreen() {
       })
       setCommentText('')
       setShowCommentForm(false)
-      refetch()
+      listingQuery.refetch()
     } catch {
       Alert.alert('Error', 'Failed to add comment. Please try again.')
     }
@@ -102,10 +97,10 @@ export default function ListingDetailScreen() {
 
   const handleShare = async () => {
     try {
-      const shareContent = `Check out this ${listing?.game?.title} performance listing on EmuReady!\n\n` +
-        `Device: ${listing?.device?.brand?.name} ${listing?.device?.modelName}\n` +
-        `Emulator: ${listing?.emulator?.name}\n` +
-        `Performance: ${listing?.performance?.label}\n\n` +
+      const shareContent = `Check out this ${listingQuery.data?.game?.title} performance listing on EmuReady!\n\n` +
+        `Device: ${listingQuery.data?.device?.brand?.name} ${listingQuery.data?.device?.modelName}\n` +
+        `Emulator: ${listingQuery.data?.emulator?.name}\n` +
+        `Performance: ${listingQuery.data?.performance?.label}\n\n` +
         `View more details in the EmuReady app!`
 
       if (await Sharing.isAvailableAsync()) {
@@ -122,7 +117,7 @@ export default function ListingDetailScreen() {
     }
   }
 
-  if (isLoading) {
+  if (listingQuery.isLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
@@ -139,7 +134,7 @@ export default function ListingDetailScreen() {
     )
   }
 
-  if (!listing) {
+  if (!listingQuery.data) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
@@ -172,7 +167,7 @@ export default function ListingDetailScreen() {
           <Ionicons name="arrow-back" size={24} color="#111827" />
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {listing.game?.title || 'Listing Details'}
+          {listingQuery.data.game?.title || 'Listing Details'}
         </Text>
         <Pressable onPress={handleShare} style={styles.shareButton}>
           <Ionicons name="share-outline" size={24} color="#111827" />
@@ -185,19 +180,19 @@ export default function ListingDetailScreen() {
       >
         {/* Game Info */}
         <Card style={styles.gameCard} padding="lg">
-          <Text style={styles.gameTitle}>{listing.game?.title}</Text>
-          <Text style={styles.systemName}>{listing.game?.system?.name}</Text>
+          <Text style={styles.gameTitle}>{listingQuery.data.game?.title}</Text>
+          <Text style={styles.systemName}>{listingQuery.data.game?.system?.name}</Text>
 
           <View style={styles.gameDetails}>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Device:</Text>
               <Text style={styles.detailValue}>
-                {listing.device?.brand?.name} {listing.device?.modelName}
+                {listingQuery.data.device?.brand?.name} {listingQuery.data.device?.modelName}
               </Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Emulator:</Text>
-              <Text style={styles.detailValue}>{listing.emulator?.name}</Text>
+              <Text style={styles.detailValue}>{listingQuery.data.emulator?.name}</Text>
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Performance:</Text>
@@ -206,13 +201,13 @@ export default function ListingDetailScreen() {
                   styles.performanceBadge,
                   {
                     backgroundColor: getPerformanceColor(
-                      listing.performance?.rank,
+                      listingQuery.data.performance?.rank,
                     ),
                   },
                 ]}
               >
                 <Text style={styles.performanceText}>
-                  {listing.performance?.label}
+                  {listingQuery.data.performance?.label}
                 </Text>
               </View>
             </View>
@@ -228,13 +223,13 @@ export default function ListingDetailScreen() {
               disabled={voteMutation.isPending}
             >
               <Ionicons name="thumbs-up" size={20} color="#10b981" />
-              <Text style={styles.voteCount}>{listing.upVotes || 0}</Text>
+              <Text style={styles.voteCount}>{listingQuery.data.upVotes || 0}</Text>
             </Pressable>
 
             <View style={styles.votingStats}>
               <Text style={styles.votingLabel}>Community Rating</Text>
               <Text style={styles.votingScore}>
-                {(listing.upVotes || 0) - (listing.downVotes || 0)} points
+                {(listingQuery.data.upVotes || 0) - (listingQuery.data.downVotes || 0)} points
               </Text>
             </View>
 
@@ -244,16 +239,16 @@ export default function ListingDetailScreen() {
               disabled={voteMutation.isPending}
             >
               <Ionicons name="thumbs-down" size={20} color="#ef4444" />
-              <Text style={styles.voteCount}>{listing.downVotes || 0}</Text>
+              <Text style={styles.voteCount}>{listingQuery.data.downVotes || 0}</Text>
             </Pressable>
           </View>
         </Card>
 
         {/* Custom Fields */}
-        {listing.customFieldValues && listing.customFieldValues.length > 0 && (
+        {listingQuery.data.customFieldValues && listingQuery.data.customFieldValues.length > 0 && (
           <Card style={styles.customFieldsCard} padding="md">
             <Text style={styles.sectionTitle}>Configuration Details</Text>
-            {listing.customFieldValues.map((field: CustomFieldValue, index: number) => (
+            {listingQuery.data.customFieldValues.map((field: CustomFieldValue, index: number) => (
               <View key={index} style={styles.customField}>
                 <Text style={styles.customFieldLabel}>
                   {field.customFieldDefinition.label}:
@@ -265,10 +260,10 @@ export default function ListingDetailScreen() {
         )}
 
         {/* Notes */}
-        {listing.notes && (
+        {listingQuery.data.notes && (
           <Card style={styles.notesCard} padding="md">
             <Text style={styles.sectionTitle}>Notes</Text>
-            <Text style={styles.notesText}>{listing.notes}</Text>
+            <Text style={styles.notesText}>{listingQuery.data.notes}</Text>
           </Card>
         )}
 
@@ -276,7 +271,7 @@ export default function ListingDetailScreen() {
         <Card style={styles.commentsCard} padding="md">
           <View style={styles.commentsHeader}>
             <Text style={styles.sectionTitle}>
-              Comments ({comments?.length || 0})
+              Comments ({commentsQuery.data?.length || 0})
             </Text>
             <Button
               title="Add Comment"
@@ -320,14 +315,14 @@ export default function ListingDetailScreen() {
           )}
 
           {/* Comments List */}
-          {commentsLoading ? (
+          {commentsQuery.isLoading ? (
             <View style={styles.loadingSection}>
               <ActivityIndicator size="small" color="#3b82f6" />
               <Text style={styles.loadingText}>Loading comments...</Text>
             </View>
-          ) : comments && comments.length > 0 ? (
+          ) : commentsQuery.data && commentsQuery.data.length > 0 ? (
             <View style={styles.commentsList}>
-              {comments.map((comment: Comment) => (
+              {commentsQuery.data.map((comment: Comment) => (
                 <View key={comment.id} style={styles.comment}>
                   <View style={styles.commentHeader}>
                     <Text style={styles.commentAuthor}>

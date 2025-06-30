@@ -25,6 +25,10 @@ export interface GetEmulatorsInput {
   limit?: number
 }
 
+export interface GetEmulatorByIdInput {
+  id: string
+}
+
 export interface GetDevicesInput {
   search?: string
   brandId?: string
@@ -56,7 +60,7 @@ export interface SearchGamesInput {
 }
 
 export interface GetGameByIdInput {
-  gameId: string
+  id: string
 }
 
 export interface GetListingCommentsInput {

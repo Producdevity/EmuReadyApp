@@ -13,9 +13,13 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
 import Animated, {
-  SlideInRight,
   FadeInUp,
   FadeInDown,
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import * as Sharing from 'expo-sharing'
@@ -23,90 +27,135 @@ import { trpc } from '@/lib/api/client'
 import {
   Button,
   Card,
-  SkeletonListingCard,
   SkeletonLoader,
-  CachedImage,
-  EmptyListings,
+  SkeletonListingCard,
 } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
 import { useTheme } from '@/contexts/ThemeContext'
-import {
-  useScrollHeaderAnimation,
-  useRefreshableQuery,
-  useListAnimation,
-} from '@/hooks'
 import type { Listing } from '@/types'
 
 const HEADER_HEIGHT = 280
 
-export default function GameDetailScreen() {
+export default function DeviceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const { theme } = useTheme()
   const [selectedTab, setSelectedTab] = useState<'overview' | 'listings'>(
     'overview',
   )
+  const [refreshing, setRefreshing] = useState(false)
+  const scrollY = useSharedValue(0)
 
-  // ✅ Direct tRPC usage - no wrapper hooks needed!
-  const gameQuery = trpc.mobile.getGameById.useQuery({ id: id || '' })
+  const deviceQuery = trpc.mobile.getDevices.useQuery(
+    {
+      limit: 100,
+    },
+    {
+      staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+      gcTime: 10 * 60 * 1000,   // Keep in cache for 10 minutes
+    }
+  )
+  const device = deviceQuery.data?.find((d: any) => d.id === id) || null
+
   const listingsQuery = trpc.mobile.getListings.useQuery({
-    gameId: id || '',
     page: 1,
-    limit: 50,
+    limit: 20,
+    deviceId: id || '',
   })
-
-  const { scrollHandler, headerAnimatedStyle } = useScrollHeaderAnimation({
-    headerHeight: HEADER_HEIGHT,
-  })
-
-  const { refreshing, onRefresh } = useRefreshableQuery({
-    queries: [gameQuery.refetch, listingsQuery.refetch],
-  })
-
-  const { getItemAnimation, getHeaderAnimation } = useListAnimation()
 
   const styles = createStyles(theme)
-  const listings = listingsQuery.data?.listings || []
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+    },
+  })
+
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [0, HEADER_HEIGHT / 2, HEADER_HEIGHT],
+      [1, 0.8, 0],
+      Extrapolation.CLAMP,
+    )
+
+    const translateY = interpolate(
+      scrollY.value,
+      [0, HEADER_HEIGHT],
+      [0, -HEADER_HEIGHT / 2],
+      Extrapolation.CLAMP,
+    )
+
+    return {
+      opacity,
+      transform: [{ translateY }],
+    }
+  })
+
+  const onRefresh = async () => {
+    setRefreshing(true)
+    await Promise.all([deviceQuery.refetch(), listingsQuery.refetch()])
+    setRefreshing(false)
+  }
 
   // Guard against missing id parameter
   if (!id) {
     return (
-      <SafeAreaView
-        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        <Text>Invalid game ID</Text>
-        <Button title="Go Back" onPress={() => router.back()} />
-      </SafeAreaView>
+        <StatusBar
+          barStyle={theme.isDark ? 'light-content' : 'dark-content'}
+          backgroundColor="transparent"
+          translucent
+        />
+
+        <LinearGradient
+          colors={
+            theme.isDark
+              ? ['#1e293b', '#0f172a', '#0f172a']
+              : ['#f8fafc', '#ffffff', '#ffffff']
+          }
+          style={styles.gradientBackground}
+        />
+
+        <SafeAreaView
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Text style={{ color: theme.colors.text }}>Invalid device ID</Text>
+          <Button title="Go Back" onPress={() => router.back()} />
+        </SafeAreaView>
+      </View>
     )
   }
 
   const handleShare = async () => {
     try {
       const shareContent =
-        `Check out ${gameQuery.data?.title} on EmuReady!\n\n` +
-        `System: ${gameQuery.data?.system?.name}\n` +
+        `Check out ${device?.modelName} on EmuReady!\n\n` +
+        `Brand: ${device?.brand?.name}\n` +
         `${listings.length} performance listing${listings.length !== 1 ? 's' : ''} available\n\n` +
-        `Discover how well this game runs on different devices and emulators!`
+        `Discover how well games run on this device!`
 
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(shareContent, {
           mimeType: 'text/plain',
-          dialogTitle: 'Share Game',
+          dialogTitle: 'Share Device',
         })
       } else {
         Alert.alert('Share', shareContent)
       }
     } catch (error) {
       console.error('Share error:', error)
-      Alert.alert('Error', 'Failed to share game. Please try again.')
+      Alert.alert('Error', 'Failed to share device. Please try again.')
     }
   }
 
   const handleListingPress = (listingId: string) => {
-    ;(router.push as any)(`/listing/${listingId}`)
+    router.push(`/listing/${listingId}`)
   }
 
-  if (gameQuery.isLoading) {
+  if (deviceQuery.isLoading) {
     return (
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -155,7 +204,7 @@ export default function GameDetailScreen() {
                   height={16}
                   style={{ marginBottom: 24 }}
                 />
-                <SkeletonLoader width="100%" height={200} borderRadius={12} />
+                <SkeletonLoader width="100%" height={120} borderRadius={12} />
               </Card>
             </Animated.View>
 
@@ -170,7 +219,7 @@ export default function GameDetailScreen() {
     )
   }
 
-  if (gameQuery.error || !gameQuery.data) {
+  if (deviceQuery.error || !device) {
     return (
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -211,19 +260,19 @@ export default function GameDetailScreen() {
                 style={{ alignItems: 'center' }}
               >
                 <Ionicons
-                  name="game-controller-outline"
+                  name="hardware-chip-outline"
                   size={64}
                   color={theme.colors.textMuted}
                   style={{ marginBottom: 24 }}
                 />
                 <Text style={[styles.errorTitle, { color: theme.colors.text }]}>
-                  Game Not Found
+                  Device Not Found
                 </Text>
                 <Text
                   style={[styles.errorText, { color: theme.colors.textMuted }]}
                 >
-                  This game may have been removed or you may not have permission
-                  to view it.
+                  This device may have been removed or you may not have
+                  permission to view it.
                 </Text>
                 <Button
                   title="Go Back"
@@ -240,6 +289,8 @@ export default function GameDetailScreen() {
       </View>
     )
   }
+
+  const listings = listingsQuery.data?.listings || []
 
   return (
     <View
@@ -263,7 +314,10 @@ export default function GameDetailScreen() {
 
       {/* Fixed Header */}
       <SafeAreaView>
-        <Animated.View entering={getHeaderAnimation()} style={styles.header}>
+        <Animated.View
+          entering={FadeInDown.delay(100).springify()}
+          style={styles.header}
+        >
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
           </Pressable>
@@ -271,7 +325,7 @@ export default function GameDetailScreen() {
             style={[styles.headerTitle, { color: theme.colors.text }]}
             numberOfLines={1}
           >
-            {gameQuery.data.title}
+            {device.modelName}
           </Text>
           <Pressable onPress={handleShare} style={styles.shareButton}>
             <Ionicons
@@ -305,66 +359,33 @@ export default function GameDetailScreen() {
         >
           <Card variant="glass" padding="lg" style={styles.heroCard}>
             <View style={styles.heroContent}>
-              {gameQuery.data.coverImageUrl || gameQuery.data.boxArtUrl ? (
-                <Animated.View
-                  entering={SlideInRight.delay(300).springify()}
-                  style={styles.gameImageContainer}
-                >
-                  <CachedImage
-                    source={{
-                      uri:
-                        gameQuery.data.coverImageUrl ||
-                        gameQuery.data.boxArtUrl ||
-                        '',
-                    }}
-                    style={styles.gameImage}
-                    resizeMode="cover"
-                    priority="high"
-                    cachePolicy="memory-disk"
-                    blurhash="L6PZfSi_.AyE_3t7t7R**0o#DgR4"
-                    errorPlaceholder={
-                      <View style={styles.placeholderImage}>
-                        <Ionicons
-                          name="game-controller"
-                          size={48}
-                          color={theme.colors.textMuted}
-                        />
-                      </View>
-                    }
-                  />
-                </Animated.View>
-              ) : (
-                <Animated.View
-                  style={styles.placeholderImage}
-                  entering={SlideInRight.delay(300).springify()}
-                >
-                  <Ionicons
-                    name="game-controller"
-                    size={48}
-                    color={theme.colors.textMuted}
-                  />
-                </Animated.View>
-              )}
+              <View style={styles.deviceIcon}>
+                <Ionicons
+                  name="hardware-chip"
+                  size={48}
+                  color={theme.colors.primary}
+                />
+              </View>
 
-              <View style={styles.gameInfo}>
+              <View style={styles.deviceInfo}>
                 <Animated.Text
-                  style={[styles.gameTitle, { color: theme.colors.text }]}
+                  style={[styles.deviceTitle, { color: theme.colors.text }]}
                   entering={FadeInUp.delay(400).springify()}
                 >
-                  {gameQuery.data.title}
+                  {device.modelName}
                 </Animated.Text>
                 <Animated.Text
                   style={[
-                    styles.systemName,
+                    styles.brandName,
                     { color: theme.colors.textSecondary },
                   ]}
                   entering={FadeInUp.delay(500).springify()}
                 >
-                  {gameQuery.data.system?.name}
+                  {device.brand?.name}
                 </Animated.Text>
 
                 <Animated.View
-                  style={styles.gameStats}
+                  style={styles.deviceStats}
                   entering={FadeInUp.delay(600).springify()}
                 >
                   <View
@@ -420,16 +441,12 @@ export default function GameDetailScreen() {
                     <Text
                       style={[styles.statValue, { color: theme.colors.info }]}
                     >
-                      {listings.reduce(
-                        (sum: number, listing: Listing) =>
-                          sum + (listing._count?.comments || 0),
-                        0,
-                      )}
+                      {device.soc ? '1' : '0'}
                     </Text>
                     <Text
                       style={[styles.statLabel, { color: theme.colors.text }]}
                     >
-                      Comments
+                      SoC
                     </Text>
                   </View>
                 </Animated.View>
@@ -506,85 +523,144 @@ export default function GameDetailScreen() {
         {/* Tab Content */}
         {selectedTab === 'overview' ? (
           <View style={styles.tabContent}>
-            {/* System Information */}
-            <Card style={styles.infoCard} padding="md">
-              <Text style={styles.sectionTitle}>System Information</Text>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Platform:</Text>
-                <Text style={styles.infoValue}>
-                  {gameQuery.data.system?.name}
+            {/* Device Information */}
+            <Animated.View entering={FadeInUp.delay(800).springify()}>
+              <Card variant="glass" style={styles.infoCard} padding="lg">
+                <Text
+                  style={[styles.sectionTitle, { color: theme.colors.text }]}
+                >
+                  Device Information
                 </Text>
-              </View>
-              {gameQuery.data.system?.key && (
                 <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>System Key:</Text>
-                  <Text style={styles.infoValue}>
-                    {gameQuery.data.system.key}
+                  <Text
+                    style={[
+                      styles.infoLabel,
+                      { color: theme.colors.textMuted },
+                    ]}
+                  >
+                    Brand:
+                  </Text>
+                  <Text
+                    style={[styles.infoValue, { color: theme.colors.text }]}
+                  >
+                    {device.brand?.name}
                   </Text>
                 </View>
-              )}
-            </Card>
+                <View style={styles.infoRow}>
+                  <Text
+                    style={[
+                      styles.infoLabel,
+                      { color: theme.colors.textMuted },
+                    ]}
+                  >
+                    Model:
+                  </Text>
+                  <Text
+                    style={[styles.infoValue, { color: theme.colors.text }]}
+                  >
+                    {device.modelName}
+                  </Text>
+                </View>
+                {device.soc && (
+                  <>
+                    <View style={styles.infoRow}>
+                      <Text
+                        style={[
+                          styles.infoLabel,
+                          { color: theme.colors.textMuted },
+                        ]}
+                      >
+                        SoC:
+                      </Text>
+                      <Text
+                        style={[styles.infoValue, { color: theme.colors.text }]}
+                      >
+                        {device.soc.manufacturer}{' '}
+                        {device.soc.name}
+                      </Text>
+                    </View>
+                  </>
+                )}
+              </Card>
+            </Animated.View>
 
             {/* Performance Overview */}
             {listings.length > 0 && (
-              <Card style={styles.performanceCard} padding="md">
-                <Text style={styles.sectionTitle}>Performance Overview</Text>
-                <View style={styles.performanceGrid}>
-                  {getPerformanceStats(listings).map((stat, index) => (
-                    <View key={index} style={styles.performanceItem}>
-                      <View
-                        style={[
-                          styles.performanceDot,
-                          { backgroundColor: stat.color },
-                        ]}
-                      />
-                      <Text style={styles.performanceLabel}>{stat.label}</Text>
-                      <Text style={styles.performanceCount}>{stat.count}</Text>
-                    </View>
-                  ))}
-                </View>
-              </Card>
-            )}
-
-            {/* Popular Devices */}
-            {listings.length > 0 && (
-              <Card style={styles.devicesCard} padding="md">
-                <Text style={styles.sectionTitle}>Popular Devices</Text>
-                <View style={styles.devicesList}>
-                  {getPopularDevices(listings)
-                    .slice(0, 5)
-                    .map((device: any, index) => (
-                      <View key={index} style={styles.deviceItem}>
-                        <Text style={styles.deviceName}>
-                          {device.brand} {device.model}
+              <Animated.View entering={FadeInUp.delay(900).springify()}>
+                <Card
+                  variant="glass"
+                  style={styles.performanceCard}
+                  padding="lg"
+                >
+                  <Text
+                    style={[styles.sectionTitle, { color: theme.colors.text }]}
+                  >
+                    Performance Overview
+                  </Text>
+                  <View style={styles.performanceGrid}>
+                    {getPerformanceStats(listings).map((stat, index) => (
+                      <View key={index} style={styles.performanceItem}>
+                        <View
+                          style={[
+                            styles.performanceDot,
+                            { backgroundColor: stat.color },
+                          ]}
+                        />
+                        <Text
+                          style={[
+                            styles.performanceLabel,
+                            { color: theme.colors.text },
+                          ]}
+                        >
+                          {stat.label}
                         </Text>
-                        <Text style={styles.deviceCount}>
-                          {device.count} listings
+                        <Text
+                          style={[
+                            styles.performanceCount,
+                            { color: theme.colors.textMuted },
+                          ]}
+                        >
+                          {stat.count}
                         </Text>
                       </View>
                     ))}
-                </View>
-              </Card>
+                  </View>
+                </Card>
+              </Animated.View>
             )}
 
             {/* Quick Actions */}
-            <Card style={styles.actionsCard} padding="md">
-              <Text style={styles.sectionTitle}>Quick Actions</Text>
-              <View style={styles.actionButtons}>
-                <Button
-                  title="Create Listing"
-                  variant="primary"
-                  onPress={() => router.push('/(tabs)/create')}
-                  style={styles.actionButton}
-                />
-                <Button
-                  title="Browse Similar"
-                  variant="outline"
-                  onPress={() => router.push('/(tabs)/browse')}
-                  style={styles.actionButton}
-                />
-              </View>
-            </Card>
+            <Animated.View entering={FadeInUp.delay(1000).springify()}>
+              <Card variant="glass" style={styles.actionsCard} padding="lg">
+                <Text
+                  style={[styles.sectionTitle, { color: theme.colors.text }]}
+                >
+                  Quick Actions
+                </Text>
+                <View style={styles.actionButtons}>
+                  <Button
+                    title="Create Listing"
+                    variant="gradient"
+                    onPress={() => router.push('/(tabs)/create')}
+                    style={styles.actionButton}
+                    leftIcon={<Ionicons name="add" size={16} color="#ffffff" />}
+                  />
+                  <Button
+                    title="Browse Games"
+                    variant="outline"
+                    onPress={() => router.push('/(tabs)/browse')}
+                    style={styles.actionButton}
+                    leftIcon={
+                      <Ionicons
+                        name="grid"
+                        size={16}
+                        color={theme.colors.primary}
+                      />
+                    }
+                  />
+                </View>
+              </Card>
+            </Animated.View>
           </View>
         ) : (
           <View style={styles.tabContent}>
@@ -606,7 +682,7 @@ export default function GameDetailScreen() {
                 {listings.map((listing: Listing, index: number) => (
                   <Animated.View
                     key={listing.id}
-                    entering={getItemAnimation(index)}
+                    entering={FadeInUp.delay(800 + index * 100).springify()}
                   >
                     <ListingCard
                       listing={listing}
@@ -617,7 +693,36 @@ export default function GameDetailScreen() {
                 ))}
               </View>
             ) : (
-              <EmptyListings onAction={() => router.push('/(tabs)/create')} />
+              <Animated.View entering={FadeInUp.delay(800).springify()}>
+                <Card variant="glass" style={styles.emptyCard} padding="lg">
+                  <Ionicons
+                    name="list-outline"
+                    size={48}
+                    color={theme.colors.textMuted}
+                    style={styles.emptyIcon}
+                  />
+                  <Text
+                    style={[styles.emptyTitle, { color: theme.colors.text }]}
+                  >
+                    No Listings Yet
+                  </Text>
+                  <Text
+                    style={[
+                      styles.emptyText,
+                      { color: theme.colors.textMuted },
+                    ]}
+                  >
+                    Be the first to share your experience with this device!
+                  </Text>
+                  <Button
+                    title="Create First Listing"
+                    variant="gradient"
+                    onPress={() => router.push('/(tabs)/create')}
+                    style={styles.emptyButton}
+                    leftIcon={<Ionicons name="add" size={16} color="#ffffff" />}
+                  />
+                </Card>
+              </Animated.View>
             )}
           </View>
         )}
@@ -631,7 +736,7 @@ export default function GameDetailScreen() {
 
 function getPerformanceStats(listings: any[]) {
   const stats = listings.reduce(
-    (acc, listing) => {
+    (acc: any, listing: any) => {
       const rank = listing.performance?.rank || 0
       const label = listing.performance?.label || 'Unknown'
 
@@ -645,36 +750,17 @@ function getPerformanceStats(listings: any[]) {
   )
 
   return Object.entries(stats)
-    .map(([label, data]: any) => ({
+    .map(([label, data]: [string, any]) => ({
       label,
       count: data.count,
       color: getPerformanceColor(data.rank),
     }))
-    .sort((a: any, b: any) => b.count - a.count)
-}
-
-function getPopularDevices(listings: any[]) {
-  const devices = listings.reduce(
-    (acc, listing) => {
-      const key = `${listing.device?.brand?.name || 'Unknown'} ${listing.device?.modelName || 'Device'}`
-      if (!acc[key]) {
-        acc[key] = {
-          brand: listing.device?.brand?.name || 'Unknown',
-          model: listing.device?.modelName || 'Device',
-          count: 0,
-        }
-      }
-      acc[key].count++
-      return acc
-    },
-    {} as Record<string, { brand: string; model: string; count: number }>,
-  )
-
-  return Object.values(devices).sort((a: any, b: any) => b.count - a.count)
+    .sort((a, b) => b.count - a.count)
 }
 
 function getPerformanceColor(rank: number): string {
-  if (rank >= 4) return '#10b981' // Green for excellent
+  if (rank >= 5) return '#10b981' // Green for perfect
+  if (rank >= 4) return '#3b82f6' // Blue for great
   if (rank >= 3) return '#f59e0b' // Yellow for good
   if (rank >= 2) return '#ef4444' // Red for poor
   return '#6b7280' // Gray for unknown
@@ -711,49 +797,19 @@ const createStyles = (theme: any) =>
       padding: 8,
       marginLeft: -8,
     },
-    headerTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: '#111827',
-      flex: 1,
-      textAlign: 'center',
-      marginHorizontal: 16,
-    },
     shareButton: {
       padding: 8,
       marginRight: -8,
     },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      flex: 1,
+      textAlign: 'center',
+      marginHorizontal: 16,
+    },
     scrollView: {
       flex: 1,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-    },
-    loadingText: {
-      fontSize: 16,
-      color: '#6b7280',
-      marginTop: 12,
-    },
-    errorContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-    },
-    errorTitle: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: '#111827',
-      marginBottom: 8,
-    },
-    errorText: {
-      fontSize: 16,
-      color: '#6b7280',
-      textAlign: 'center',
-      marginBottom: 24,
     },
     heroSection: {
       paddingHorizontal: 20,
@@ -764,61 +820,50 @@ const createStyles = (theme: any) =>
       marginBottom: 24,
     },
     heroContent: {
+      alignItems: 'center',
       gap: 16,
     },
-    gameImageContainer: {
-      width: '100%',
-      height: 200,
-      borderRadius: 12,
-      marginBottom: 16,
-      overflow: 'hidden',
-    },
-    gameImage: {
-      width: '100%',
-      height: 200,
-      borderRadius: 12,
-    },
-    placeholderImage: {
-      width: '100%',
-      height: 200,
-      borderRadius: 12,
-      backgroundColor: '#f3f4f6',
+    deviceIcon: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: theme.colors.primaryLight,
+      alignItems: 'center',
       justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 16,
     },
-    gameInfo: {
+    deviceInfo: {
       alignItems: 'center',
+      gap: 12,
     },
-    gameTitle: {
+    deviceTitle: {
       fontSize: 24,
-      fontWeight: 'bold',
-      color: '#111827',
+      fontWeight: '700',
       textAlign: 'center',
-      marginBottom: 4,
     },
-    systemName: {
+    brandName: {
       fontSize: 16,
-      color: '#6b7280',
-      marginBottom: 16,
+      fontWeight: '500',
     },
-    gameStats: {
+    deviceStats: {
       flexDirection: 'row',
-      justifyContent: 'space-around',
-      width: '100%',
+      gap: 16,
+      marginTop: 8,
     },
     statItem: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 12,
       alignItems: 'center',
+      minWidth: 80,
     },
     statValue: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: '#111827',
+      fontSize: 18,
+      fontWeight: '700',
+      marginBottom: 2,
     },
     statLabel: {
       fontSize: 12,
-      color: '#6b7280',
-      marginTop: 2,
+      fontWeight: '500',
     },
     tabContainer: {
       paddingHorizontal: 20,
@@ -837,28 +882,21 @@ const createStyles = (theme: any) =>
       borderRadius: 8,
       alignItems: 'center',
     },
-    activeTab: {
-      borderBottomWidth: 2,
-      borderBottomColor: '#3b82f6',
-    },
     tabText: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: '500',
-      color: '#6b7280',
-    },
-    activeTabText: {
-      color: '#3b82f6',
+      textAlign: 'center',
     },
     tabContent: {
-      padding: 20,
+      paddingHorizontal: 20,
+      gap: 20,
     },
     infoCard: {
-      marginBottom: 16,
+      gap: 12,
     },
     sectionTitle: {
       fontSize: 18,
-      fontWeight: '600',
-      color: '#111827',
+      fontWeight: '700',
       marginBottom: 12,
     },
     infoRow: {
@@ -866,70 +904,46 @@ const createStyles = (theme: any) =>
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingVertical: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: '#f3f4f6',
     },
     infoLabel: {
       fontSize: 14,
       fontWeight: '500',
-      color: '#374151',
     },
     infoValue: {
       fontSize: 14,
-      color: '#111827',
+      fontWeight: '600',
     },
     performanceCard: {
-      marginBottom: 16,
+      gap: 12,
     },
     performanceGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: 12,
     },
     performanceItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingVertical: 8,
+      gap: 8,
+      flex: 1,
+      minWidth: 120,
     },
     performanceDot: {
       width: 12,
       height: 12,
       borderRadius: 6,
-      marginRight: 12,
     },
     performanceLabel: {
       fontSize: 14,
-      color: '#374151',
+      fontWeight: '500',
       flex: 1,
     },
     performanceCount: {
       fontSize: 14,
       fontWeight: '600',
-      color: '#111827',
-    },
-    devicesCard: {
-      marginBottom: 16,
-    },
-    devicesList: {
-      gap: 12,
-    },
-    deviceItem: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: '#f3f4f6',
-    },
-    deviceName: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: '#111827',
-    },
-    deviceCount: {
-      fontSize: 12,
-      color: '#6b7280',
     },
     actionsCard: {
-      marginBottom: 16,
+      gap: 12,
     },
     actionButtons: {
       gap: 12,
@@ -938,11 +952,7 @@ const createStyles = (theme: any) =>
       width: '100%',
     },
     loadingSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 40,
-      gap: 8,
+      paddingVertical: 20,
     },
     listingsContainer: {
       gap: 16,
@@ -960,12 +970,10 @@ const createStyles = (theme: any) =>
     emptyTitle: {
       fontSize: 18,
       fontWeight: '600',
-      color: '#111827',
       marginBottom: 8,
     },
     emptyText: {
       fontSize: 14,
-      color: '#6b7280',
       textAlign: 'center',
       marginBottom: 24,
     },
@@ -974,5 +982,23 @@ const createStyles = (theme: any) =>
     },
     bottomSpacing: {
       height: 20,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+    },
+    errorTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    errorText: {
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 24,
+      lineHeight: 20,
     },
   })

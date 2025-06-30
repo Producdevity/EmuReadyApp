@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { ThemedView } from '@/components/ThemedView'
 import { ThemedText } from '@/components/ThemedText'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useDevices, useDeviceBrands } from '@/lib/api/hooks'
+import { trpc } from '@/lib/api/client'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Card from '@/components/ui/Card'
 import { IconSymbol } from '@/components/ui/IconSymbol'
@@ -24,33 +24,28 @@ export default function DevicesScreen() {
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>()
   const [refreshing, setRefreshing] = useState(false)
 
-  const {
-    data: devices,
-    isLoading: devicesLoading,
-    refetch: refetchDevices,
-    error: devicesError,
-  } = useDevices({ search: searchQuery, brandId: selectedBrand })
-
-  const {
-    data: brands,
-    isLoading: brandsLoading,
-  } = useDeviceBrands()
+  const devicesQuery = trpc.mobile.getDevices.useQuery({
+    search: searchQuery,
+    brandId: selectedBrand,
+    limit: 50,
+  })
+  const brandsQuery = trpc.mobile.getDeviceBrands.useQuery()
 
   const onRefresh = async () => {
     setRefreshing(true)
-    await refetchDevices()
+    await devicesQuery.refetch()
     setRefreshing(false)
   }
 
   const handleDevicePress = (deviceId: string) => {
-    // Navigate to device detail or listings filtered by device
-    router.push(`/browse?deviceId=${deviceId}`)
+    // Navigate to device detail page
+    router.push(`/device/${deviceId}`)
   }
 
-  const filteredDevices = devices || []
-  const deviceBrands = brands || []
+  const filteredDevices = devicesQuery.data || []
+  const deviceBrands = brandsQuery.data || []
 
-  if (devicesLoading || brandsLoading) {
+  if (devicesQuery.isLoading || brandsQuery.isLoading) {
     return (
       <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <LoadingSpinner size="large" />
@@ -58,7 +53,7 @@ export default function DevicesScreen() {
     )
   }
 
-  if (devicesError) {
+  if (devicesQuery.error) {
     return (
       <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
         <IconSymbol name="exclamationmark.triangle" size={48} color={theme.colors.error} />

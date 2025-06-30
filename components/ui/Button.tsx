@@ -31,6 +31,8 @@ interface ButtonProps {
   textStyle?: TextStyle
   fullWidth?: boolean
   hapticFeedback?: boolean
+  accessibilityLabel?: string
+  accessibilityHint?: string
 }
 
 const AnimatedTouchableOpacity =
@@ -49,6 +51,8 @@ export default function Button({
   textStyle,
   fullWidth = false,
   hapticFeedback = true,
+  accessibilityLabel,
+  accessibilityHint,
 }: ButtonProps) {
   const { theme } = useTheme()
   const scale = useSharedValue(1)
@@ -66,21 +70,21 @@ export default function Button({
 
   const handlePressIn = () => {
     if (!disabled && !loading) {
-      scale.value = withSpring(0.96, {
-        damping: 20,
-        stiffness: 400,
+      scale.value = withSpring(0.95, {
+        damping: 15,
+        stiffness: 350,
       })
-      backgroundOpacity.value = withTiming(0.8, { duration: 100 })
+      backgroundOpacity.value = withTiming(0.85, { duration: 120 })
     }
   }
 
   const handlePressOut = () => {
     if (!disabled && !loading) {
       scale.value = withSpring(1, {
-        damping: 20,
-        stiffness: 400,
+        damping: 15,
+        stiffness: 350,
       })
-      backgroundOpacity.value = withTiming(1, { duration: 100 })
+      backgroundOpacity.value = withTiming(1, { duration: 150 })
     }
   }
 
@@ -222,6 +226,10 @@ export default function Button({
         onPressOut={handlePressOut}
         disabled={disabled || loading}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel || title}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled: disabled || loading }}
       >
         <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
           <LinearGradient
@@ -249,6 +257,10 @@ export default function Button({
       onPressOut={handlePressOut}
       disabled={disabled || loading}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || title}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: disabled || loading }}
     >
       {renderContent()}
     </AnimatedTouchableOpacity>

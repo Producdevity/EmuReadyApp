@@ -27,6 +27,9 @@ interface CardProps {
   elevation?: number
   borderRadius?: number
   disabled?: boolean
+  accessibilityLabel?: string
+  accessibilityHint?: string
+  accessibilityRole?: 'button' | 'none'
 }
 
 export default function Card({
@@ -40,6 +43,9 @@ export default function Card({
   elevation = 2,
   borderRadius,
   disabled = false,
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityRole,
 }: CardProps) {
   const { theme } = useTheme()
   const scale = useSharedValue(1)
@@ -178,6 +184,10 @@ export default function Card({
         activeOpacity={1}
         disabled={disabled}
         style={{ opacity: disabled ? 0.5 : 1 }}
+        accessibilityRole={accessibilityRole || 'button'}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled }}
       >
         {renderCardContent()}
       </TouchableOpacity>

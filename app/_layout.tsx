@@ -24,6 +24,7 @@ import {
 } from '@/lib/auth/clerk'
 import { useTheme, ThemeProvider } from '@/contexts/ThemeContext'
 import { useGamepadEventHandler } from '@/hooks/useGamepadNavigation'
+import ErrorBoundary from '@/components/ErrorBoundary'
 
 function AppContent() {
   const { getAuthToken } = useAuthHelpers()
@@ -54,18 +55,20 @@ function AppContent() {
   const navigationTheme = theme.isDark ? DarkTheme : DefaultTheme
 
   return (
-    <NavigationThemeProvider value={navigationTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)/sign-in" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)/sign-up" options={{ headerShown: false }} />
-        <Stack.Screen name="listing/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="game/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="user/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style={theme.isDark ? 'light' : 'dark'} />
-    </NavigationThemeProvider>
+    <ErrorBoundary>
+      <NavigationThemeProvider value={navigationTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)/sign-in" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)/sign-up" options={{ headerShown: false }} />
+          <Stack.Screen name="listing/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="game/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="user/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style={theme.isDark ? 'light' : 'dark'} />
+      </NavigationThemeProvider>
+    </ErrorBoundary>
   )
 }
 

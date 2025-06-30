@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
-import { Home, Search, Plus, User } from 'lucide-react-native'
+import { Home, Search, Plus, Bell, User } from 'lucide-react-native'
 import { useTheme } from '@/contexts/ThemeContext'
 
 interface TabBarProps {
@@ -53,6 +53,8 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
         return <Search color={color} size={size} strokeWidth={2.5} />
       case 'create':
         return <Plus color={color} size={size} strokeWidth={3} />
+      case 'notifications':
+        return <Bell color={color} size={size} strokeWidth={2.5} />
       case 'profile':
         return <User color={color} size={size} strokeWidth={2.5} />
       default:
@@ -139,7 +141,7 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
         <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
           <LinearGradient
             colors={route.name === 'create' 
-              ? [theme.colors.secondary, `${theme.colors.secondary}dd`] 
+              ? [theme.colors.accent, `${theme.colors.accent}dd`] 
               : [theme.colors.primary, theme.colors.primaryDark]
             }
             style={styles.gradientBackground}
@@ -182,7 +184,7 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: TabBa
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       {/* Blur background */}
       <BlurView
-        intensity={80}
+        intensity={100}
         tint={theme.isDark ? 'dark' : 'light'}
         style={StyleSheet.absoluteFillObject}
       />
@@ -190,8 +192,8 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: TabBa
       {/* Gradient overlay */}
       <LinearGradient
         colors={theme.isDark 
-          ? ['rgba(17, 24, 39, 0.95)', 'rgba(31, 41, 55, 0.98)']
-          : ['rgba(255, 255, 255, 0.95)', 'rgba(248, 250, 252, 0.98)']
+          ? ['rgba(15, 23, 42, 0.97)', 'rgba(30, 41, 59, 0.99)']
+          : ['rgba(255, 255, 255, 0.97)', 'rgba(248, 250, 252, 0.99)']
         }
         style={StyleSheet.absoluteFillObject}
       />
@@ -245,7 +247,12 @@ const styles = StyleSheet.create({
     height: Platform.OS === 'ios' ? 82 : 72,
     overflow: 'hidden',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
   },
   tabsContainer: {
     flex: 1,

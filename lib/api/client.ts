@@ -1,13 +1,23 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createTRPCReact } from '@trpc/react-query'
-import { createTRPCClient, httpBatchLink } from '@trpc/client'
+import { createTRPCClient, httpBatchLink, TRPCLink } from '@trpc/client'
+import { observable } from '@trpc/server/observable'
 import { Platform } from 'react-native'
 import 'react-native-url-polyfill/auto'
 import { CONFIG } from '@/lib/constants/config'
 
-// Create tRPC client (using any for runtime compatibility)
-// Type safety is provided through wrapper hooks in ./hooks.ts
-export const trpc = createTRPCReact() as any
+// Import type augmentations
+import './trpc-types'
+
+// Create tRPC client - we'll cast to any for mobile router access
+const _trpc = createTRPCReact<any>()
+
+// Export with typed mobile router
+export const trpc: {
+  mobile: import('./trpc-types').TRPCMobileRouter
+  Provider: any
+  createClient: any
+} = _trpc as any
 
 // Create React Query client with mobile-optimized settings
 export const queryClient = new QueryClient({
@@ -60,11 +70,40 @@ export const checkApiAvailability = async (): Promise<boolean> => {
   }
 }
 
+// Custom link to unwrap .json responses
+const jsonUnwrapLink: TRPCLink<any> = () => {
+  return ({ next, op }) => {
+    return observable((observer) => {
+      const unsubscribe = next(op).subscribe({
+        next(value) {
+          // Check if the result has a .json wrapper and unwrap it
+          const data = value?.result?.data as any
+          if (data && typeof data === 'object' && 'json' in data) {
+            observer.next({
+              ...value,
+              result: {
+                ...value.result,
+                data: data.json,
+              },
+            })
+          } else {
+            observer.next(value)
+          }
+        },
+        error: observer.error,
+        complete: observer.complete,
+      })
+      return unsubscribe
+    })
+  }
+}
+
 // Create tRPC client configuration
 const getTRPCClientConfig = () => ({
   links: [
+    jsonUnwrapLink,
     httpBatchLink({
-      url: `${CONFIG.API_URL}/api/mobile/trpc`,
+      url: `${CONFIG.API_URL}/api/trpc`,
       async headers() {
         const token = getAuthToken ? await getAuthToken() : null
         return {
@@ -86,10 +125,10 @@ const getTRPCClientConfig = () => ({
 })
 
 // Create the standalone tRPC client for direct calls
-export const standaloneClient = createTRPCClient(getTRPCClientConfig()) as any
+export const standaloneClient = createTRPCClient<any>(getTRPCClientConfig())
 
 // Create client factory for React Provider
-export const createMobileTRPCClient = () => standaloneClient
+export const createMobileTRPCClient = () => (_trpc as any).createClient(getTRPCClientConfig())
 
 // HTTP client for direct API calls (fallback)
 export const httpClient = {

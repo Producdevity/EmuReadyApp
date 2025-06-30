@@ -10,11 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { ThemedView } from '@/components/ThemedView'
 import { ThemedText } from '@/components/ThemedText'
 import { useTheme } from '@/contexts/ThemeContext'
-import {
-  useNotifications,
-  useMarkNotificationRead,
-  useMarkAllNotificationsRead
-} from '@/lib/api/hooks'
+import { trpc } from '@/lib/api/client'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -28,19 +24,15 @@ export default function NotificationsScreen() {
   const [showUnreadOnly, setShowUnreadOnly] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
 
-  const {
-    data: notificationsData,
-    isLoading,
-    error,
-    refetch,
-  } = useNotifications({ page: 1, unreadOnly: showUnreadOnly })
+  const notificationsQuery = trpc.mobile.getNotifications.useQuery({ page: 1, unreadOnly: showUnreadOnly })
+  const unreadCountQuery = trpc.mobile.getUnreadNotificationCount.useQuery()
 
-  const markAsReadMutation = useMarkNotificationRead()
-  const markAllAsReadMutation = useMarkAllNotificationsRead()
+  const markAsReadMutation = trpc.mobile.markNotificationAsRead.useMutation()
+  const markAllAsReadMutation = trpc.mobile.markAllNotificationsAsRead.useMutation()
 
   const onRefresh = async () => {
     setRefreshing(true)
-    await refetch()
+    await Promise.all([notificationsQuery.refetch(), unreadCountQuery.refetch()])
     setRefreshing(false)
   }
 
@@ -50,7 +42,7 @@ export default function NotificationsScreen() {
         await markAsReadMutation.mutateAsync({
           notificationId: notification.id,
         })
-        refetch()
+        notificationsQuery.refetch()
       } catch (err) {
         console.error('Failed to mark notification as read:', err)
       }
@@ -73,7 +65,7 @@ export default function NotificationsScreen() {
           onPress: async () => {
             try {
               await markAllAsReadMutation.mutateAsync()
-              refetch()
+              notificationsQuery.refetch()
             } catch (err) {
               console.error(err)
               Alert.alert('Error', 'Failed to mark all notifications as read')
@@ -136,7 +128,7 @@ export default function NotificationsScreen() {
     return notificationDate.toLocaleDateString()
   }
 
-  if (isLoading) {
+  if (notificationsQuery.isLoading) {
     return (
       <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <LoadingSpinner size="large" />
@@ -144,7 +136,7 @@ export default function NotificationsScreen() {
     )
   }
 
-  if (error) {
+  if (notificationsQuery.error) {
     return (
       <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
         <IconSymbol name="exclamationmark.triangle" size={48} color={theme.colors.error} />
@@ -153,15 +145,15 @@ export default function NotificationsScreen() {
         </ThemedText>
         <Button
           title="Try Again"
-          onPress={() => refetch()}
+          onPress={() => notificationsQuery.refetch()}
           style={{ marginTop: 16 }}
         />
       </ThemedView>
     )
   }
 
-  const notifications = (notificationsData?.notifications || []) as unknown as ApiNotification[]
-  const unreadCount = notifications.filter((n) => !n.isRead).length
+  const notifications = (notificationsQuery.data?.notifications || []) as unknown as ApiNotification[]
+  const localUnreadCount = notifications.filter((n) => !n.isRead).length
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -202,7 +194,7 @@ export default function NotificationsScreen() {
               </ThemedText>
             </TouchableOpacity>
 
-            {unreadCount > 0 && (
+            {(unreadCountQuery.data ?? localUnreadCount) > 0 && (
               <Button
                 title="Mark All Read"
                 onPress={handleMarkAllAsRead}

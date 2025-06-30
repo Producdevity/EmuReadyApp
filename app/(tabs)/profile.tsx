@@ -14,7 +14,7 @@ import { useAuth } from '@clerk/clerk-expo'
 import { Ionicons } from '@expo/vector-icons'
 import { Card, Button } from '../../components/ui'
 import { ListingCard } from '@/components/cards'
-import { useListings, useMe } from '@/lib/api/hooks'
+import { trpc } from '@/lib/api/client'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
 
@@ -32,19 +32,17 @@ export default function ProfileScreen() {
   const styles = createStyles(theme)
 
   // Only fetch user data and listings when authenticated
-  const { data: currentUser, isLoading: userLoading, error: userError } = useMe()
-  const { 
-    data: userListingsData, 
-    isLoading: listingsLoading 
-  } = useListings({
+  const currentUserQuery = trpc.mobile.me.useQuery()
+  const _unreadCountQuery = trpc.mobile.getUnreadNotificationCount.useQuery()
+  const userListingsQuery = trpc.mobile.getListings.useQuery({
     page: 1,
     limit: 50,
   })
 
   // Filter listings to show only user's listings when authenticated
-  const userListings = isSignedIn && currentUser 
-    ? userListingsData?.listings?.filter(
-        (listing: Listing) => listing.author?.id === currentUser.id,
+  const userListings = isSignedIn && currentUserQuery.data 
+    ? userListingsQuery.data?.listings?.filter(
+        (listing: Listing) => listing.author?.id === currentUserQuery.data?.id,
       ) || []
     : []
 
@@ -77,8 +75,7 @@ export default function ProfileScreen() {
       [
         { text: 'Cancel' },
         { text: 'Sign In', onPress: () => {
-          // TODO: Navigate to sign in screen
-          console.log('Navigate to sign in')
+          router.push('/(auth)/sign-in')
         }}
       ]
     )
@@ -92,8 +89,7 @@ export default function ProfileScreen() {
       [
         { text: 'Cancel' },
         { text: 'Sign Up', onPress: () => {
-          // TODO: Navigate to sign up screen
-          console.log('Navigate to sign up')
+          router.push('/(auth)/sign-up')
         }}
       ]
     )
@@ -186,7 +182,7 @@ export default function ProfileScreen() {
   }
 
   // Show loading state while fetching user data
-  if (userLoading) {
+  if (currentUserQuery.isLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
@@ -198,7 +194,7 @@ export default function ProfileScreen() {
   }
 
   // Show error state if user data failed to load
-  if (userError || !currentUser) {
+  if (currentUserQuery.error || !currentUserQuery.data) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
@@ -214,7 +210,9 @@ export default function ProfileScreen() {
           <Button
             title="Try Again"
             variant="primary"
-            onPress={() => window.location.reload()}
+            onPress={async () => {
+              await Promise.all([currentUserQuery.refetch(), userListingsQuery.refetch()])
+            }}
             style={styles.retryButton}
           />
         </View>
@@ -227,7 +225,7 @@ export default function ProfileScreen() {
       case 'listings':
         return (
           <View style={styles.tabContent}>
-            {listingsLoading ? (
+            {userListingsQuery.isLoading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={theme.colors.primary} />
                 <Text style={styles.loadingText}>Loading your listings...</Text>
@@ -343,10 +341,10 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.profileDetails}>
               <Text style={styles.profileName}>
-                {currentUser.name}
+                {currentUserQuery.data.name}
               </Text>
               <Text style={styles.profileEmail}>
-                {currentUser.email}
+                {currentUserQuery.data.email}
               </Text>
               <Text style={styles.profileStats}>
                 {userListings.length} listing

@@ -192,7 +192,7 @@ const GamepadTabButton = ({
         <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
           <LinearGradient
             colors={route.name === 'create'
-              ? [theme.colors.secondary, `${theme.colors.secondary}dd`]
+              ? [theme.colors.accent, `${theme.colors.accent}dd`]
               : [theme.colors.primary, theme.colors.primaryDark]
             }
             style={styles.gradientBackground}
@@ -252,8 +252,8 @@ export default function GamepadTabBar({ state, descriptors, navigation }: Gamepa
       {/* Gradient overlay */}
       <LinearGradient
         colors={theme.isDark
-          ? ['rgba(17, 24, 39, 0.95)', 'rgba(31, 41, 55, 0.98)']
-          : ['rgba(255, 255, 255, 0.95)', 'rgba(248, 250, 252, 0.98)']
+          ? ['rgba(15, 23, 42, 0.97)', 'rgba(30, 41, 59, 0.99)']
+          : ['rgba(255, 255, 255, 0.97)', 'rgba(248, 250, 252, 0.99)']
         }
         style={StyleSheet.absoluteFillObject}
       />

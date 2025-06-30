@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   SafeAreaView,
   ScrollView,
@@ -6,15 +6,28 @@ import {
   Text,
   TextInput,
   View,
-  ActivityIndicator,
-  Animated,
   RefreshControl,
+  StatusBar,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { LinearGradient } from 'expo-linear-gradient'
+import Animated, {
+  FadeInUp,
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
-import { Card, Button, SearchSuggestions } from '@/components/ui'
+import {
+  Card,
+  Button,
+  SearchSuggestions,
+  SkeletonListingCard,
+} from '@/components/ui'
 import { ListingCard } from '@/components/cards'
-import { useListings, useSystems } from '@/lib/api/hooks'
+import { trpc } from '@/lib/api/client'
 import { useTheme } from '@/contexts/ThemeContext'
 import { appStorage } from '@/lib/storage'
 import type { Listing, System } from '@/types'
@@ -38,47 +51,48 @@ export default function BrowseScreen() {
     sortBy: 'newest',
   })
   const [showFilters, setShowFilters] = useState(false)
-  const [searchTimeout, setSearchTimeout] = useState<number | null>(null)
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
 
-  const fadeAnim = new Animated.Value(1)
+  const filtersOpacity = useSharedValue(0)
+  const filtersHeight = useSharedValue(0)
 
   // API calls
-  const {
-    data: listingsData,
-    isLoading,
-    error,
-    refetch,
-  } = useListings({
-    gameId: undefined,
-    systemId: filters.systemId || undefined,
-    deviceId: filters.deviceId || undefined,
-    page: 1,
-    limit: 20,
+  const listingsQuery = trpc.mobile.getListings.useQuery({
+    gameId:     undefined,
+    systemId:   filters.systemId || undefined,
+    deviceId:   filters.deviceId || undefined,
+    emulatorId: undefined,
+    page:       1,
+    limit:      50,
   })
-  const { data: systems } = useSystems()
+  const systemsQuery = trpc.mobile.getSystems.useQuery()
+  const suggestionsQuery = trpc.mobile.getSearchSuggestions.useQuery(
+    { query: debouncedQuery, limit: 10 },
+    { enabled: debouncedQuery.length > 0 }
+  )
 
-  const listings = listingsData?.listings || []
+  const listings = listingsQuery.data?.listings || []
 
   // Debounced search
   useEffect(() => {
-    if (searchTimeout) {
-      clearTimeout(searchTimeout)
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
     }
 
-    const timeout = setTimeout(() => {
+    searchTimeoutRef.current = setTimeout(() => {
       setDebouncedQuery(filters.query)
     }, 500)
 
-    setSearchTimeout(timeout as unknown as number)
-
     return () => {
-      if (timeout) clearTimeout(timeout)
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
     }
-  }, [filters.query, searchTimeout])
+  }, [filters.query])
 
   // Load recent searches on mount
   useEffect(() => {
@@ -149,18 +163,27 @@ export default function BrowseScreen() {
   }
 
   const toggleFilters = () => {
-    setShowFilters(!showFilters)
-    Animated.timing(fadeAnim, {
-      toValue: showFilters ? 1 : 0.3,
-      duration: 200,
-      useNativeDriver: true,
-    }).start()
+    const newState = !showFilters
+    setShowFilters(newState)
+
+    if (newState) {
+      filtersOpacity.value = withTiming(1, { duration: 300 })
+      filtersHeight.value = withSpring(1, { damping: 15, stiffness: 150 })
+    } else {
+      filtersOpacity.value = withTiming(0, { duration: 200 })
+      filtersHeight.value = withTiming(0, { duration: 200 })
+    }
   }
+
+  const filtersAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: filtersOpacity.value,
+    transform: [{ scaleY: filtersHeight.value }],
+  }))
 
   const handleRefresh = async () => {
     setRefreshing(true)
     try {
-      await refetch()
+      await listingsQuery.refetch()
     } catch (error) {
       console.error('Error refreshing listings:', error)
     } finally {
@@ -210,21 +233,41 @@ export default function BrowseScreen() {
     { rank: 4, label: 'Great', color: theme.colors.performance.great },
     { rank: 3, label: 'Good', color: theme.colors.performance.good },
     { rank: 2, label: 'Poor', color: theme.colors.performance.poor },
-    { rank: 1, label: 'Unplayable', color: theme.colors.performance.unplayable },
+    {
+      rank: 1,
+      label: 'Unplayable',
+      color: theme.colors.performance.unplayable,
+    },
   ]
 
   const sortOptions = [
     { value: 'newest', label: 'Newest First' },
     { value: 'oldest', label: 'Oldest First' },
     { value: 'rating', label: 'Highest Rated' },
-    { value: 'performance', label: 'Best Performance' },
+    { value: 'performance', label: 'Best Performing' },
   ]
 
   // Create themed styles
   const styles = createStyles(theme)
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      <StatusBar
+        barStyle={theme.isDark ? 'light-content' : 'dark-content'}
+        backgroundColor="transparent"
+        translucent
+      />
+
+      {/* Gradient Background */}
+      <LinearGradient
+        colors={
+          theme.isDark
+            ? ['#1e293b', '#0f172a', '#0f172a']
+            : ['#f8fafc', '#ffffff', '#ffffff']
+        }
+        style={styles.gradientBackground}
+      />
+
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -232,81 +275,94 @@ export default function BrowseScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#3b82f6']}
-            tintColor="#3b82f6"
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
           />
         }
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Browse Listings</Text>
-          <Text style={styles.subtitle}>
-            Find performance data for your favorite games
-          </Text>
-        </View>
+        <SafeAreaView>
+          <Animated.View
+            entering={FadeInDown.delay(100).springify()}
+            style={styles.header}
+          >
+            <Text style={styles.title}>Browse Listings</Text>
+            <Text style={styles.subtitle}>
+              Find performance data for your favorite games
+            </Text>
+          </Animated.View>
+        </SafeAreaView>
 
         {/* Search Bar */}
-        <Card style={styles.searchCard} padding="md">
-          <View style={styles.searchContainer}>
-            <Ionicons
-              name="search"
-              size={20}
-              color="#9ca3af"
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search games, systems, or devices..."
-              value={filters.query}
-              onChangeText={(text) => handleFilterChange('query', text)}
-              onFocus={handleSearchFocus}
-              onBlur={handleSearchBlur}
-              onSubmitEditing={() => {
-                if (filters.query.trim()) {
-                  saveSearchToHistory(filters.query.trim())
-                  setShowSuggestions(false)
+        <Animated.View entering={FadeInUp.delay(200).springify()}>
+          <Card variant="glass" style={styles.searchCard} padding="md">
+            <View style={styles.searchContainer}>
+              <Ionicons
+                name="search"
+                size={20}
+                color={theme.colors.textMuted}
+                style={styles.searchIcon}
+              />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search games, systems, or devices..."
+                value={filters.query}
+                onChangeText={(text) => handleFilterChange('query', text)}
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                onSubmitEditing={() => {
+                  if (filters.query.trim()) {
+                    saveSearchToHistory(filters.query.trim())
+                    setShowSuggestions(false)
+                  }
+                }}
+                placeholderTextColor={theme.colors.textMuted}
+              />
+              <Button
+                title="Filters"
+                variant={showFilters ? 'primary' : 'outline'}
+                size="sm"
+                onPress={toggleFilters}
+                rightIcon={
+                  <Ionicons
+                    name="filter"
+                    size={16}
+                    color={showFilters ? '#ffffff' : theme.colors.primary}
+                  />
                 }
-              }}
-              placeholderTextColor={theme.colors.textMuted}
-            />
-            <Button
-              title="Filters"
-              variant={showFilters ? 'primary' : 'outline'}
-              size="sm"
-              onPress={toggleFilters}
-              rightIcon={
-                <Ionicons
-                  name="filter"
-                  size={16}
-                  color={showFilters ? '#ffffff' : '#374151'}
-                />
-              }
-            />
-          </View>
-        </Card>
+              />
+            </View>
+          </Card>
+        </Animated.View>
 
         {/* Search Suggestions */}
         <SearchSuggestions
           visible={
             showSuggestions &&
-            (recentSearches.length > 0 || filters.query.length === 0)
+            (recentSearches.length > 0 || filters.query.length === 0 || (suggestionsQuery.data?.length ?? 0) > 0)
           }
           recentSearches={recentSearches}
-          popularSuggestions={[
-            'Super Mario',
-            'Zelda',
-            'Pokemon',
-            'Final Fantasy',
-            'Sonic',
-          ]}
+          popularSuggestions={
+            suggestionsQuery.data?.map(s => s.title || '') || [
+              'Super Mario',
+              'Zelda',
+              'Pokemon',
+              'Final Fantasy',
+              'Sonic',
+            ]
+          }
           onSuggestionPress={handleSuggestionPress}
           onClearHistory={handleClearHistory}
         />
 
         {/* Filters Panel */}
         {showFilters && (
-          <Animated.View style={[styles.filtersPanel, { opacity: fadeAnim }]}>
-            <Card padding="md">
+          <Animated.View
+            style={[styles.filtersPanel, filtersAnimatedStyle]}
+            entering={FadeInUp.delay(100).springify()}
+          >
+            <Card variant="glass" padding="md">
               <View style={styles.filtersHeader}>
                 <Text style={styles.filtersTitle}>Filters</Text>
                 <Button
@@ -332,7 +388,7 @@ export default function BrowseScreen() {
                     >
                       <Text style={styles.filterOptionText}>All</Text>
                     </Card>
-                    {systems?.map((system: System) => (
+                    {systemsQuery.data?.map((system: System) => (
                       <Card
                         key={system.id}
                         style={StyleSheet.flatten([
@@ -409,7 +465,7 @@ export default function BrowseScreen() {
                     <Card
                       key={option.value}
                       style={StyleSheet.flatten([
-                        styles.sortOption,
+                        styles.filterOption,
                         filters.sortBy === option.value &&
                           styles.filterOptionSelected,
                       ])}
@@ -437,62 +493,89 @@ export default function BrowseScreen() {
               <Text style={styles.resultsSubtitle}>
                 {filters.query && `"${filters.query}"`}
                 {filters.systemId &&
-                  ` in ${systems?.find((s: System) => s.id === filters.systemId)?.name}`}
+                  ` in ${systemsQuery.data?.find((s: System) => s.id === filters.systemId)?.name}`}
                 {filters.performanceRank &&
                   ` with ${performanceOptions.find((p) => p.rank === filters.performanceRank)?.label} performance`}
               </Text>
             )}
           </View>
 
-          {isLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#3b82f6" />
-              <Text style={styles.loadingText}>Loading listings...</Text>
-            </View>
-          ) : error ? (
-            <Card style={styles.errorCard} padding="md">
-              <Text style={styles.errorTitle}>Unable to Load Listings</Text>
-              <Text style={styles.errorText}>
-                Please check your connection and try again.
-              </Text>
-              <Button
-                title="Retry"
-                variant="primary"
-                onPress={() => refetch()}
-                style={styles.retryButton}
-              />
-            </Card>
+          {listingsQuery.isLoading ? (
+            <Animated.View
+              entering={FadeInUp.delay(400).springify()}
+              style={styles.loadingContainer}
+            >
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Animated.View
+                  key={index}
+                  entering={FadeInUp.delay(500 + index * 100).springify()}
+                  style={{ marginBottom: 16 }}
+                >
+                  <SkeletonListingCard />
+                </Animated.View>
+              ))}
+            </Animated.View>
+          ) : listingsQuery.error && sortedListings.length === 0 ? (
+            <Animated.View entering={FadeInUp.delay(300).springify()}>
+              <Card variant="glass" style={styles.errorCard} padding="lg">
+                <Ionicons
+                  name="cloud-offline"
+                  size={48}
+                  color={theme.colors.textMuted}
+                  style={{ marginBottom: 16 }}
+                />
+                <Text style={styles.errorTitle}>Unable to Load Listings</Text>
+                <Text style={styles.errorText}>
+                  Please check your connection and try again.
+                </Text>
+                <Button
+                  title="Retry"
+                  variant="gradient"
+                  onPress={() => listingsQuery.refetch()}
+                  style={styles.retryButton}
+                  leftIcon={
+                    <Ionicons name="refresh" size={16} color="#ffffff" />
+                  }
+                />
+              </Card>
+            </Animated.View>
           ) : sortedListings.length > 0 ? (
             <View style={styles.listingsContainer}>
-              {sortedListings.map((listing) => (
-                <ListingCard
+              {sortedListings.map((listing, index) => (
+                <Animated.View
                   key={listing.id}
-                  listing={listing}
-                  onPress={() => handleListingPress(listing.id)}
-                  style={styles.listingCard}
-                />
+                  entering={FadeInUp.delay(300 + index * 50).springify()}
+                >
+                  <ListingCard
+                    listing={listing}
+                    onPress={() => handleListingPress(listing.id)}
+                    style={styles.listingCard}
+                  />
+                </Animated.View>
               ))}
             </View>
           ) : (
-            <Card style={styles.emptyCard} padding="lg">
-              <Ionicons
-                name="search"
-                size={48}
-                color="#9ca3af"
-                style={styles.emptyIcon}
-              />
-              <Text style={styles.emptyTitle}>No Results Found</Text>
-              <Text style={styles.emptyText}>
-                Try adjusting your search terms or filters to find what
-                you&apos;re looking for.
-              </Text>
-              <Button
-                title="Clear Filters"
-                variant="outline"
-                onPress={clearFilters}
-                style={styles.emptyButton}
-              />
-            </Card>
+            <Animated.View entering={FadeInUp.delay(300).springify()}>
+              <Card variant="glass" style={styles.emptyCard} padding="lg">
+                <Ionicons
+                  name="search"
+                  size={48}
+                  color={theme.colors.textMuted}
+                  style={styles.emptyIcon}
+                />
+                <Text style={styles.emptyTitle}>No Results Found</Text>
+                <Text style={styles.emptyText}>
+                  Try adjusting your search terms or filters to find what
+                  you&apos;re looking for.
+                </Text>
+                <Button
+                  title="Clear Filters"
+                  variant="outline"
+                  onPress={clearFilters}
+                  style={styles.emptyButton}
+                />
+              </Card>
+            </Animated.View>
           )}
         </View>
 
@@ -500,36 +583,38 @@ export default function BrowseScreen() {
         {!filters.query && !filters.systemId && !filters.performanceRank && (
           <View style={styles.quickActions}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
-            <View style={styles.actionGrid}>
-              <Card
-                style={styles.actionCard}
-                padding="md"
-                onPress={() => router.push('/(tabs)/create')}
-              >
-                <Text style={styles.actionIcon}>➕</Text>
-                <Text style={styles.actionTitle}>Create Listing</Text>
-                <Text style={styles.actionDescription}>
-                  Share your emulation experience
-                </Text>
-              </Card>
-              <Card
-                style={styles.actionCard}
-                padding="md"
-                onPress={() => handleFilterChange('performanceRank', 5)}
-              >
-                <Text style={styles.actionIcon}>⭐</Text>
-                <Text style={styles.actionTitle}>Perfect Games</Text>
-                <Text style={styles.actionDescription}>
-                  Browse flawless performance
-                </Text>
-              </Card>
-            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.actionGrid}>
+                <Card
+                  style={styles.actionCard}
+                  padding="md"
+                  onPress={() => router.push('/(tabs)/create')}
+                >
+                  <Text style={styles.actionIcon}>➕</Text>
+                  <Text style={styles.actionTitle}>Create Listing</Text>
+                  <Text style={styles.actionDescription}>
+                    Share your emulation experience
+                  </Text>
+                </Card>
+                <Card
+                  style={styles.actionCard}
+                  padding="md"
+                  onPress={() => handleFilterChange('performanceRank', 5)}
+                >
+                  <Text style={styles.actionIcon}>⭐</Text>
+                  <Text style={styles.actionTitle}>Perfect Games</Text>
+                  <Text style={styles.actionDescription}>
+                    Browse flawless performance
+                  </Text>
+                </Card>
+              </View>
+            </ScrollView>
           </View>
         )}
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }
 
@@ -539,212 +624,218 @@ function createStyles(theme: any) {
       flex: 1,
       backgroundColor: theme.colors.background,
     },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
-    title: {
-      fontSize: theme.typography.fontSize.xxl + 8,
-      fontWeight: theme.typography.fontWeight.bold,
-      color: theme.colors.text,
-      marginBottom: 4,
+    gradientBackground: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 300,
     },
-  subtitle: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  searchCard: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  searchIcon: {
-    marginLeft: 4,
-  },
+    scrollView: {
+      flex: 1,
+    },
+    header: {
+      paddingHorizontal: 20,
+      paddingTop: 60,
+      paddingBottom: 24,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: '800',
+      color: theme.colors.text,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 24,
+    },
+    searchCard: {
+      marginHorizontal: 20,
+      marginBottom: 16,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    searchIcon: {
+      marginLeft: 4,
+    },
     searchInput: {
       flex: 1,
       fontSize: theme.typography.fontSize.md,
       color: theme.colors.text,
       paddingVertical: 4,
     },
-  filtersPanel: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-  },
-  filtersHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  filtersTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  filterSection: {
-    marginBottom: 16,
-  },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  filterOptions: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingRight: 20,
-  },
-  filterOption: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  filterOptionSelected: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#3b82f6',
-  },
-  filterOptionText: {
-    fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
-  },
-  performanceFilter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  performanceDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  sortOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  sortOption: {
-    backgroundColor: '#f9fafb',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  resultsSection: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  resultsHeader: {
-    marginBottom: 16,
-  },
-  resultsTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  resultsSubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
+    filtersPanel: {
+      marginHorizontal: 20,
+      marginBottom: 20,
+    },
+    filtersHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    filtersTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+    },
+    filterSection: {
+      marginBottom: 20,
+    },
+    filterLabel: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 12,
+    },
+    filterOptions: {
+      flexDirection: 'row',
+      gap: 8,
+      paddingRight: 20,
+    },
+    filterOption: {
+      backgroundColor: theme.colors.surface,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    filterOptionSelected: {
+      backgroundColor: theme.colors.primaryLight,
+      borderColor: theme.colors.primary,
+    },
+    filterOptionText: {
+      fontSize: 14,
+      color: theme.colors.text,
+      fontWeight: '500',
+    },
+    performanceFilter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    performanceDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+    },
+    sortOptions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+    resultsSection: {
+      marginHorizontal: 20,
+      marginBottom: 24,
+    },
+    resultsHeader: {
+      marginBottom: 16,
+    },
+    resultsTitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+    resultsSubtitle: {
+      fontSize: 14,
+      color: theme.colors.textMuted,
+    },
+    loadingContainer: {
+      paddingVertical: 20,
+    },
     loadingText: {
       fontSize: theme.typography.fontSize.md,
       color: theme.colors.textMuted,
       marginTop: 12,
+      textAlign: 'center',
     },
-  errorCard: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  retryButton: {
-    width: '100%',
-  },
-  listingsContainer: {
-    gap: 16,
-  },
-  listingCard: {
-    marginBottom: 0,
-  },
-  emptyCard: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyIcon: {
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  emptyButton: {
-    width: '100%',
-  },
-  quickActions: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 16,
-  },
-  actionGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  actionCard: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  actionIcon: {
-    fontSize: 32,
-    marginBottom: 8,
-  },
-  actionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  actionDescription: {
-    fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
+    errorCard: {
+      alignItems: 'center',
+      paddingVertical: 40,
+    },
+    errorTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 8,
+    },
+    errorText: {
+      fontSize: 14,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+      marginBottom: 16,
+    },
+    retryButton: {
+      width: '100%',
+    },
+    listingsContainer: {
+      gap: 16,
+    },
+    listingCard: {
+      marginBottom: 0,
+    },
+    emptyCard: {
+      alignItems: 'center',
+      paddingVertical: 40,
+    },
+    emptyIcon: {
+      marginBottom: 16,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 8,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+      marginBottom: 24,
+    },
+    emptyButton: {
+      width: '100%',
+    },
+    quickActions: {
+      paddingHorizontal: 20,
+      marginBottom: 24,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 16,
+    },
+    actionGrid: {
+      flexDirection: 'row',
+      gap: 12,
+      paddingRight: 20,
+    },
+    actionCard: {
+      width: 160,
+      alignItems: 'center',
+    },
+    actionIcon: {
+      fontSize: 32,
+      marginBottom: 8,
+    },
+    actionTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 4,
+      textAlign: 'center',
+    },
+    actionDescription: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+    },
     bottomSpacing: {
       height: 100,
     },

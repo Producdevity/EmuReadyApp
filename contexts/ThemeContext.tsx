@@ -86,38 +86,38 @@ const lightTheme: Theme = {
   mode: 'light',
   isDark: false,
   colors: {
-    primary: '#3b82f6',
-    primaryDark: '#2563eb',
-    primaryLight: '#60a5fa',
+    primary: '#6366f1',
+    primaryDark: '#4f46e5',
+    primaryLight: '#8b5cf6',
 
-    secondary: '#10b981',
+    secondary: '#06b6d4',
     accent: '#f59e0b',
 
-    background: '#ffffff',
-    surface: '#f8fafc',
+    background: '#fafafa',
+    surface: '#ffffff',
     card: '#ffffff',
 
-    text: '#111827',
-    textSecondary: '#374151',
-    textMuted: '#6b7280',
+    text: '#0f172a',
+    textSecondary: '#334155',
+    textMuted: '#64748b',
 
-    border: '#e5e7eb',
-    borderLight: '#f3f4f6',
+    border: '#e2e8f0',
+    borderLight: '#f1f5f9',
 
     success: '#10b981',
     warning: '#f59e0b',
     error: '#ef4444',
-    info: '#3b82f6',
+    info: '#06b6d4',
 
-    overlay: 'rgba(0, 0, 0, 0.5)',
-    shadow: 'rgba(0, 0, 0, 0.1)',
+    overlay: 'rgba(15, 23, 42, 0.4)',
+    shadow: 'rgba(15, 23, 42, 0.08)',
 
     performance: {
-      perfect: '#10b981',
+      perfect: '#22c55e',
       great: '#3b82f6',
       good: '#f59e0b',
       poor: '#ef4444',
-      unplayable: '#6b7280',
+      unplayable: '#64748b',
     },
   },
   spacing: {
@@ -159,19 +159,19 @@ const darkTheme: Theme = {
   colors: {
     ...lightTheme.colors,
 
-    background: '#111827',
-    surface: '#1f2937',
-    card: '#1f2937',
+    background: '#0f172a',
+    surface: '#1e293b',
+    card: '#1e293b',
 
-    text: '#f9fafb',
-    textSecondary: '#d1d5db',
-    textMuted: '#9ca3af',
+    text: '#f8fafc',
+    textSecondary: '#cbd5e1',
+    textMuted: '#94a3b8',
 
-    border: '#374151',
-    borderLight: '#4b5563',
+    border: '#334155',
+    borderLight: '#475569',
 
-    overlay: 'rgba(0, 0, 0, 0.7)',
-    shadow: 'rgba(0, 0, 0, 0.3)',
+    overlay: 'rgba(15, 23, 42, 0.8)',
+    shadow: 'rgba(0, 0, 0, 0.4)',
   },
 }
 
