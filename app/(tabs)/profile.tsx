@@ -33,7 +33,7 @@ export default function ProfileScreen() {
 
   // Only fetch user data and listings when authenticated
   // TODO: Implement current user query with Clerk user data
-  const currentUserQuery = { data: null, isLoading: false }
+  const currentUserQuery = { data: null, isLoading: false, error: null, refetch: () => Promise.resolve({ data: null }) }
   const _unreadCountQuery = useUnreadNotificationCount()
   const userListingsQuery = useListings({
     page: 1,
@@ -41,11 +41,7 @@ export default function ProfileScreen() {
   })
 
   // Filter listings to show only user's listings when authenticated
-  const userListings = isSignedIn && currentUserQuery.data 
-    ? userListingsQuery.data?.listings?.filter(
-        (listing: Listing) => listing.author?.id === currentUserQuery.data?.id,
-      ) || []
-    : []
+  const userListings: Listing[] = []
 
   const handleSignOut = async () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [

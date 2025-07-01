@@ -7,9 +7,10 @@ export const queryClient = new QueryClient({
     queries: {
       staleTime: CONFIG.CACHE_TTL, // 5 minutes
       gcTime: CONFIG.CACHE_TTL * 6, // 30 minutes (formerly cacheTime)
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // Don't retry on 4xx errors
-        return error?.status >= 400 && error?.status < 500
+        const statusError = error as { status?: number }
+        return statusError?.status && statusError.status >= 400 && statusError.status < 500
           ? false
           : failureCount < 3 // Limit retries to 3 for server errors
       },
@@ -46,23 +47,30 @@ export const checkApiAvailability = async (): Promise<boolean> => {
 }
 
 // Error handling utility
-export const handleApiError = (error: any) => {
+export const handleApiError = (error: unknown) => {
   console.error('API Error:', error)
+
+  const typedError = error as { 
+    message?: string; 
+    status?: number; 
+    data?: { code?: string }; 
+    stack?: string 
+  }
 
   // Log additional context for debugging
   if (CONFIG.IS_DEV) {
     console.error('Error details:', {
-      message: error?.message,
-      status: error?.status,
-      data: error?.data,
-      stack: error?.stack,
+      message: typedError?.message,
+      status: typedError?.status,
+      data: typedError?.data,
+      stack: typedError?.stack,
     })
   }
 
   return {
-    message: error?.message || 'An unexpected error occurred',
-    code: error?.data?.code || 'UNKNOWN_ERROR',
-    status: error?.status,
+    message: typedError?.message || 'An unexpected error occurred',
+    code: typedError?.data?.code || 'UNKNOWN_ERROR',
+    status: typedError?.status,
   }
 }
 
@@ -100,7 +108,7 @@ export const networkUtils = {
     }
   },
 
-  retryWithBackoff: async (fn: () => Promise<any>, maxRetries = 3) => {
+  retryWithBackoff: async <T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> => {
     for (let i = 0; i < maxRetries; i++) {
       try {
         return await fn()
@@ -112,5 +120,6 @@ export const networkUtils = {
         await new Promise((resolve) => setTimeout(resolve, delay))
       }
     }
+    throw new Error('Retry function failed to return')
   },
 }

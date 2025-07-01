@@ -39,29 +39,16 @@ export default function EmulatorDetailScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const scrollY = useSharedValue(0)
 
-  // Use direct tRPC queries instead of wrapper hooks
-  const emulatorsQuery = trpc.mobile.getEmulators.useQuery(
-    {
-      limit: 100,
-    },
-    {
-      staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-      gcTime: 10 * 60 * 1000,   // Keep in cache for 10 minutes
-    }
-  )
-  const emulator = emulatorsQuery.data?.find((e: any) => e.id === (id || '')) || null
+  // TODO: Replace with proper API hooks
+  const emulatorsQuery = { data: [], isLoading: false, error: null }
+  const emulator = null
   
-  // Create emulatorQuery object with same interface as the wrapper hook
   const emulatorQuery = {
     ...emulatorsQuery,
     data: emulator,
   }
 
-  const listingsQuery = trpc.mobile.getListings.useQuery({
-    page: 1,
-    limit: 20,
-    emulatorId: id || '',
-  })
+  const listingsQuery = { data: { listings: [] }, isLoading: false, error: null }
 
   const styles = createStyles(theme)
 

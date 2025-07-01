@@ -13,9 +13,9 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import * as Sharing from 'expo-sharing'
-import { useListingById, useListingComments, useCreateComment, useVoteListing, useUserVote } from '@/lib/api/hooks'
 import { Button, Card } from '@/components/ui'
 import { useAuth } from '@/lib/auth/clerk'
+import { useListingById, useListingComments, useVoteListing, useCreateComment } from '@/lib/api/hooks'
 import type { Comment, CustomFieldValue } from '@/types'
 
 export default function ListingDetailScreen() {
@@ -26,10 +26,11 @@ export default function ListingDetailScreen() {
   const [showCommentForm, setShowCommentForm] = useState(false)
   const fadeAnim = useMemo(() => new Animated.Value(0), [])
 
-  const listingQuery = trpc.mobile.getListingById.useQuery({ id: id || '' })
-  const commentsQuery = trpc.mobile.getListingComments.useQuery({ listingId: id || '' })
-  const voteMutation = trpc.mobile.voteListing.useMutation()
-  const addCommentMutation = trpc.mobile.createComment.useMutation()
+  // React Query hooks
+  const listingQuery = useListingById({ id: id! }, { enabled: !!id })
+  const commentsQuery = useListingComments({ listingId: id! }, { enabled: !!id })
+  const voteMutation = useVoteListing()
+  const addCommentMutation = useCreateComment()
 
   useEffect(() => {
     if (!id) return  // Guard against missing id in effect

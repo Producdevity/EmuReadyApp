@@ -19,7 +19,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import * as Sharing from 'expo-sharing'
-import { useGameById, useListingsByGame } from '@/lib/api/hooks'
+// TODO: Implement with proper hooks - temporarily disabled
 import {
   Button,
   Card,
@@ -47,13 +47,9 @@ export default function GameDetailScreen() {
     'overview',
   )
 
-  // ✅ Direct tRPC usage - no wrapper hooks needed!
-  const gameQuery = trpc.mobile.getGameById.useQuery({ id: id || '' })
-  const listingsQuery = trpc.mobile.getListings.useQuery({
-    gameId: id || '',
-    page: 1,
-    limit: 50,
-  })
+  // TODO: Replace with proper API hooks
+  const gameQuery = { data: null, isLoading: false, error: null }
+  const listingsQuery = { data: { listings: [] }, isLoading: false, error: null }
 
   const { scrollHandler, headerAnimatedStyle } = useScrollHeaderAnimation({
     headerHeight: HEADER_HEIGHT,

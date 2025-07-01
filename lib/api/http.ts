@@ -3,7 +3,7 @@ import { Platform } from 'react-native'
 import { CONFIG } from '@/lib/constants/config'
 
 // Types for API response wrapper
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
   json: T
 }
 
@@ -44,14 +44,14 @@ const createAxiosInstance = (): AxiosInstance => {
     }
   )
 
-  // Response interceptor to handle .json wrapper and errors
+  // Response interceptor to handle tRPC response format
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
-      // Check if response has .json wrapper and unwrap it
-      if (response.data && typeof response.data === 'object' && 'json' in response.data) {
+      // tRPC returns data in result.data.json format
+      if (response.data?.result?.data?.json !== undefined) {
         return {
           ...response,
-          data: response.data.json,
+          data: response.data.result.data.json,
         }
       }
       return response
@@ -84,19 +84,19 @@ export const httpClient = createAxiosInstance()
 
 // Utility functions for common HTTP methods with proper typing
 export const api = {
-  get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => 
+  get: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> => 
     httpClient.get<T>(url, config).then(response => response.data),
     
-  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => 
+  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => 
     httpClient.post<T>(url, data, config).then(response => response.data),
     
-  put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => 
+  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => 
     httpClient.put<T>(url, data, config).then(response => response.data),
     
-  patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> => 
+  patch: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => 
     httpClient.patch<T>(url, data, config).then(response => response.data),
     
-  delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<T> => 
+  delete: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> => 
     httpClient.delete<T>(url, config).then(response => response.data),
 }
 
@@ -119,7 +119,7 @@ export const networkUtils = {
     }
   },
 
-  retryWithBackoff: async (fn: () => Promise<any>, maxRetries = 3) => {
+  retryWithBackoff: async <T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> => {
     for (let i = 0; i < maxRetries; i++) {
       try {
         return await fn()
@@ -130,16 +130,19 @@ export const networkUtils = {
         await new Promise((resolve) => setTimeout(resolve, delay))
       }
     }
+    throw new Error('Retry function failed to return')
   },
 }
 
 // Error handling utility
-export const handleApiError = (error: any) => {
+export const handleApiError = (error: unknown) => {
   console.error('API Error:', error)
 
+  const axiosError = error as { response?: { data?: { message?: string; code?: string }; status?: number }; message?: string }
+
   return {
-    message: error?.response?.data?.message || error?.message || 'An unexpected error occurred',
-    code: error?.response?.data?.code || 'UNKNOWN_ERROR',
-    status: error?.response?.status,
+    message: axiosError?.response?.data?.message || axiosError?.message || 'An unexpected error occurred',
+    code: axiosError?.response?.data?.code || 'UNKNOWN_ERROR',
+    status: axiosError?.response?.status,
   }
 }

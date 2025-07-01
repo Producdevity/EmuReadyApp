@@ -152,7 +152,7 @@ export default function NotificationsScreen() {
     )
   }
 
-  const notifications = (notificationsQuery.data?.notifications || []) as unknown as ApiNotification[]
+  const notifications = (notificationsQuery.data?.notifications || []) as ApiNotification[]
   const localUnreadCount = notifications.filter((n) => !n.isRead).length
 
   return (

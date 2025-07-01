@@ -42,7 +42,7 @@ const OFFLINE_QUEUE_KEY = 'offline_queue'
 const LAST_SYNC_KEY = 'last_sync_time'
 const MAX_RETRY_COUNT = 3
 
-export const useOfflineMode = () => {
+const useOfflineMode = () => {
   const [state, setState] = useState<OfflineState>({
     isOnline: true,
     isConnected: true,

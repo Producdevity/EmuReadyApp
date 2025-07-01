@@ -1,8 +1,6 @@
 import { api } from './http'
 import type {
   AddDevicePreferenceInput,
-  BulkUpdateDevicePreferencesInput,
-  BulkUpdateSocPreferencesInput,
   CreateCommentInput,
   CreateListingInput,
   DeleteCommentInput,
@@ -48,7 +46,6 @@ import type {
   PerformanceScale,
   SearchSuggestion,
   Soc,
-  SocPreference,
   System,
   TrustLevel,
   User,
@@ -59,164 +56,159 @@ import type {
 // Listings
 export const listingsService = {
   getListings: (input: GetListingsInput) => 
-    api.get<GetListingsResponse>('/mobile/getListings', { params: input }),
+    api.get<GetListingsResponse>('/trpc/mobile.getListings', { params: { input: JSON.stringify({ json: input }) } }),
     
   getFeaturedListings: () => 
-    api.get<Listing[]>('/mobile/getFeaturedListings'),
+    api.get<Listing[]>('/trpc/mobile.getFeaturedListings'),
     
   getListingsByGame: (input: GetListingsByGameInput) => 
-    api.get<Listing[]>('/mobile/getListingsByGame', { params: input }),
+    api.get<Listing[]>('/trpc/mobile.getListingsByGame', { params: { input: JSON.stringify({ json: input }) } }),
     
   getListingById: (input: GetListingByIdInput) => 
-    api.get<Listing | null>('/mobile/getListingById', { params: input }),
+    api.get<Listing | null>('/trpc/mobile.getListingById', { params: { input: JSON.stringify({ json: input }) } }),
     
   createListing: (input: CreateListingInput) => 
-    api.post<Listing>('/mobile/createListing', input),
+    api.post<Listing>('/trpc/mobile.createListing', { json: input }),
     
   updateListing: (input: UpdateListingInput) => 
-    api.put<Listing>('/mobile/updateListing', input),
+    api.post<Listing>('/trpc/mobile.updateListing', { json: input }),
     
   deleteListing: (input: DeleteListingInput) => 
-    api.delete<Listing>('/mobile/deleteListing', { params: input }),
+    api.post<Listing>('/trpc/mobile.deleteListing', { json: input }),
 }
 
 // Games
 export const gamesService = {
   getGames: (input: GetGamesInput) => 
-    api.get<Game[]>('/mobile/getGames', { params: input }),
+    api.get<Game[]>('/trpc/mobile.getGames', { params: { input: JSON.stringify({ json: input }) } }),
     
   getPopularGames: () => 
-    api.get<Game[]>('/mobile/getPopularGames'),
+    api.get<Game[]>('/trpc/mobile.getPopularGames'),
     
   searchGames: (input: SearchGamesInput) => 
-    api.get<Game[]>('/mobile/searchGames', { params: input }),
+    api.get<Game[]>('/trpc/mobile.searchGames', { params: { input: JSON.stringify({ json: input }) } }),
     
   getGameById: (input: GetGameByIdInput) => 
-    api.get<Game | null>('/mobile/getGameById', { params: input }),
+    api.get<Game | null>('/trpc/mobile.getGameById', { params: { input: JSON.stringify({ json: input }) } }),
 }
 
 // App Info
 export const appService = {
   getAppStats: () => 
-    api.get<AppStats>('/mobile/getAppStats'),
+    api.get<AppStats>('/trpc/mobile.getAppStats'),
     
   getSystems: () => 
-    api.get<System[]>('/mobile/getSystems'),
+    api.get<System[]>('/trpc/mobile.getSystems'),
     
   getEmulators: (input: GetEmulatorsInput) => 
-    api.get<Emulator[]>('/mobile/getEmulators', { params: input }),
+    api.get<Emulator[]>('/trpc/mobile.getEmulators', { params: { input: JSON.stringify({ json: input }) } }),
     
   getDevices: (input: GetDevicesInput) => 
-    api.get<Device[]>('/mobile/getDevices', { params: input }),
+    api.get<Device[]>('/trpc/mobile.getDevices', { params: { input: JSON.stringify({ json: input }) } }),
     
   getDeviceBrands: () => 
-    api.get<DeviceBrand[]>('/mobile/getDeviceBrands'),
+    api.get<DeviceBrand[]>('/trpc/mobile.getDeviceBrands'),
     
   getSocs: () => 
-    api.get<Soc[]>('/mobile/getSocs'),
+    api.get<Soc[]>('/trpc/mobile.getSocs'),
     
   getPerformanceScales: () => 
-    api.get<PerformanceScale[]>('/mobile/getPerformanceScales'),
+    api.get<PerformanceScale[]>('/trpc/mobile.getPerformanceScales'),
     
   getSearchSuggestions: (input: SearchSuggestionsInput) => 
-    api.get<SearchSuggestion[]>('/mobile/getSearchSuggestions', { params: input }),
+    api.get<SearchSuggestion[]>('/trpc/mobile.getSearchSuggestions', { params: { input: JSON.stringify({ json: input }) } }),
 }
 
 // Comments
 export const commentsService = {
   getListingComments: (input: GetListingCommentsInput) => 
-    api.get<Comment[]>('/mobile/getListingComments', { params: input }),
+    api.get<Comment[]>('/trpc/mobile.getListingComments', { params: { input: JSON.stringify({ json: input }) } }),
     
   createComment: (input: CreateCommentInput) => 
-    api.post<Comment>('/mobile/createComment', input),
+    api.post<Comment>('/trpc/mobile.createComment', { json: input }),
     
   updateComment: (input: UpdateCommentInput) => 
-    api.put<Comment>('/mobile/updateComment', input),
+    api.post<Comment>('/trpc/mobile.updateComment', { json: input }),
     
   deleteComment: (input: DeleteCommentInput) => 
-    api.delete<Comment>('/mobile/deleteComment', { params: input }),
+    api.post<Comment>('/trpc/mobile.deleteComment', { json: input }),
 }
 
 // Votes
 export const votesService = {
   voteListing: (input: VoteListingInput) => 
-    api.post<{ id: string; value: boolean }>('/mobile/voteListing', input),
+    api.post<{ id: string; value: boolean }>('/trpc/mobile.voteListing', { json: input }),
     
   getUserVote: (input: GetUserVoteInput) => 
-    api.get<boolean | null>('/mobile/getUserVote', { params: input }),
+    api.get<boolean | null>('/trpc/mobile.getUserVote', { params: { input: JSON.stringify({ json: input }) } }),
 }
 
 // User
 export const userService = {
   getUserProfile: (input: GetUserProfileInput) => 
-    api.get<UserProfile | null>('/mobile/getUserProfile', { params: input }),
+    api.get<UserProfile | null>('/trpc/mobile.getUserProfile', { params: { input: JSON.stringify({ json: input }) } }),
     
   getUserListings: (input: GetUserListingsInput) => 
-    api.get<Listing[]>('/mobile/getUserListings', { params: input }),
+    api.get<Listing[]>('/trpc/mobile.getUserListings', { params: { input: JSON.stringify({ json: input }) } }),
     
   updateProfile: (input: UpdateProfileInput) => 
-    api.put<User>('/mobile/updateProfile', input),
+    api.post<User>('/trpc/mobile.updateProfile', { json: input }),
     
   getUserPreferences: () => 
-    api.get<UserPreferences>('/mobile/getUserPreferences'),
+    api.get<UserPreferences>('/trpc/mobile.getUserPreferences'),
 }
 
 // User Preferences
 export const preferencesService = {
   updateUserPreferences: (input: UpdateUserPreferencesInput) => 
-    api.put<UserPreferences>('/mobile/updateUserPreferences', input),
+    api.post<UserPreferences>('/trpc/mobile.updateUserPreferences', { json: input }),
     
   addDevicePreference: (input: AddDevicePreferenceInput) => 
-    api.post<DevicePreference>('/mobile/addDevicePreference', input),
+    api.post<DevicePreference>('/trpc/mobile.addDevicePreference', { json: input }),
     
   removeDevicePreference: (input: RemoveDevicePreferenceInput) => 
-    api.delete<{ success: boolean }>('/mobile/removeDevicePreference', { params: input }),
+    api.post<{ success: boolean }>('/trpc/mobile.removeDevicePreference', { json: input }),
     
-  bulkUpdateDevicePreferences: (input: BulkUpdateDevicePreferencesInput) => 
-    api.put<DevicePreference[]>('/mobile/bulkUpdateDevicePreferences', input),
-    
-  bulkUpdateSocPreferences: (input: BulkUpdateSocPreferencesInput) => 
-    api.put<SocPreference[]>('/mobile/bulkUpdateSocPreferences', input),
 }
 
 // Notifications
 export const notificationsService = {
   getNotifications: (input: GetNotificationsInput) => 
-    api.get<GetNotificationsResponse>('/mobile/getNotifications', { params: input }),
+    api.get<GetNotificationsResponse>('/trpc/mobile.getNotifications', { params: { input: JSON.stringify({ json: input }) } }),
     
   getUnreadNotificationCount: () => 
-    api.get<number>('/mobile/getUnreadNotificationCount'),
+    api.get<number>('/trpc/mobile.getUnreadNotificationCount'),
     
   markNotificationAsRead: (input: MarkNotificationReadInput) => 
-    api.post<{ success: boolean }>('/mobile/markNotificationAsRead', input),
+    api.post<{ success: boolean }>('/trpc/mobile.markNotificationAsRead', { json: input }),
     
   markAllNotificationsAsRead: () => 
-    api.post<{ success: boolean }>('/mobile/markAllNotificationsAsRead'),
+    api.post<{ success: boolean }>('/trpc/mobile.markAllNotificationsAsRead', { json: {} }),
 }
 
 // Verified Developers
 export const verificationService = {
   getMyVerifiedEmulators: () => 
-    api.get<Emulator[]>('/mobile/getMyVerifiedEmulators'),
+    api.get<Emulator[]>('/trpc/mobile.getMyVerifiedEmulators'),
     
   isVerifiedDeveloper: (input: IsVerifiedDeveloperInput) => 
-    api.get<boolean>('/mobile/isVerifiedDeveloper', { params: input }),
+    api.get<boolean>('/trpc/mobile.isVerifiedDeveloper', { params: { input: JSON.stringify({ json: input }) } }),
     
   verifyListing: (input: VerifyListingInput) => 
-    api.post<ListingVerification>('/mobile/verifyListing', input),
+    api.post<ListingVerification>('/trpc/mobile.verifyListing', { json: input }),
     
   removeVerification: (input: RemoveVerificationInput) => 
-    api.delete<{ message: string }>('/mobile/removeVerification', { params: input }),
+    api.post<{ message: string }>('/trpc/mobile.removeVerification', { json: input }),
     
   getListingVerifications: (input: GetListingVerificationsInput) => 
-    api.get<ListingVerification[]>('/mobile/getListingVerifications', { params: input }),
+    api.get<ListingVerification[]>('/trpc/mobile.getListingVerifications', { params: { input: JSON.stringify({ json: input }) } }),
     
   getMyVerifications: (input: GetMyVerificationsInput) => 
-    api.get<GetMyVerificationsResponse>('/mobile/getMyVerifications', { params: input }),
+    api.get<GetMyVerificationsResponse>('/trpc/mobile.getMyVerifications', { params: { input: JSON.stringify({ json: input }) } }),
 }
 
 // Trust System
 export const trustService = {
   getTrustLevels: () => 
-    api.get<TrustLevel[]>('/mobile/getTrustLevels'),
+    api.get<TrustLevel[]>('/trpc/mobile.getTrustLevels'),
 }

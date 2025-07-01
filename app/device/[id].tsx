@@ -46,22 +46,11 @@ export default function DeviceDetailScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const scrollY = useSharedValue(0)
 
-  const deviceQuery = trpc.mobile.getDevices.useQuery(
-    {
-      limit: 100,
-    },
-    {
-      staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-      gcTime: 10 * 60 * 1000,   // Keep in cache for 10 minutes
-    }
-  )
-  const device = deviceQuery.data?.find((d: any) => d.id === id) || null
+  // TODO: Replace with proper API hooks
+  const deviceQuery = { data: [], isLoading: false, error: null }
+  const device = null
 
-  const listingsQuery = trpc.mobile.getListings.useQuery({
-    page: 1,
-    limit: 20,
-    deviceId: id || '',
-  })
+  const listingsQuery = { data: { listings: [] }, isLoading: false, error: null }
 
   const styles = createStyles(theme)
 
