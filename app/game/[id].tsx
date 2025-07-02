@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react'
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Dimensions,
   Share,
   Platform,
+  Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -24,7 +25,6 @@ import Animated, {
   interpolate,
   Extrapolation,
   withSpring,
-  runOnJS,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 
@@ -32,9 +32,10 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useGameById, useListingsByGame } from '@/lib/api/hooks'
 import { CachedImage, Button, Card, EmptyState, SkeletonLoader } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
+import { EmulatorService, EMULATOR_PRESETS } from '@/lib/services/emulator'
 import type { Listing } from '@/types'
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.5
 const PARALLAX_HEIGHT = HEADER_HEIGHT * 1.2
 
@@ -128,6 +129,36 @@ export default function GameDetailScreen() {
     }
   }
 
+  const handleLaunchEmulator = async (presetName: string) => {
+    if (!gameQuery.data) return
+
+    try {
+      // For now, using a hardcoded title ID - in the future this would come from game data
+      const titleId = '0100000000010000'
+      
+      await EmulatorService.launchGameWithPreset(titleId, presetName)
+    } catch (error) {
+      console.error('Error launching emulator:', error)
+      
+      if (error instanceof Error) {
+        if (error.message.includes('not installed') || error.message.includes('Failed to launch')) {
+          Alert.alert(
+            'Eden Emulator Required',
+            'The Eden emulator app was not found on your device. Eden emulator is a custom application that needs to be installed separately.\n\nPlease ensure you have the Eden emulator APK installed on your device.',
+            [
+              {
+                text: 'OK',
+                style: 'default',
+              },
+            ]
+          )
+        } else {
+          Alert.alert('Launch Error', error.message)
+        }
+      }
+    }
+  }
+
   const renderTabContent = () => {
     switch (selectedTab) {
       case 'overview':
@@ -152,7 +183,7 @@ export default function GameDetailScreen() {
           }}
         >
           <LinearGradient
-            colors={theme.colors.gradients.card}
+            colors={theme.colors.gradients.card as [string, string, ...string[]]}
             style={{
               padding: theme.spacing.lg,
             }}
@@ -216,7 +247,7 @@ export default function GameDetailScreen() {
       <Animated.View entering={FadeInUp.delay(400).springify()}>
         <Card style={{ marginBottom: theme.spacing.lg }}>
           <LinearGradient
-            colors={theme.colors.gradients.primary}
+            colors={theme.colors.gradients.primary as [string, string, ...string[]]}
             style={{
               padding: theme.spacing.lg,
             }}
@@ -247,6 +278,53 @@ export default function GameDetailScreen() {
           </LinearGradient>
         </Card>
       </Animated.View>
+
+      {/* Emulator Launch Options */}
+      {Platform.OS === 'android' && (
+        <Animated.View entering={FadeInUp.delay(500).springify()}>
+          <Card style={{ marginBottom: theme.spacing.lg }}>
+            <View style={{ padding: theme.spacing.lg }}>
+              <Text style={{
+                fontSize: theme.typography.fontSize.xl,
+                fontWeight: theme.typography.fontWeight.bold,
+                color: theme.colors.text,
+                marginBottom: theme.spacing.sm,
+              }}>
+                Launch with Eden Emulator
+              </Text>
+              
+              <Text style={{
+                fontSize: theme.typography.fontSize.md,
+                color: theme.colors.textMuted,
+                marginBottom: theme.spacing.md,
+              }}>
+                Launch this game directly with optimized settings using the Eden Nintendo Switch emulator (requires Eden emulator APK to be installed)
+              </Text>
+
+              {EMULATOR_PRESETS.map((preset, index) => (
+                <Animated.View
+                  key={preset.name}
+                  entering={FadeInUp.delay(600 + index * 100).springify()}
+                  style={{ marginBottom: theme.spacing.sm }}
+                >
+                  <Button
+                    title={preset.name}
+                    subtitle={preset.description}
+                    onPress={() => handleLaunchEmulator(preset.name)}
+                    variant="secondary"
+                    icon="play"
+                    style={{
+                      backgroundColor: theme.colors.surface,
+                      borderWidth: 1,
+                      borderColor: theme.colors.border,
+                    }}
+                  />
+                </Animated.View>
+              ))}
+            </View>
+          </Card>
+        </Animated.View>
+      )}
     </View>
   )
 
@@ -337,7 +415,7 @@ export default function GameDetailScreen() {
         
         {/* Header Skeleton */}
         <View style={{ height: HEADER_HEIGHT }}>
-          <SkeletonLoader width="100%" height="100%" />
+          <SkeletonLoader width="100%" height={HEADER_HEIGHT} />
           <View style={{
             position: 'absolute',
             bottom: theme.spacing.xl,
@@ -426,7 +504,6 @@ export default function GameDetailScreen() {
             width: '100%',
             height: '100%',
           }}
-          contentFit="cover"
         />
         
         {/* Gradient Overlay */}

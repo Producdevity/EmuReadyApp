@@ -20,6 +20,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 
 interface ButtonProps {
   title: string
+  subtitle?: string
   onPress: () => void
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'gradient'
   size?: 'sm' | 'md' | 'lg'
@@ -27,6 +28,7 @@ interface ButtonProps {
   loading?: boolean
   leftIcon?: ReactNode
   rightIcon?: ReactNode
+  icon?: string
   style?: ViewStyle
   textStyle?: TextStyle
   fullWidth?: boolean
@@ -40,6 +42,7 @@ const AnimatedTouchableOpacity =
 
 export default function Button({
   title,
+  subtitle,
   onPress,
   variant = 'primary',
   size = 'md',
@@ -47,6 +50,7 @@ export default function Button({
   loading = false,
   leftIcon,
   rightIcon,
+  icon,
   style,
   textStyle,
   fullWidth = false,
@@ -210,7 +214,19 @@ export default function Button({
       {leftIcon && !loading && (
         <View style={styles.leftIcon}>{leftIcon}</View>
       )}
-      <Text style={textStyles}>{title}</Text>
+      {icon && !loading && (
+        <View style={styles.leftIcon}>
+          <Text style={{ color: getTextColor(), fontSize: 16 }}>{icon}</Text>
+        </View>
+      )}
+      <View style={subtitle ? styles.textContainer : undefined}>
+        <Text style={textStyles}>{title}</Text>
+        {subtitle && (
+          <Text style={[textStyles, { fontSize: textStyles.fontSize * 0.8, opacity: 0.8 }]}>
+            {subtitle}
+          </Text>
+        )}
+      </View>
       {rightIcon && (
         <View style={styles.rightIcon}>{rightIcon}</View>
       )}
@@ -273,6 +289,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+  },
+  textContainer: {
+    alignItems: 'center',
   },
   loadingIcon: {
     marginRight: 8,

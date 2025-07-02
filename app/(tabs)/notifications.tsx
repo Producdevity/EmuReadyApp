@@ -26,10 +26,10 @@ import { router } from 'expo-router'
 import { ThemedView, ThemedText } from '@/components/themed'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useNotifications, useUnreadNotificationCount, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from '@/lib/api/hooks'
-import { LoadingSpinner, Card, Button, EmptyState } from '@/components/ui'
+import { LoadingSpinner, Card, EmptyState } from '@/components/ui'
 import type { Notification as ApiNotification } from '@/types/api/api.response'
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.15
 
 export default function NotificationsScreen() {
@@ -189,7 +189,7 @@ export default function NotificationsScreen() {
     )
   }
 
-  const notifications = (notificationsQuery.data?.notifications || []) as ApiNotification[]
+  const notifications = (notificationsQuery.data?.notifications || []) as unknown as ApiNotification[]
   const unreadCount = unreadCountQuery.data ?? notifications.filter((n) => !n.isRead).length
 
   return (
@@ -202,7 +202,7 @@ export default function NotificationsScreen() {
 
       {/* Gradient Background */}
       <LinearGradient
-        colors={theme.colors.gradients.hero}
+        colors={theme.colors.gradients.hero as [string, string, ...string[]]}
         style={{
           position: 'absolute',
           top: 0,
@@ -385,7 +385,7 @@ export default function NotificationsScreen() {
               >
                 <Card style={{ overflow: 'hidden', width: '100%' }}>
                   <LinearGradient
-                    colors={theme.colors.gradients.secondary}
+                    colors={theme.colors.gradients.secondary as [string, string, ...string[]]}
                     style={{
                       padding: theme.spacing.xxl,
                       alignItems: 'center',

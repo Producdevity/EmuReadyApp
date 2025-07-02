@@ -47,7 +47,7 @@ interface SearchFilters {
   sortBy: 'newest' | 'oldest' | 'rating' | 'performance'
 }
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.25
 
 export default function BrowseScreen() {
@@ -294,7 +294,7 @@ export default function BrowseScreen() {
 
       {/* Enhanced Gradient Background */}
       <LinearGradient
-        colors={theme.colors.gradients.hero}
+        colors={theme.colors.gradients.hero as [string, string, ...string[]]}
         style={{
           position: 'absolute',
           top: 0,
@@ -481,7 +481,7 @@ export default function BrowseScreen() {
           >
             <Card style={{ overflow: 'hidden' }}>
               <LinearGradient
-                colors={theme.colors.gradients.card}
+                colors={theme.colors.gradients.card as [string, string, ...string[]]}
                 style={{ padding: theme.spacing.lg }}
               >
                 <View style={{
@@ -832,7 +832,7 @@ export default function BrowseScreen() {
             <Animated.View entering={ZoomIn.delay(300).springify()}>
               <Card style={{ overflow: 'hidden' }}>
                 <LinearGradient
-                  colors={theme.colors.gradients.secondary}
+                  colors={theme.colors.gradients.secondary as [string, string, ...string[]]}
                   style={{
                     padding: theme.spacing.xxl,
                     alignItems: 'center',
@@ -869,7 +869,7 @@ export default function BrowseScreen() {
                     marginBottom: theme.spacing.lg,
                     lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
                   }}>
-                    Try adjusting your search terms or filters to find what you're looking for.
+                    Try adjusting your search terms or filters to find what you&apos;re looking for.
                   </Text>
                   <Pressable
                     onPress={clearFilters}
@@ -927,7 +927,7 @@ export default function BrowseScreen() {
                     }}
                   >
                     <LinearGradient
-                      colors={theme.colors.gradients.primary}
+                      colors={theme.colors.gradients.primary as [string, string, ...string[]]}
                       style={{
                         padding: theme.spacing.lg,
                         alignItems: 'center',
@@ -975,7 +975,7 @@ export default function BrowseScreen() {
                     }}
                   >
                     <LinearGradient
-                      colors={theme.colors.gradients.gaming}
+                      colors={theme.colors.gradients.gaming as [string, string, ...string[]]}
                       style={{
                         padding: theme.spacing.lg,
                         alignItems: 'center',

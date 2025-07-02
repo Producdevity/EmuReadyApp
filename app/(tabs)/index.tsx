@@ -23,8 +23,6 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
-  withSpring,
-  withTiming,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
@@ -35,7 +33,7 @@ import { Card, Button, CachedImage, SkeletonLoader } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
 import type { Listing, Game } from '@/types'
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.45
 
 export default function HomeScreen() {
@@ -118,7 +116,7 @@ export default function HomeScreen() {
     >
       <Card style={{ overflow: 'hidden', alignItems: 'center' }}>
         <LinearGradient
-          colors={[stat.color + '10', stat.color + '05']}
+          colors={[`${stat.color  }10`, `${stat.color  }05`]}
           style={{
             width: '100%',
             alignItems: 'center',
@@ -130,12 +128,12 @@ export default function HomeScreen() {
             width: 60,
             height: 60,
             borderRadius: 30,
-            backgroundColor: stat.color + '20',
+            backgroundColor: `${stat.color  }20`,
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: theme.spacing.md,
             borderWidth: 2,
-            borderColor: stat.color + '30',
+            borderColor: `${stat.color  }30`,
           }}>
             <Text style={{ fontSize: 24 }}>{stat.icon}</Text>
           </View>
@@ -183,12 +181,11 @@ export default function HomeScreen() {
             {game.coverImageUrl || game.boxArtUrl ? (
               <>
                 <CachedImage
-                  source={{ uri: game.coverImageUrl || game.boxArtUrl }}
+                  source={{ uri: game.coverImageUrl || game.boxArtUrl || '' }}
                   style={{
                     width: '100%',
                     height: '100%',
                   }}
-                  contentFit="cover"
                 />
                 <LinearGradient
                   colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
@@ -235,7 +232,7 @@ export default function HomeScreen() {
               {game.title}
             </Text>
             <View style={{
-              backgroundColor: theme.colors.primary + '10',
+              backgroundColor: `${theme.colors.primary  }10`,
               paddingHorizontal: theme.spacing.sm,
               paddingVertical: theme.spacing.xs,
               borderRadius: theme.borderRadius.sm,
@@ -304,7 +301,7 @@ export default function HomeScreen() {
       
       {/* Dynamic Gradient Background */}
       <LinearGradient
-        colors={theme.colors.gradients.hero}
+        colors={theme.colors.gradients.hero as [string, string, ...string[]]}
         style={{
           position: 'absolute',
           top: 0,
@@ -318,7 +315,7 @@ export default function HomeScreen() {
       <LinearGradient
         colors={[
           'transparent',
-          theme.colors.background + '80',
+          `${theme.colors.background  }80`,
           theme.colors.background,
         ]}
         style={{
@@ -363,7 +360,7 @@ export default function HomeScreen() {
                   <Text style={{
                     fontSize: theme.typography.fontSize.lg,
                     fontWeight: theme.typography.fontWeight.medium,
-                    color: theme.isDark ? theme.colors.textInverse + 'CC' : theme.colors.textSecondary,
+                    color: theme.isDark ? `${theme.colors.textInverse  }CC` : theme.colors.textSecondary,
                     textAlign: 'center',
                     lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.lg,
                     marginBottom: theme.spacing.xxl,
@@ -609,7 +606,7 @@ export default function HomeScreen() {
             <Animated.View entering={ZoomIn.delay(1200).springify()}>
               <Card style={{ overflow: 'hidden' }}>
                 <LinearGradient
-                  colors={theme.colors.gradients.secondary}
+                  colors={theme.colors.gradients.secondary as [string, string, ...string[]]}
                   style={{
                     padding: theme.spacing.xxl,
                     alignItems: 'center',
@@ -641,7 +638,7 @@ export default function HomeScreen() {
                   </Text>
                   <Text style={{
                     fontSize: theme.typography.fontSize.md,
-                    color: theme.colors.textInverse + 'CC',
+                    color: `${theme.colors.textInverse  }CC`,
                     textAlign: 'center',
                     marginBottom: theme.spacing.lg,
                     lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
@@ -697,7 +694,7 @@ export default function HomeScreen() {
                   paddingHorizontal: theme.spacing.md,
                   alignItems: 'center',
                   borderWidth: 2,
-                  borderColor: theme.colors.primary + '30',
+                  borderColor: `${theme.colors.primary  }30`,
                   opacity: pressed ? 0.8 : 1,
                   transform: [{ scale: pressed ? 0.98 : 1 }],
                 }]}
@@ -730,7 +727,7 @@ export default function HomeScreen() {
                 }]}
               >
                 <LinearGradient
-                  colors={theme.colors.gradients.primary}
+                  colors={theme.colors.gradients.primary as [string, string, ...string[]]}
                   style={{
                     position: 'absolute',
                     top: 0,

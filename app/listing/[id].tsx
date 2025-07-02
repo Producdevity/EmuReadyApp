@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import {
   View,
   Text,
@@ -18,13 +18,11 @@ import { BlurView } from 'expo-blur'
 import Animated, {
   FadeInDown,
   FadeInUp,
-  SlideInRight,
   useSharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   interpolate,
   Extrapolation,
-  withSpring,
   ZoomIn,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
@@ -41,7 +39,7 @@ import {
 import { CachedImage, Button, Card, EmptyState, SkeletonLoader } from '@/components/ui'
 import type { Comment } from '@/types'
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.4
 
 export default function ListingDetailScreen() {
@@ -130,7 +128,7 @@ export default function ListingDetailScreen() {
         listingQuery.refetch(),
         userVoteQuery.refetch(),
       ])
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to submit vote. Please try again.')
     }
   }
@@ -154,7 +152,7 @@ export default function ListingDetailScreen() {
       setCommentText('')
       setShowCommentForm(false)
       await commentsQuery.refetch()
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to add comment. Please try again.')
     }
   }
@@ -215,7 +213,7 @@ export default function ListingDetailScreen() {
         
         {/* Header Skeleton */}
         <View style={{ height: HEADER_HEIGHT }}>
-          <SkeletonLoader width="100%" height="100%" />
+          <SkeletonLoader width="100%" height={HEADER_HEIGHT} />
         </View>
 
         {/* Content Skeleton */}
@@ -271,7 +269,6 @@ export default function ListingDetailScreen() {
             width: '100%',
             height: '100%',
           }}
-          contentFit="cover"
         />
         
         {/* Gradient Overlay */}
@@ -398,7 +395,7 @@ export default function ListingDetailScreen() {
             </View>
             
             <View style={{
-              backgroundColor: getPerformanceColor(listing?.performanceId || 0),
+              backgroundColor: getPerformanceColor(listing?.performance?.id || 0),
               paddingHorizontal: theme.spacing.md,
               paddingVertical: theme.spacing.xs,
               borderRadius: theme.borderRadius.lg,
@@ -408,7 +405,7 @@ export default function ListingDetailScreen() {
                 fontWeight: theme.typography.fontWeight.semibold,
                 color: theme.colors.textInverse,
               }}>
-                {getPerformanceLabel(listing?.performanceId || 0)}
+                {getPerformanceLabel(listing?.performance?.id || 0)}
               </Text>
             </View>
           </View>
@@ -418,7 +415,7 @@ export default function ListingDetailScreen() {
         <Animated.View entering={FadeInUp.delay(300).springify()} style={{ padding: theme.spacing.lg }}>
           <Card style={{ marginBottom: theme.spacing.lg, overflow: 'hidden' }}>
             <LinearGradient
-              colors={theme.colors.gradients.card}
+              colors={theme.colors.gradients.card as [string, string, ...string[]]}
               style={{ padding: theme.spacing.lg }}
             >
               <Text style={{
@@ -436,7 +433,7 @@ export default function ListingDetailScreen() {
                     width: 40,
                     height: 40,
                     borderRadius: 20,
-                    backgroundColor: theme.colors.primary + '20',
+                    backgroundColor: `${theme.colors.primary  }20`,
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginRight: theme.spacing.md,
@@ -466,7 +463,7 @@ export default function ListingDetailScreen() {
                     width: 40,
                     height: 40,
                     borderRadius: 20,
-                    backgroundColor: theme.colors.secondary + '20',
+                    backgroundColor: `${theme.colors.secondary  }20`,
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginRight: theme.spacing.md,
@@ -520,7 +517,7 @@ export default function ListingDetailScreen() {
           {/* Voting Section */}
           <Card style={{ marginBottom: theme.spacing.lg, overflow: 'hidden' }}>
             <LinearGradient
-              colors={theme.colors.gradients.primary}
+              colors={theme.colors.gradients.primary as [string, string, ...string[]]}
               style={{ padding: theme.spacing.lg }}
             >
               <Text style={{
@@ -708,7 +705,7 @@ export default function ListingDetailScreen() {
                         fontWeight: theme.typography.fontWeight.semibold,
                         color: theme.colors.primary,
                       }}>
-                        {comment.author?.name || 'Anonymous'}
+                        {(comment as any).author?.name || 'Anonymous'}
                       </Text>
                       <Text style={{
                         fontSize: theme.typography.fontSize.xs,

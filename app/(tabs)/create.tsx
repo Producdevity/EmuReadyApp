@@ -24,14 +24,13 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  interpolate,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 
 import { Button, Card, SkeletonLoader } from '@/components/ui'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useGames, useDevices, useEmulators, useCreateListing } from '@/lib/api/hooks'
-import type { Game, Device, Emulator } from '@/types'
+import type { Game, Device } from '@/types'
 
 interface FormData {
   gameId: string | null
@@ -41,7 +40,7 @@ interface FormData {
   notes: string
 }
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.2
 
 export default function CreateScreen() {
@@ -566,7 +565,7 @@ export default function CreateScreen() {
                     }}>
                       <LinearGradient
                         colors={formData.performanceId === option.id 
-                          ? [option.color + '10', 'transparent'] 
+                          ? [`${option.color  }10`, 'transparent'] 
                           : ['transparent', 'transparent']}
                         style={{ padding: theme.spacing.lg }}
                       >
@@ -664,7 +663,7 @@ export default function CreateScreen() {
 
             <Card style={{ overflow: 'hidden' }}>
               <LinearGradient
-                colors={theme.colors.gradients.card}
+                colors={theme.colors.gradients.card as [string, string, ...string[]]}
                 style={{ padding: theme.spacing.lg }}
               >
                 <Text style={{
@@ -784,7 +783,7 @@ export default function CreateScreen() {
           <Animated.View entering={ZoomIn.springify()}>
             <Card style={{ overflow: 'hidden', width: '100%' }}>
               <LinearGradient
-                colors={theme.colors.gradients.primary}
+                colors={theme.colors.gradients.primary as [string, string, ...string[]]}
                 style={{
                   padding: theme.spacing.xxl,
                   alignItems: 'center',
@@ -847,7 +846,7 @@ export default function CreateScreen() {
       
       {/* Gradient Background */}
       <LinearGradient
-        colors={theme.colors.gradients.hero}
+        colors={theme.colors.gradients.hero as [string, string, ...string[]]}
         style={{
           position: 'absolute',
           top: 0,
@@ -910,7 +909,7 @@ export default function CreateScreen() {
               justifyContent: 'space-between',
               marginBottom: theme.spacing.md,
             }}>
-              {steps.map((step, index) => (
+              {steps.map((step) => (
                 <View
                   key={step.step}
                   style={{
@@ -1034,7 +1033,7 @@ export default function CreateScreen() {
                   }]}
                 >
                   <LinearGradient
-                    colors={theme.colors.gradients.primary}
+                    colors={theme.colors.gradients.primary as [string, string, ...string[]]}
                     style={{
                       paddingVertical: theme.spacing.md,
                       paddingHorizontal: theme.spacing.lg,
@@ -1066,7 +1065,7 @@ export default function CreateScreen() {
                   }]}
                 >
                   <LinearGradient
-                    colors={theme.colors.gradients.gaming}
+                    colors={theme.colors.gradients.gaming as [string, string, ...string[]]}
                     style={{
                       paddingVertical: theme.spacing.md,
                       paddingHorizontal: theme.spacing.lg,
