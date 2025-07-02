@@ -1,0 +1,137 @@
+name: Build Signed Android APK (DISABLED - For Future Use)
+
+# DISABLED: Remove the # below when you're ready to use signed builds
+# on:
+#   push:
+#     tags:
+#       - 'v*'
+#   workflow_dispatch:
+#     inputs:
+#       version:
+#         description: 'Version to build'
+#         required: true
+#         default: '1.0.0'
+
+# This workflow is disabled for now - uncomment 'on:' section above when ready for signed builds
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Expo CLI
+        run: npm install -g @expo/cli@latest
+
+      - name: Create .env file
+        run: |
+          echo "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}" >> .env
+          echo "EXPO_PUBLIC_API_URL=${{ secrets.EXPO_PUBLIC_API_URL }}" >> .env
+          echo "EXPO_PUBLIC_ENV=production" >> .env
+          echo "EXPO_PUBLIC_NAME=EmuReady" >> .env
+          echo "EXPO_PUBLIC_VERSION=${{ github.event.inputs.version || '1.0.0' }}" >> .env
+          echo "EXPO_PUBLIC_BUILD_NUMBER=${{ github.run_number }}" >> .env
+          echo "EXPO_PUBLIC_DEVELOPER=${{ secrets.EXPO_PUBLIC_DEVELOPER }}" >> .env
+          echo "EXPO_PUBLIC_SUPPORT_EMAIL=${{ secrets.EXPO_PUBLIC_SUPPORT_EMAIL }}" >> .env
+          echo "EXPO_PUBLIC_PRIVACY_URL=${{ secrets.EXPO_PUBLIC_PRIVACY_URL }}" >> .env
+          echo "EXPO_PUBLIC_TERMS_URL=${{ secrets.EXPO_PUBLIC_TERMS_URL }}" >> .env
+
+      - name: Prebuild Android
+        run: npx expo prebuild --platform android --clean
+
+      - name: Setup Android signing
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != null }}
+        run: |
+          # Create keystore from base64 encoded secret
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+          
+          # Create gradle.properties with signing config
+          cat >> android/gradle.properties << EOF
+          MYAPP_RELEASE_STORE_FILE=release.keystore
+          MYAPP_RELEASE_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}
+          MYAPP_RELEASE_STORE_PASSWORD=${{ secrets.ANDROID_STORE_PASSWORD }}
+          MYAPP_RELEASE_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: Update Android build.gradle for signing
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != null }}
+        run: |
+          cat >> android/app/build.gradle << 'EOF'
+          
+          android {
+              signingConfigs {
+                  release {
+                      if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+                          storeFile file(MYAPP_RELEASE_STORE_FILE)
+                          storePassword MYAPP_RELEASE_STORE_PASSWORD
+                          keyAlias MYAPP_RELEASE_KEY_ALIAS
+                          keyPassword MYAPP_RELEASE_KEY_PASSWORD
+                      }
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          EOF
+
+      - name: Make gradlew executable
+        run: chmod +x ./android/gradlew
+
+      - name: Build Android APK (Signed)
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != null }}
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Build Android APK (Unsigned)
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 == null }}
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Rename APK
+        run: |
+          VERSION=${{ github.event.inputs.version || '1.0.0' }}
+          BUILD_NUMBER=${{ github.run_number }}
+          mv android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/emuready-app-v${VERSION}-build${BUILD_NUMBER}.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: emuready-app-signed-${{ github.sha }}
+          path: android/app/build/outputs/apk/release/emuready-app-*.apk
+          retention-days: 90
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: android/app/build/outputs/apk/release/emuready-app-*.apk
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

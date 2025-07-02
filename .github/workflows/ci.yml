@@ -1,0 +1,74 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run type checking
+        run: npm run typecheck
+
+      - name: Create dummy .env for build check
+        run: |
+          echo "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_dummy_key_for_ci" >> .env
+          echo "EXPO_PUBLIC_API_URL=https://api.example.com" >> .env
+          echo "EXPO_PUBLIC_ENV=development" >> .env
+          echo "EXPO_PUBLIC_NAME=EmuReady" >> .env
+          echo "EXPO_PUBLIC_VERSION=1.0.0" >> .env
+          echo "EXPO_PUBLIC_BUILD_NUMBER=1" >> .env
+          echo "EXPO_PUBLIC_DEVELOPER=EmuReady Team" >> .env
+          echo "EXPO_PUBLIC_SUPPORT_EMAIL=support@emuready.com" >> .env
+          echo "EXPO_PUBLIC_PRIVACY_URL=https://emuready.com/privacy" >> .env
+          echo "EXPO_PUBLIC_TERMS_URL=https://emuready.com/terms" >> .env
+
+      - name: Check if project builds
+        run: |
+          npm install -g @expo/cli@latest
+          npx expo install --fix
+          npx expo prebuild --platform android --clean
+        continue-on-error: true
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for outdated packages
+        run: npm outdated
+        continue-on-error: true

@@ -11,7 +11,9 @@
     "eslint": "eslint . --config eslint.config.js --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run typecheck",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build:android": "./scripts/build-android.sh",
+    "prebuild:android": "expo prebuild --platform android --clean"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.13.1",
