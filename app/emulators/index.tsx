@@ -7,8 +7,7 @@ import {
   TextInput,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { ThemedView } from '@/components/ThemedView'
-import { ThemedText } from '@/components/ThemedText'
+import { ThemedView, ThemedText } from '@/components/themed'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useEmulators, useSystems } from '@/lib/api/hooks'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'

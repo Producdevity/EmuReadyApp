@@ -2,22 +2,35 @@ import React, { useState } from 'react'
 import {
   ScrollView,
   View,
-  TouchableOpacity,
+  Pressable,
   RefreshControl,
   Alert,
+  StatusBar,
+  Dimensions,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { ThemedView } from '@/components/ThemedView'
-import { ThemedText } from '@/components/ThemedText'
+import { LinearGradient } from 'expo-linear-gradient'
+import { BlurView } from 'expo-blur'
+import Animated, {
+  FadeInUp,
+  FadeInDown,
+  SlideInRight,
+  ZoomIn,
+  useAnimatedStyle,
+  withSpring,
+  useSharedValue,
+} from 'react-native-reanimated'
+import { Ionicons } from '@expo/vector-icons'
+import { router } from 'expo-router'
+
+import { ThemedView, ThemedText } from '@/components/themed'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useNotifications, useUnreadNotificationCount, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from '@/lib/api/hooks'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import Card from '@/components/ui/Card'
-import Button from '@/components/ui/Button'
-import { IconSymbol } from '@/components/ui/IconSymbol'
-import { router } from 'expo-router'
-import Animated, { FadeInUp } from 'react-native-reanimated'
+import { LoadingSpinner, Card, Button, EmptyState } from '@/components/ui'
 import type { Notification as ApiNotification } from '@/types/api/api.response'
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const HEADER_HEIGHT = SCREEN_HEIGHT * 0.15
 
 export default function NotificationsScreen() {
   const { theme } = useTheme()
@@ -30,27 +43,34 @@ export default function NotificationsScreen() {
   const markAsReadMutation = useMarkNotificationAsRead()
   const markAllAsReadMutation = useMarkAllNotificationsAsRead()
 
+  const filterScale = useSharedValue(1)
+
+  const filterAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: filterScale.value }],
+  }))
+
   const onRefresh = async () => {
     setRefreshing(true)
     await Promise.all([notificationsQuery.refetch(), unreadCountQuery.refetch()])
     setRefreshing(false)
   }
 
-  const handleNotificationPress = async (notification: any) => {
-    if (!notification.read) {
+  const handleNotificationPress = async (notification: ApiNotification) => {
+    if (!notification.isRead) {
       try {
         await markAsReadMutation.mutateAsync({
           notificationId: notification.id,
         })
-        notificationsQuery.refetch()
+        await notificationsQuery.refetch()
+        await unreadCountQuery.refetch()
       } catch (err) {
         console.error('Failed to mark notification as read:', err)
       }
     }
 
     // Navigate to notification action URL if exists
-    if (notification.actionUrl) {
-      router.push(notification.actionUrl)
+    if ((notification as any).actionUrl) {
+      router.push((notification as any).actionUrl)
     }
   }
 
@@ -65,7 +85,8 @@ export default function NotificationsScreen() {
           onPress: async () => {
             try {
               await markAllAsReadMutation.mutateAsync()
-              notificationsQuery.refetch()
+              await notificationsQuery.refetch()
+              await unreadCountQuery.refetch()
             } catch (err) {
               console.error(err)
               Alert.alert('Error', 'Failed to mark all notifications as read')
@@ -76,19 +97,27 @@ export default function NotificationsScreen() {
     )
   }
 
-  const getNotificationIcon = (type: string) => {
+  const toggleFilter = () => {
+    filterScale.value = withSpring(0.9, { damping: 10 }, () => {
+      filterScale.value = withSpring(1)
+    })
+    setShowUnreadOnly(!showUnreadOnly)
+  }
+
+  const getNotificationIcon = (type: string): keyof typeof Ionicons.glyphMap => {
     switch (type) {
       case 'LISTING_APPROVED':
+        return 'checkmark-circle'
       case 'LISTING_REJECTED':
-        return 'checkmark.circle.fill'
+        return 'close-circle'
       case 'NEW_COMMENT':
-        return 'message.fill'
+        return 'chatbubble'
       case 'LISTING_VOTED':
-        return 'hand.thumbsup.fill'
+        return 'thumbs-up'
       case 'ROLE_CHANGED':
-        return 'person.badge.key.fill'
+        return 'key'
       default:
-        return 'bell.fill'
+        return 'notifications'
     }
   }
 
@@ -130,188 +159,396 @@ export default function NotificationsScreen() {
 
   if (notificationsQuery.isLoading) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <LoadingSpinner size="large" />
-      </ThemedView>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <LoadingSpinner size="large" />
+          </View>
+        </SafeAreaView>
+      </View>
     )
   }
 
   if (notificationsQuery.error) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <IconSymbol name="exclamationmark.triangle" size={48} color={theme.colors.error} />
-        <ThemedText style={{ textAlign: 'center', marginTop: 16, fontSize: 16 }}>
-          Failed to load notifications
-        </ThemedText>
-        <Button
-          title="Try Again"
-          onPress={() => notificationsQuery.refetch()}
-          style={{ marginTop: 16 }}
-        />
-      </ThemedView>
+      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: theme.spacing.lg }}>
+            <EmptyState
+              icon="alert-circle"
+              title="Unable to Load Notifications"
+              subtitle="There was an error loading your notifications. Please try again."
+              actionLabel="Retry"
+              onAction={() => notificationsQuery.refetch()}
+            />
+          </View>
+        </SafeAreaView>
+      </View>
     )
   }
 
   const notifications = (notificationsQuery.data?.notifications || []) as ApiNotification[]
-  const localUnreadCount = notifications.filter((n) => !n.isRead).length
+  const unreadCount = unreadCountQuery.data ?? notifications.filter((n) => !n.isRead).length
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <ThemedView style={{ flex: 1 }}>
-        {/* Header */}
-        <View style={{
-          padding: 20,
-          borderBottomWidth: 1,
-          borderBottomColor: theme.colors.border
-        }}>
-          <ThemedText style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>
-            Notifications
-          </ThemedText>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <StatusBar
+        barStyle={theme.isDark ? 'light-content' : 'dark-content'}
+        backgroundColor="transparent"
+        translucent
+      />
 
-          {/* Filter Toggle */}
+      {/* Gradient Background */}
+      <LinearGradient
+        colors={theme.colors.gradients.hero}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: HEADER_HEIGHT + 100,
+        }}
+      />
+
+      <SafeAreaView style={{ flex: 1 }}>
+        <ThemedView style={{ flex: 1 }}>
+          {/* Enhanced Header */}
           <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center'
+            paddingHorizontal: theme.spacing.lg,
+            paddingTop: theme.spacing.lg,
+            paddingBottom: theme.spacing.md,
           }}>
-            <TouchableOpacity
-              onPress={() => setShowUnreadOnly(!showUnreadOnly)}
+            <Animated.View entering={FadeInDown.delay(200).springify()}>
+              <ThemedText style={{
+                fontSize: theme.typography.fontSize.xxxl,
+                fontWeight: theme.typography.fontWeight.extrabold,
+                color: theme.isDark ? theme.colors.textInverse : theme.colors.text,
+                marginBottom: theme.spacing.sm,
+              }}>
+                Notifications
+              </ThemedText>
+              {unreadCount > 0 && (
+                <ThemedText style={{
+                  fontSize: theme.typography.fontSize.md,
+                  color: theme.isDark ? `${theme.colors.textInverse}CC` : theme.colors.textSecondary,
+                }}>
+                  You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+                </ThemedText>
+              )}
+            </Animated.View>
+          </View>
+
+          {/* Filter Bar */}
+          <Animated.View 
+            entering={FadeInUp.delay(300).springify()}
+            style={{
+              paddingHorizontal: theme.spacing.lg,
+              marginBottom: theme.spacing.lg,
+            }}
+          >
+            <BlurView
+              intensity={80}
+              tint={theme.isDark ? 'dark' : 'light'}
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: showUnreadOnly ? theme.colors.primary : theme.colors.card,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 16,
+                borderRadius: theme.borderRadius.lg,
+                overflow: 'hidden',
+                backgroundColor: theme.colors.glass,
+                padding: theme.spacing.md,
               }}
             >
-              <ThemedText style={{
-                                 color: showUnreadOnly ? theme.colors.card : theme.colors.text,
-                fontSize: 14,
-                fontWeight: '500'
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}>
-                {showUnreadOnly ? 'Unread Only' : 'All'}
-              </ThemedText>
-            </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+                  <Animated.View style={filterAnimatedStyle}>
+                    <Pressable
+                      onPress={() => {
+                        toggleFilter()
+                        setShowUnreadOnly(false)
+                      }}
+                      style={{
+                        paddingHorizontal: theme.spacing.md,
+                        paddingVertical: theme.spacing.sm,
+                        borderRadius: theme.borderRadius.md,
+                        backgroundColor: !showUnreadOnly ? theme.colors.primary : theme.colors.surface,
+                      }}
+                    >
+                      <ThemedText style={{
+                        color: !showUnreadOnly ? theme.colors.textInverse : theme.colors.text,
+                        fontSize: theme.typography.fontSize.sm,
+                        fontWeight: theme.typography.fontWeight.semibold,
+                      }}>
+                        All
+                      </ThemedText>
+                    </Pressable>
+                  </Animated.View>
 
-            {(unreadCountQuery.data ?? localUnreadCount) > 0 && (
-              <Button
-                title="Mark All Read"
-                onPress={handleMarkAllAsRead}
-                variant="outline"
-                disabled={markAllAsReadMutation.isPending}
-              />
-            )}
-          </View>
-        </View>
-
-        {/* Notifications List */}
-        <ScrollView
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          showsVerticalScrollIndicator={false}
-        >
-          {notifications.length === 0 ? (
-            <View style={{
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: 40
-            }}>
-              <IconSymbol name="bell" size={64} color={theme.colors.textSecondary} />
-              <ThemedText style={{
-                textAlign: 'center',
-                marginTop: 16,
-                fontSize: 16,
-                color: theme.colors.textSecondary
-              }}>
-                {showUnreadOnly ? 'No unread notifications' : 'No notifications yet'}
-              </ThemedText>
-            </View>
-          ) : (
-            <View style={{ padding: 16 }}>
-              {notifications.map((notification, index) => (
-                <Animated.View
-                  key={notification.id}
-                  entering={FadeInUp.delay(index * 100)}
-                >
-                  <TouchableOpacity
-                    onPress={() => handleNotificationPress(notification)}
-                    style={{ marginBottom: 12 }}
-                  >
-                    <Card style={{
-                      padding: 16,
-                      backgroundColor: notification.isRead
-                                                 ? theme.colors.card
-                        : `${theme.colors.primary}10`,
-                      borderLeftWidth: notification.isRead ? 0 : 3,
-                      borderLeftColor: notification.isRead ? 'transparent' : theme.colors.primary,
-                    }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-                        {/* Notification Icon */}
+                  <Animated.View style={filterAnimatedStyle}>
+                    <Pressable
+                      onPress={() => {
+                        toggleFilter()
+                        setShowUnreadOnly(true)
+                      }}
+                      style={{
+                        paddingHorizontal: theme.spacing.md,
+                        paddingVertical: theme.spacing.sm,
+                        borderRadius: theme.borderRadius.md,
+                        backgroundColor: showUnreadOnly ? theme.colors.primary : theme.colors.surface,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: theme.spacing.xs,
+                      }}
+                    >
+                      <ThemedText style={{
+                        color: showUnreadOnly ? theme.colors.textInverse : theme.colors.text,
+                        fontSize: theme.typography.fontSize.sm,
+                        fontWeight: theme.typography.fontWeight.semibold,
+                      }}>
+                        Unread
+                      </ThemedText>
+                      {unreadCount > 0 && (
                         <View style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 20,
-                          backgroundColor: `${getNotificationColor(notification.type)}20`,
-                          justifyContent: 'center',
+                          backgroundColor: showUnreadOnly ? 'rgba(255,255,255,0.3)' : theme.colors.primary,
+                          paddingHorizontal: theme.spacing.sm,
+                          paddingVertical: 2,
+                          borderRadius: theme.borderRadius.sm,
+                          minWidth: 20,
                           alignItems: 'center',
-                          marginRight: 12,
                         }}>
-                          <IconSymbol
-                            name={getNotificationIcon(notification.type)}
-                            size={20}
-                            color={getNotificationColor(notification.type)}
-                          />
-                        </View>
-
-                        {/* Notification Content */}
-                        <View style={{ flex: 1 }}>
                           <ThemedText style={{
-                            fontSize: 16,
-                            fontWeight: notification.isRead ? '400' : '600',
-                            marginBottom: 4,
+                            color: showUnreadOnly ? theme.colors.textInverse : theme.colors.textInverse,
+                            fontSize: theme.typography.fontSize.xs,
+                            fontWeight: theme.typography.fontWeight.bold,
                           }}>
-                            {notification.title}
-                          </ThemedText>
-
-                          <ThemedText style={{
-                            fontSize: 14,
-                            color: theme.colors.textSecondary,
-                            marginBottom: 8,
-                          }}>
-                            {notification.message}
-                          </ThemedText>
-
-                          <ThemedText style={{
-                            fontSize: 12,
-                            color: theme.colors.textSecondary
-                          }}>
-                            {formatTimeAgo(notification.createdAt)}
+                            {unreadCount}
                           </ThemedText>
                         </View>
+                      )}
+                    </Pressable>
+                  </Animated.View>
+                </View>
 
-                        {/* Unread Indicator */}
+                {unreadCount > 0 && (
+                  <Pressable
+                    onPress={handleMarkAllAsRead}
+                    disabled={markAllAsReadMutation.isPending}
+                    style={({ pressed }) => [{
+                      paddingHorizontal: theme.spacing.md,
+                      paddingVertical: theme.spacing.sm,
+                      borderRadius: theme.borderRadius.md,
+                      backgroundColor: theme.colors.surface,
+                      borderWidth: 1,
+                      borderColor: theme.colors.border,
+                      opacity: pressed || markAllAsReadMutation.isPending ? 0.7 : 1,
+                    }]}
+                  >
+                    <ThemedText style={{
+                      color: theme.colors.primary,
+                      fontSize: theme.typography.fontSize.sm,
+                      fontWeight: theme.typography.fontWeight.medium,
+                    }}>
+                      Mark All Read
+                    </ThemedText>
+                  </Pressable>
+                )}
+              </View>
+            </BlurView>
+          </Animated.View>
+
+          {/* Notifications List */}
+          <ScrollView
+            refreshControl={
+              <RefreshControl 
+                refreshing={refreshing} 
+                onRefresh={onRefresh}
+                tintColor={theme.colors.primary}
+                colors={[theme.colors.primary]}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: theme.spacing.xxxl }}
+          >
+            {notifications.length === 0 ? (
+              <Animated.View 
+                entering={ZoomIn.delay(400).springify()}
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingHorizontal: theme.spacing.lg,
+                  paddingVertical: theme.spacing.xxxl,
+                }}
+              >
+                <Card style={{ overflow: 'hidden', width: '100%' }}>
+                  <LinearGradient
+                    colors={theme.colors.gradients.secondary}
+                    style={{
+                      padding: theme.spacing.xxl,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <View style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 40,
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: theme.spacing.lg,
+                    }}>
+                      <Ionicons 
+                        name="notifications-off" 
+                        size={40} 
+                        color={theme.colors.textInverse}
+                      />
+                    </View>
+                    <ThemedText style={{
+                      fontSize: theme.typography.fontSize.xl,
+                      fontWeight: theme.typography.fontWeight.bold,
+                      color: theme.colors.textInverse,
+                      marginBottom: theme.spacing.sm,
+                      textAlign: 'center',
+                    }}>
+                      {showUnreadOnly ? 'No Unread Notifications' : 'No Notifications Yet'}
+                    </ThemedText>
+                    <ThemedText style={{
+                      fontSize: theme.typography.fontSize.md,
+                      color: `${theme.colors.textInverse}CC`,
+                      textAlign: 'center',
+                      lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+                    }}>
+                      {showUnreadOnly 
+                        ? 'All caught up! Check back later for new updates.'
+                        : 'When you receive notifications, they\'ll appear here.'}
+                    </ThemedText>
+                  </LinearGradient>
+                </Card>
+              </Animated.View>
+            ) : (
+              <View style={{ paddingHorizontal: theme.spacing.lg }}>
+                {notifications.map((notification, index) => (
+                  <Animated.View
+                    key={notification.id}
+                    entering={SlideInRight.delay(index * 100).springify()}
+                    style={{ marginBottom: theme.spacing.md }}
+                  >
+                    <Pressable
+                      onPress={() => handleNotificationPress(notification)}
+                      style={({ pressed }) => [{
+                        transform: [{ scale: pressed ? 0.98 : 1 }],
+                        opacity: pressed ? 0.9 : 1,
+                      }]}
+                    >
+                      <Card style={{
+                        backgroundColor: notification.isRead 
+                          ? theme.colors.surface
+                          : theme.colors.surfaceElevated,
+                        borderWidth: notification.isRead ? 0 : 2,
+                        borderColor: notification.isRead ? 'transparent' : theme.colors.primary,
+                        overflow: 'hidden',
+                      }}>
                         {!notification.isRead && (
-                          <View style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: 4,
-                            backgroundColor: theme.colors.primary,
-                            marginLeft: 8,
-                            marginTop: 6,
-                          }} />
+                          <LinearGradient
+                            colors={[`${theme.colors.primary}10`, 'transparent']}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                            }}
+                          />
                         )}
-                      </View>
-                    </Card>
-                  </TouchableOpacity>
-                </Animated.View>
-              ))}
-            </View>
-          )}
-        </ScrollView>
-      </ThemedView>
-    </SafeAreaView>
+                        
+                        <View style={{ 
+                          flexDirection: 'row', 
+                          alignItems: 'flex-start',
+                          padding: theme.spacing.lg,
+                        }}>
+                          {/* Notification Icon */}
+                          <View style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: 24,
+                            backgroundColor: `${getNotificationColor(notification.type)}20`,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            marginRight: theme.spacing.md,
+                          }}>
+                            <Ionicons
+                              name={getNotificationIcon(notification.type)}
+                              size={24}
+                              color={getNotificationColor(notification.type)}
+                            />
+                          </View>
+
+                          {/* Notification Content */}
+                          <View style={{ flex: 1 }}>
+                            <ThemedText style={{
+                              fontSize: theme.typography.fontSize.md,
+                              fontWeight: notification.isRead 
+                                ? theme.typography.fontWeight.medium 
+                                : theme.typography.fontWeight.bold,
+                              color: theme.colors.text,
+                              marginBottom: theme.spacing.xs,
+                              lineHeight: theme.typography.lineHeight.tight * theme.typography.fontSize.md,
+                            }}>
+                              {notification.title}
+                            </ThemedText>
+
+                            <ThemedText style={{
+                              fontSize: theme.typography.fontSize.sm,
+                              color: theme.colors.textSecondary,
+                              marginBottom: theme.spacing.sm,
+                              lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.sm,
+                            }}>
+                              {notification.message}
+                            </ThemedText>
+
+                            <View style={{ 
+                              flexDirection: 'row', 
+                              alignItems: 'center',
+                              gap: theme.spacing.sm,
+                            }}>
+                              <Ionicons 
+                                name="time-outline" 
+                                size={14} 
+                                color={theme.colors.textMuted}
+                              />
+                              <ThemedText style={{
+                                fontSize: theme.typography.fontSize.xs,
+                                color: theme.colors.textMuted,
+                              }}>
+                                {formatTimeAgo(notification.createdAt)}
+                              </ThemedText>
+                            </View>
+                          </View>
+
+                          {/* Unread Indicator */}
+                          {!notification.isRead && (
+                            <View style={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: 5,
+                              backgroundColor: theme.colors.primary,
+                              marginLeft: theme.spacing.sm,
+                              marginTop: theme.spacing.xs,
+                            }} />
+                          )}
+                        </View>
+                      </Card>
+                    </Pressable>
+                  </Animated.View>
+                ))}
+              </View>
+            )}
+          </ScrollView>
+        </ThemedView>
+      </SafeAreaView>
+    </View>
   )
 }

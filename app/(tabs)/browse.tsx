@@ -1,30 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   SafeAreaView,
-  ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
   RefreshControl,
   StatusBar,
+  Pressable,
+  Dimensions,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
+import { BlurView } from 'expo-blur'
 import Animated, {
   FadeInUp,
   FadeInDown,
+  SlideInLeft,
+  SlideInRight,
+  ZoomIn,
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedScrollHandler,
   withSpring,
   withTiming,
+  interpolate,
+  Extrapolation,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
+
 import {
   Card,
-  Button,
   SearchSuggestions,
-  SkeletonListingCard,
+  SkeletonLoader,
 } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
 import { useListings, useSystems, useSearchSuggestions } from '@/lib/api/hooks'
@@ -39,6 +46,9 @@ interface SearchFilters {
   performanceRank: number | null
   sortBy: 'newest' | 'oldest' | 'rating' | 'performance'
 }
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const HEADER_HEIGHT = SCREEN_HEIGHT * 0.25
 
 export default function BrowseScreen() {
   const router = useRouter()
@@ -57,17 +67,18 @@ export default function BrowseScreen() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
 
+  const scrollY = useSharedValue(0)
   const filtersOpacity = useSharedValue(0)
   const filtersHeight = useSharedValue(0)
 
   // API calls
   const listingsQuery = useListings({
-    gameId:     undefined,
-    systemId:   filters.systemId || undefined,
-    deviceId:   filters.deviceId || undefined,
+    gameId: undefined,
+    systemId: filters.systemId || undefined,
+    deviceId: filters.deviceId || undefined,
     emulatorId: undefined,
-    page:       1,
-    limit:      50,
+    page: 1,
+    limit: 50,
   })
   const systemsQuery = useSystems()
   const suggestionsQuery = useSearchSuggestions(
@@ -99,7 +110,7 @@ export default function BrowseScreen() {
     const loadRecentSearches = () => {
       try {
         const saved = appStorage.get<string[]>('recent_searches') || []
-        setRecentSearches(saved.slice(0, 5)) // Keep only last 5 searches
+        setRecentSearches(saved.slice(0, 5))
       } catch (error) {
         console.error('Error loading recent searches:', error)
       }
@@ -144,6 +155,38 @@ export default function BrowseScreen() {
     }
   })
 
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+    },
+  })
+
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [0, HEADER_HEIGHT * 0.3, HEADER_HEIGHT * 0.7],
+      [1, 0.8, 0.3],
+      Extrapolation.CLAMP
+    )
+    
+    const translateY = interpolate(
+      scrollY.value,
+      [0, HEADER_HEIGHT],
+      [0, -HEADER_HEIGHT * 0.5],
+      Extrapolation.CLAMP
+    )
+
+    return {
+      opacity,
+      transform: [{ translateY }],
+    }
+  })
+
+  const filtersAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: filtersOpacity.value,
+    transform: [{ scaleY: filtersHeight.value }],
+  }))
+
   const handleFilterChange = (key: keyof SearchFilters, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }
@@ -159,7 +202,7 @@ export default function BrowseScreen() {
   }
 
   const handleListingPress = (listingId: string) => {
-    ;(router.push as any)(`/listing/${listingId}`)
+    router.push(`/listing/${listingId}`)
   }
 
   const toggleFilters = () => {
@@ -174,11 +217,6 @@ export default function BrowseScreen() {
       filtersHeight.value = withTiming(0, { duration: 200 })
     }
   }
-
-  const filtersAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: filtersOpacity.value,
-    transform: [{ scaleY: filtersHeight.value }],
-  }))
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -224,7 +262,6 @@ export default function BrowseScreen() {
   }
 
   const handleSearchBlur = () => {
-    // Delay hiding suggestions to allow for suggestion taps
     setTimeout(() => setShowSuggestions(false), 200)
   }
 
@@ -247,29 +284,46 @@ export default function BrowseScreen() {
     { value: 'performance', label: 'Best Performing' },
   ]
 
-  // Create themed styles
-  const styles = createStyles(theme)
-
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <StatusBar
         barStyle={theme.isDark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
         translucent
       />
 
-      {/* Gradient Background */}
+      {/* Enhanced Gradient Background */}
       <LinearGradient
-        colors={
-          theme.isDark
-            ? ['#1e293b', '#0f172a', '#0f172a']
-            : ['#f8fafc', '#ffffff', '#ffffff']
-        }
-        style={styles.gradientBackground}
+        colors={theme.colors.gradients.hero}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: HEADER_HEIGHT + 100,
+        }}
+      />
+      
+      {/* Secondary gradient for depth */}
+      <LinearGradient
+        colors={[
+          'transparent',
+          `${theme.colors.background}80`,
+          theme.colors.background,
+        ]}
+        style={{
+          position: 'absolute',
+          top: HEADER_HEIGHT - 50,
+          left: 0,
+          right: 0,
+          height: 150,
+        }}
       />
 
-      <ScrollView
-        style={styles.scrollView}
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -277,35 +331,82 @@ export default function BrowseScreen() {
             onRefresh={handleRefresh}
             tintColor={theme.colors.primary}
             colors={[theme.colors.primary]}
+            progressViewOffset={HEADER_HEIGHT * 0.7}
           />
         }
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: theme.spacing.xxxl }}
       >
-        {/* Header */}
-        <SafeAreaView>
-          <Animated.View
-            entering={FadeInDown.delay(100).springify()}
-            style={styles.header}
-          >
-            <Text style={styles.title}>Browse Listings</Text>
-            <Text style={styles.subtitle}>
-              Find performance data for your favorite games
-            </Text>
+        {/* Enhanced Header */}
+        <View style={{ height: HEADER_HEIGHT }}>
+          <Animated.View style={headerAnimatedStyle}>
+            <SafeAreaView style={{ flex: 1, paddingHorizontal: theme.spacing.lg }}>
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Animated.View entering={FadeInDown.delay(200).springify()}>
+                  <Text style={{
+                    fontSize: theme.typography.fontSize.xxxl,
+                    fontWeight: theme.typography.fontWeight.extrabold,
+                    color: theme.isDark ? theme.colors.textInverse : theme.colors.text,
+                    marginBottom: theme.spacing.sm,
+                    textAlign: 'center',
+                    lineHeight: theme.typography.lineHeight.tight * theme.typography.fontSize.xxxl,
+                  }}>
+                    Browse Listings
+                  </Text>
+                  <Text style={{
+                    fontSize: theme.typography.fontSize.lg,
+                    fontWeight: theme.typography.fontWeight.medium,
+                    color: theme.isDark ? `${theme.colors.textInverse}CC` : theme.colors.textSecondary,
+                    textAlign: 'center',
+                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.lg,
+                    paddingHorizontal: theme.spacing.lg,
+                  }}>
+                    Find performance data for your favorite games
+                  </Text>
+                </Animated.View>
+              </View>
+            </SafeAreaView>
           </Animated.View>
-        </SafeAreaView>
+        </View>
 
-        {/* Search Bar */}
-        <Animated.View entering={FadeInUp.delay(200).springify()}>
-          <Card variant="glass" style={styles.searchCard} padding="md">
-            <View style={styles.searchContainer}>
+        {/* Enhanced Search Bar with Glass Morphism */}
+        <Animated.View 
+          entering={FadeInUp.delay(400).springify()}
+          style={{ 
+            marginHorizontal: theme.spacing.lg, 
+            marginBottom: theme.spacing.lg,
+            marginTop: -theme.spacing.xl,
+          }}
+        >
+          <BlurView
+            intensity={80}
+            tint={theme.isDark ? 'dark' : 'light'}
+            style={{
+              borderRadius: theme.borderRadius.xl,
+              overflow: 'hidden',
+            }}
+          >
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: theme.colors.glass,
+              paddingHorizontal: theme.spacing.lg,
+              paddingVertical: theme.spacing.md,
+              borderWidth: 1,
+              borderColor: theme.colors.borderLight,
+              gap: theme.spacing.md,
+            }}>
               <Ionicons
                 name="search"
-                size={20}
-                color={theme.colors.textMuted}
-                style={styles.searchIcon}
+                size={22}
+                color={theme.colors.primary}
               />
               <TextInput
-                style={styles.searchInput}
+                style={{
+                  flex: 1,
+                  fontSize: theme.typography.fontSize.lg,
+                  color: theme.colors.text,
+                  fontWeight: theme.typography.fontWeight.medium,
+                }}
                 placeholder="Search games, systems, or devices..."
                 value={filters.query}
                 onChangeText={(text) => handleFilterChange('query', text)}
@@ -319,21 +420,34 @@ export default function BrowseScreen() {
                 }}
                 placeholderTextColor={theme.colors.textMuted}
               />
-              <Button
-                title="Filters"
-                variant={showFilters ? 'primary' : 'outline'}
-                size="sm"
+              <Pressable
                 onPress={toggleFilters}
-                rightIcon={
-                  <Ionicons
-                    name="filter"
-                    size={16}
-                    color={showFilters ? '#ffffff' : theme.colors.primary}
-                  />
-                }
-              />
+                style={({ pressed }) => [{
+                  backgroundColor: showFilters ? theme.colors.primary : theme.colors.surface,
+                  paddingHorizontal: theme.spacing.md,
+                  paddingVertical: theme.spacing.sm,
+                  borderRadius: theme.borderRadius.md,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: theme.spacing.sm,
+                  opacity: pressed ? 0.8 : 1,
+                }]}
+              >
+                <Ionicons
+                  name="filter"
+                  size={18}
+                  color={showFilters ? theme.colors.textInverse : theme.colors.primary}
+                />
+                <Text style={{
+                  color: showFilters ? theme.colors.textInverse : theme.colors.primary,
+                  fontSize: theme.typography.fontSize.sm,
+                  fontWeight: theme.typography.fontWeight.semibold,
+                }}>
+                  Filters
+                </Text>
+              </Pressable>
             </View>
-          </Card>
+          </BlurView>
         </Animated.View>
 
         {/* Search Suggestions */}
@@ -356,141 +470,250 @@ export default function BrowseScreen() {
           onClearHistory={handleClearHistory}
         />
 
-        {/* Filters Panel */}
+        {/* Enhanced Filters Panel */}
         {showFilters && (
           <Animated.View
-            style={[styles.filtersPanel, filtersAnimatedStyle]}
-            entering={FadeInUp.delay(100).springify()}
+            style={[{ 
+              marginHorizontal: theme.spacing.lg, 
+              marginBottom: theme.spacing.lg,
+            }, filtersAnimatedStyle]}
+            entering={SlideInLeft.delay(100).springify()}
           >
-            <Card variant="glass" padding="md">
-              <View style={styles.filtersHeader}>
-                <Text style={styles.filtersTitle}>Filters</Text>
-                <Button
-                  title="Clear All"
-                  variant="ghost"
-                  size="sm"
-                  onPress={clearFilters}
-                />
-              </View>
+            <Card style={{ overflow: 'hidden' }}>
+              <LinearGradient
+                colors={theme.colors.gradients.card}
+                style={{ padding: theme.spacing.lg }}
+              >
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: theme.spacing.lg,
+                }}>
+                  <Text style={{
+                    fontSize: theme.typography.fontSize.xl,
+                    fontWeight: theme.typography.fontWeight.bold,
+                    color: theme.colors.text,
+                  }}>
+                    Filters
+                  </Text>
+                  <Pressable
+                    onPress={clearFilters}
+                    style={{
+                      paddingHorizontal: theme.spacing.md,
+                      paddingVertical: theme.spacing.sm,
+                      borderRadius: theme.borderRadius.md,
+                      backgroundColor: theme.colors.surface,
+                    }}
+                  >
+                    <Text style={{
+                      color: theme.colors.textMuted,
+                      fontSize: theme.typography.fontSize.sm,
+                      fontWeight: theme.typography.fontWeight.medium,
+                    }}>
+                      Clear All
+                    </Text>
+                  </Pressable>
+                </View>
 
-              {/* System Filter */}
-              <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>System</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <View style={styles.filterOptions}>
-                    <Card
-                      style={StyleSheet.flatten([
-                        styles.filterOption,
-                        !filters.systemId && styles.filterOptionSelected,
-                      ])}
-                      padding="sm"
-                      onPress={() => handleFilterChange('systemId', null)}
-                    >
-                      <Text style={styles.filterOptionText}>All</Text>
-                    </Card>
-                    {systemsQuery.data?.map((system: System) => (
-                      <Card
-                        key={system.id}
-                        style={StyleSheet.flatten([
-                          styles.filterOption,
-                          filters.systemId === system.id &&
-                            styles.filterOptionSelected,
-                        ])}
-                        padding="sm"
-                        onPress={() =>
-                          handleFilterChange('systemId', system.id)
-                        }
+                {/* Enhanced System Filter */}
+                <View style={{ marginBottom: theme.spacing.lg }}>
+                  <Text style={{
+                    fontSize: theme.typography.fontSize.md,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                    color: theme.colors.text,
+                    marginBottom: theme.spacing.md,
+                  }}>
+                    System
+                  </Text>
+                  <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={{
+                      flexDirection: 'row',
+                      gap: theme.spacing.sm,
+                      paddingRight: theme.spacing.lg,
+                    }}>
+                      <Pressable
+                        onPress={() => handleFilterChange('systemId', null)}
+                        style={{
+                          backgroundColor: !filters.systemId ? theme.colors.primary : theme.colors.surface,
+                          paddingHorizontal: theme.spacing.md,
+                          paddingVertical: theme.spacing.sm,
+                          borderRadius: theme.borderRadius.lg,
+                          borderWidth: 1,
+                          borderColor: !filters.systemId ? theme.colors.primary : theme.colors.border,
+                        }}
                       >
-                        <Text style={styles.filterOptionText}>
-                          {system.name}
+                        <Text style={{
+                          fontSize: theme.typography.fontSize.sm,
+                          fontWeight: theme.typography.fontWeight.medium,
+                          color: !filters.systemId ? theme.colors.textInverse : theme.colors.text,
+                        }}>
+                          All
                         </Text>
-                      </Card>
-                    ))}
-                  </View>
-                </ScrollView>
-              </View>
+                      </Pressable>
+                      {systemsQuery.data?.map((system: System) => (
+                        <Pressable
+                          key={system.id}
+                          onPress={() => handleFilterChange('systemId', system.id)}
+                          style={{
+                            backgroundColor: filters.systemId === system.id ? theme.colors.primary : theme.colors.surface,
+                            paddingHorizontal: theme.spacing.md,
+                            paddingVertical: theme.spacing.sm,
+                            borderRadius: theme.borderRadius.lg,
+                            borderWidth: 1,
+                            borderColor: filters.systemId === system.id ? theme.colors.primary : theme.colors.border,
+                          }}
+                        >
+                          <Text style={{
+                            fontSize: theme.typography.fontSize.sm,
+                            fontWeight: theme.typography.fontWeight.medium,
+                            color: filters.systemId === system.id ? theme.colors.textInverse : theme.colors.text,
+                          }}>
+                            {system.name}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </Animated.ScrollView>
+                </View>
 
-              {/* Performance Filter */}
-              <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>Performance</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <View style={styles.filterOptions}>
-                    <Card
-                      style={StyleSheet.flatten([
-                        styles.filterOption,
-                        !filters.performanceRank && styles.filterOptionSelected,
-                      ])}
-                      padding="sm"
-                      onPress={() =>
-                        handleFilterChange('performanceRank', null)
-                      }
-                    >
-                      <Text style={styles.filterOptionText}>All</Text>
-                    </Card>
-                    {performanceOptions.map((option) => (
-                      <Card
-                        key={option.rank}
-                        style={StyleSheet.flatten([
-                          styles.filterOption,
-                          filters.performanceRank === option.rank &&
-                            styles.filterOptionSelected,
-                        ])}
-                        padding="sm"
-                        onPress={() =>
-                          handleFilterChange('performanceRank', option.rank)
-                        }
+                {/* Enhanced Performance Filter */}
+                <View style={{ marginBottom: theme.spacing.lg }}>
+                  <Text style={{
+                    fontSize: theme.typography.fontSize.md,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                    color: theme.colors.text,
+                    marginBottom: theme.spacing.md,
+                  }}>
+                    Performance
+                  </Text>
+                  <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={{
+                      flexDirection: 'row',
+                      gap: theme.spacing.sm,
+                      paddingRight: theme.spacing.lg,
+                    }}>
+                      <Pressable
+                        onPress={() => handleFilterChange('performanceRank', null)}
+                        style={{
+                          backgroundColor: !filters.performanceRank ? theme.colors.primary : theme.colors.surface,
+                          paddingHorizontal: theme.spacing.md,
+                          paddingVertical: theme.spacing.sm,
+                          borderRadius: theme.borderRadius.lg,
+                          borderWidth: 1,
+                          borderColor: !filters.performanceRank ? theme.colors.primary : theme.colors.border,
+                        }}
                       >
-                        <View style={styles.performanceFilter}>
-                          <View
-                            style={[
-                              styles.performanceDot,
-                              { backgroundColor: option.color },
-                            ]}
-                          />
-                          <Text style={styles.filterOptionText}>
+                        <Text style={{
+                          fontSize: theme.typography.fontSize.sm,
+                          fontWeight: theme.typography.fontWeight.medium,
+                          color: !filters.performanceRank ? theme.colors.textInverse : theme.colors.text,
+                        }}>
+                          All
+                        </Text>
+                      </Pressable>
+                      {performanceOptions.map((option) => (
+                        <Pressable
+                          key={option.rank}
+                          onPress={() => handleFilterChange('performanceRank', option.rank)}
+                          style={{
+                            backgroundColor: filters.performanceRank === option.rank ? option.color : theme.colors.surface,
+                            paddingHorizontal: theme.spacing.md,
+                            paddingVertical: theme.spacing.sm,
+                            borderRadius: theme.borderRadius.lg,
+                            borderWidth: 1,
+                            borderColor: filters.performanceRank === option.rank ? option.color : theme.colors.border,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: theme.spacing.sm,
+                          }}
+                        >
+                          <View style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: 4,
+                            backgroundColor: filters.performanceRank === option.rank ? theme.colors.textInverse : option.color,
+                          }} />
+                          <Text style={{
+                            fontSize: theme.typography.fontSize.sm,
+                            fontWeight: theme.typography.fontWeight.medium,
+                            color: filters.performanceRank === option.rank ? theme.colors.textInverse : theme.colors.text,
+                          }}>
                             {option.label}
                           </Text>
-                        </View>
-                      </Card>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </Animated.ScrollView>
+                </View>
+
+                {/* Enhanced Sort Options */}
+                <View>
+                  <Text style={{
+                    fontSize: theme.typography.fontSize.md,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                    color: theme.colors.text,
+                    marginBottom: theme.spacing.md,
+                  }}>
+                    Sort By
+                  </Text>
+                  <View style={{
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: theme.spacing.sm,
+                  }}>
+                    {sortOptions.map((option) => (
+                      <Pressable
+                        key={option.value}
+                        onPress={() => handleFilterChange('sortBy', option.value)}
+                        style={{
+                          backgroundColor: filters.sortBy === option.value ? theme.colors.secondary : theme.colors.surface,
+                          paddingHorizontal: theme.spacing.md,
+                          paddingVertical: theme.spacing.sm,
+                          borderRadius: theme.borderRadius.lg,
+                          borderWidth: 1,
+                          borderColor: filters.sortBy === option.value ? theme.colors.secondary : theme.colors.border,
+                        }}
+                      >
+                        <Text style={{
+                          fontSize: theme.typography.fontSize.sm,
+                          fontWeight: theme.typography.fontWeight.medium,
+                          color: filters.sortBy === option.value ? theme.colors.textInverse : theme.colors.text,
+                        }}>
+                          {option.label}
+                        </Text>
+                      </Pressable>
                     ))}
                   </View>
-                </ScrollView>
-              </View>
-
-              {/* Sort Options */}
-              <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>Sort By</Text>
-                <View style={styles.sortOptions}>
-                  {sortOptions.map((option) => (
-                    <Card
-                      key={option.value}
-                      style={StyleSheet.flatten([
-                        styles.filterOption,
-                        filters.sortBy === option.value &&
-                          styles.filterOptionSelected,
-                      ])}
-                      padding="sm"
-                      onPress={() => handleFilterChange('sortBy', option.value)}
-                    >
-                      <Text style={styles.filterOptionText}>
-                        {option.label}
-                      </Text>
-                    </Card>
-                  ))}
                 </View>
-              </View>
+              </LinearGradient>
             </Card>
           </Animated.View>
         )}
 
-        {/* Results */}
-        <View style={styles.resultsSection}>
-          <View style={styles.resultsHeader}>
-            <Text style={styles.resultsTitle}>
+        {/* Enhanced Results Section */}
+        <View style={{ 
+          marginHorizontal: theme.spacing.lg, 
+          marginBottom: theme.spacing.xl,
+        }}>
+          <Animated.View 
+            entering={FadeInUp.delay(600).springify()}
+            style={{ marginBottom: theme.spacing.lg }}
+          >
+            <Text style={{
+              fontSize: theme.typography.fontSize.xl,
+              fontWeight: theme.typography.fontWeight.bold,
+              color: theme.colors.text,
+              marginBottom: theme.spacing.xs,
+            }}>
               {sortedListings.length} Results
             </Text>
             {(filters.query || filters.systemId || filters.performanceRank) && (
-              <Text style={styles.resultsSubtitle}>
+              <Text style={{
+                fontSize: theme.typography.fontSize.md,
+                color: theme.colors.textMuted,
+                lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+              }}>
                 {filters.query && `"${filters.query}"`}
                 {filters.systemId &&
                   ` in ${systemsQuery.data?.find((s: System) => s.id === filters.systemId)?.name}`}
@@ -498,346 +721,303 @@ export default function BrowseScreen() {
                   ` with ${performanceOptions.find((p) => p.rank === filters.performanceRank)?.label} performance`}
               </Text>
             )}
-          </View>
+          </Animated.View>
 
           {listingsQuery.isLoading ? (
-            <Animated.View
-              entering={FadeInUp.delay(400).springify()}
-              style={styles.loadingContainer}
-            >
-              {Array.from({ length: 3 }).map((_, index) => (
+            <View style={{ gap: theme.spacing.md }}>
+              {Array.from({ length: 4 }).map((_, index) => (
                 <Animated.View
                   key={index}
-                  entering={FadeInUp.delay(500 + index * 100).springify()}
-                  style={{ marginBottom: 16 }}
+                  entering={SlideInRight.delay(700 + index * 150).springify()}
                 >
-                  <SkeletonListingCard />
+                  <Card style={{ height: 120, padding: theme.spacing.lg }}>
+                    <View style={{ flexDirection: 'row', gap: theme.spacing.md }}>
+                      <SkeletonLoader width={80} height={80} borderRadius={theme.borderRadius.md} />
+                      <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                        <SkeletonLoader width="90%" height={18} />
+                        <SkeletonLoader width="70%" height={14} />
+                        <SkeletonLoader width="60%" height={14} />
+                        <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+                          <SkeletonLoader width={60} height={12} />
+                          <SkeletonLoader width={40} height={12} />
+                        </View>
+                      </View>
+                    </View>
+                  </Card>
                 </Animated.View>
               ))}
-            </Animated.View>
+            </View>
           ) : listingsQuery.error && sortedListings.length === 0 ? (
-            <Animated.View entering={FadeInUp.delay(300).springify()}>
-              <Card variant="glass" style={styles.errorCard} padding="lg">
-                <Ionicons
-                  name="cloud-offline"
-                  size={48}
-                  color={theme.colors.textMuted}
-                  style={{ marginBottom: 16 }}
-                />
-                <Text style={styles.errorTitle}>Unable to Load Listings</Text>
-                <Text style={styles.errorText}>
-                  Please check your connection and try again.
-                </Text>
-                <Button
-                  title="Retry"
-                  variant="gradient"
-                  onPress={() => listingsQuery.refetch()}
-                  style={styles.retryButton}
-                  leftIcon={
-                    <Ionicons name="refresh" size={16} color="#ffffff" />
-                  }
-                />
+            <Animated.View entering={ZoomIn.delay(300).springify()}>
+              <Card style={{ overflow: 'hidden' }}>
+                <LinearGradient
+                  colors={[`${theme.colors.error}10`, `${theme.colors.error}05`]}
+                  style={{
+                    padding: theme.spacing.xxl,
+                    alignItems: 'center',
+                  }}
+                >
+                  <View style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 40,
+                    backgroundColor: `${theme.colors.error}20`,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: theme.spacing.lg,
+                  }}>
+                    <Ionicons
+                      name="cloud-offline"
+                      size={40}
+                      color={theme.colors.error}
+                    />
+                  </View>
+                  <Text style={{
+                    fontSize: theme.typography.fontSize.xl,
+                    fontWeight: theme.typography.fontWeight.bold,
+                    color: theme.colors.text,
+                    marginBottom: theme.spacing.sm,
+                    textAlign: 'center',
+                  }}>
+                    Unable to Load Listings
+                  </Text>
+                  <Text style={{
+                    fontSize: theme.typography.fontSize.md,
+                    color: theme.colors.textMuted,
+                    textAlign: 'center',
+                    marginBottom: theme.spacing.lg,
+                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+                  }}>
+                    Please check your connection and try again.
+                  </Text>
+                  <Pressable
+                    onPress={() => listingsQuery.refetch()}
+                    style={{
+                      backgroundColor: theme.colors.error,
+                      paddingHorizontal: theme.spacing.lg,
+                      paddingVertical: theme.spacing.md,
+                      borderRadius: theme.borderRadius.lg,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: theme.spacing.sm,
+                    }}
+                  >
+                    <Ionicons name="refresh" size={20} color={theme.colors.textInverse} />
+                    <Text style={{
+                      color: theme.colors.textInverse,
+                      fontSize: theme.typography.fontSize.md,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                    }}>
+                      Retry
+                    </Text>
+                  </Pressable>
+                </LinearGradient>
               </Card>
             </Animated.View>
           ) : sortedListings.length > 0 ? (
-            <View style={styles.listingsContainer}>
+            <View style={{ gap: theme.spacing.md }}>
               {sortedListings.map((listing, index) => (
                 <Animated.View
                   key={listing.id}
-                  entering={FadeInUp.delay(300 + index * 50).springify()}
+                  entering={SlideInLeft.delay(700 + index * 100).springify()}
                 >
                   <ListingCard
                     listing={listing}
                     onPress={() => handleListingPress(listing.id)}
-                    style={styles.listingCard}
                   />
                 </Animated.View>
               ))}
             </View>
           ) : (
-            <Animated.View entering={FadeInUp.delay(300).springify()}>
-              <Card variant="glass" style={styles.emptyCard} padding="lg">
-                <Ionicons
-                  name="search"
-                  size={48}
-                  color={theme.colors.textMuted}
-                  style={styles.emptyIcon}
-                />
-                <Text style={styles.emptyTitle}>No Results Found</Text>
-                <Text style={styles.emptyText}>
-                  Try adjusting your search terms or filters to find what
-                  you&apos;re looking for.
-                </Text>
-                <Button
-                  title="Clear Filters"
-                  variant="outline"
-                  onPress={clearFilters}
-                  style={styles.emptyButton}
-                />
+            <Animated.View entering={ZoomIn.delay(300).springify()}>
+              <Card style={{ overflow: 'hidden' }}>
+                <LinearGradient
+                  colors={theme.colors.gradients.secondary}
+                  style={{
+                    padding: theme.spacing.xxl,
+                    alignItems: 'center',
+                  }}
+                >
+                  <View style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 40,
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: theme.spacing.lg,
+                  }}>
+                    <Ionicons
+                      name="search"
+                      size={40}
+                      color={theme.colors.textInverse}
+                    />
+                  </View>
+                  <Text style={{
+                    fontSize: theme.typography.fontSize.xl,
+                    fontWeight: theme.typography.fontWeight.bold,
+                    color: theme.colors.textInverse,
+                    marginBottom: theme.spacing.sm,
+                    textAlign: 'center',
+                  }}>
+                    No Results Found
+                  </Text>
+                  <Text style={{
+                    fontSize: theme.typography.fontSize.md,
+                    color: `${theme.colors.textInverse}CC`,
+                    textAlign: 'center',
+                    marginBottom: theme.spacing.lg,
+                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+                  }}>
+                    Try adjusting your search terms or filters to find what you're looking for.
+                  </Text>
+                  <Pressable
+                    onPress={clearFilters}
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      paddingHorizontal: theme.spacing.lg,
+                      paddingVertical: theme.spacing.md,
+                      borderRadius: theme.borderRadius.lg,
+                    }}
+                  >
+                    <Text style={{
+                      color: theme.colors.textInverse,
+                      fontSize: theme.typography.fontSize.md,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                    }}>
+                      Clear Filters
+                    </Text>
+                  </Pressable>
+                </LinearGradient>
               </Card>
             </Animated.View>
           )}
         </View>
 
-        {/* Quick Actions */}
+        {/* Enhanced Quick Actions */}
         {!filters.query && !filters.systemId && !filters.performanceRank && (
-          <View style={styles.quickActions}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.actionGrid}>
-                <Card
-                  style={styles.actionCard}
-                  padding="md"
-                  onPress={() => router.push('/(tabs)/create')}
-                >
-                  <Text style={styles.actionIcon}>➕</Text>
-                  <Text style={styles.actionTitle}>Create Listing</Text>
-                  <Text style={styles.actionDescription}>
-                    Share your emulation experience
-                  </Text>
-                </Card>
-                <Card
-                  style={styles.actionCard}
-                  padding="md"
-                  onPress={() => handleFilterChange('performanceRank', 5)}
-                >
-                  <Text style={styles.actionIcon}>⭐</Text>
-                  <Text style={styles.actionTitle}>Perfect Games</Text>
-                  <Text style={styles.actionDescription}>
-                    Browse flawless performance
-                  </Text>
-                </Card>
+          <View style={{ 
+            paddingHorizontal: theme.spacing.lg, 
+            marginBottom: theme.spacing.xl,
+          }}>
+            <Animated.Text
+              entering={FadeInUp.delay(900).springify()}
+              style={{
+                fontSize: theme.typography.fontSize.xl,
+                fontWeight: theme.typography.fontWeight.bold,
+                color: theme.colors.text,
+                marginBottom: theme.spacing.lg,
+              }}
+            >
+              Quick Actions
+            </Animated.Text>
+            <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{
+                flexDirection: 'row',
+                gap: theme.spacing.md,
+                paddingRight: theme.spacing.lg,
+              }}>
+                <Animated.View entering={SlideInLeft.delay(1000).springify()}>
+                  <Pressable
+                    onPress={() => router.push('/(tabs)/create')}
+                    style={{
+                      width: 180,
+                      borderRadius: theme.borderRadius.lg,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <LinearGradient
+                      colors={theme.colors.gradients.primary}
+                      style={{
+                        padding: theme.spacing.lg,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <View style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: 25,
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: theme.spacing.md,
+                      }}>
+                        <Ionicons name="add" size={24} color={theme.colors.textInverse} />
+                      </View>
+                      <Text style={{
+                        fontSize: theme.typography.fontSize.md,
+                        fontWeight: theme.typography.fontWeight.semibold,
+                        color: theme.colors.textInverse,
+                        marginBottom: theme.spacing.xs,
+                        textAlign: 'center',
+                      }}>
+                        Create Listing
+                      </Text>
+                      <Text style={{
+                        fontSize: theme.typography.fontSize.sm,
+                        color: `${theme.colors.textInverse}CC`,
+                        textAlign: 'center',
+                        lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.sm,
+                      }}>
+                        Share your emulation experience
+                      </Text>
+                    </LinearGradient>
+                  </Pressable>
+                </Animated.View>
+                
+                <Animated.View entering={SlideInRight.delay(1100).springify()}>
+                  <Pressable
+                    onPress={() => handleFilterChange('performanceRank', 5)}
+                    style={{
+                      width: 180,
+                      borderRadius: theme.borderRadius.lg,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <LinearGradient
+                      colors={theme.colors.gradients.gaming}
+                      style={{
+                        padding: theme.spacing.lg,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <View style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: 25,
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: theme.spacing.md,
+                      }}>
+                        <Ionicons name="star" size={24} color={theme.colors.textInverse} />
+                      </View>
+                      <Text style={{
+                        fontSize: theme.typography.fontSize.md,
+                        fontWeight: theme.typography.fontWeight.semibold,
+                        color: theme.colors.textInverse,
+                        marginBottom: theme.spacing.xs,
+                        textAlign: 'center',
+                      }}>
+                        Perfect Games
+                      </Text>
+                      <Text style={{
+                        fontSize: theme.typography.fontSize.sm,
+                        color: `${theme.colors.textInverse}CC`,
+                        textAlign: 'center',
+                        lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.sm,
+                      }}>
+                        Browse flawless performance
+                      </Text>
+                    </LinearGradient>
+                  </Pressable>
+                </Animated.View>
               </View>
-            </ScrollView>
+            </Animated.ScrollView>
           </View>
         )}
 
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   )
-}
-
-function createStyles(theme: any) {
-  return StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.background,
-    },
-    gradientBackground: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: 300,
-    },
-    scrollView: {
-      flex: 1,
-    },
-    header: {
-      paddingHorizontal: 20,
-      paddingTop: 60,
-      paddingBottom: 24,
-    },
-    title: {
-      fontSize: 32,
-      fontWeight: '800',
-      color: theme.colors.text,
-      marginBottom: 8,
-      textAlign: 'center',
-    },
-    subtitle: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-      textAlign: 'center',
-      lineHeight: 24,
-    },
-    searchCard: {
-      marginHorizontal: 20,
-      marginBottom: 16,
-    },
-    searchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    searchIcon: {
-      marginLeft: 4,
-    },
-    searchInput: {
-      flex: 1,
-      fontSize: theme.typography.fontSize.md,
-      color: theme.colors.text,
-      paddingVertical: 4,
-    },
-    filtersPanel: {
-      marginHorizontal: 20,
-      marginBottom: 20,
-    },
-    filtersHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    filtersTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.text,
-    },
-    filterSection: {
-      marginBottom: 20,
-    },
-    filterLabel: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 12,
-    },
-    filterOptions: {
-      flexDirection: 'row',
-      gap: 8,
-      paddingRight: 20,
-    },
-    filterOption: {
-      backgroundColor: theme.colors.surface,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-    },
-    filterOptionSelected: {
-      backgroundColor: theme.colors.primaryLight,
-      borderColor: theme.colors.primary,
-    },
-    filterOptionText: {
-      fontSize: 14,
-      color: theme.colors.text,
-      fontWeight: '500',
-    },
-    performanceFilter: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-    },
-    performanceDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-    },
-    sortOptions: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 12,
-    },
-    resultsSection: {
-      marginHorizontal: 20,
-      marginBottom: 24,
-    },
-    resultsHeader: {
-      marginBottom: 16,
-    },
-    resultsTitle: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 4,
-    },
-    resultsSubtitle: {
-      fontSize: 14,
-      color: theme.colors.textMuted,
-    },
-    loadingContainer: {
-      paddingVertical: 20,
-    },
-    loadingText: {
-      fontSize: theme.typography.fontSize.md,
-      color: theme.colors.textMuted,
-      marginTop: 12,
-      textAlign: 'center',
-    },
-    errorCard: {
-      alignItems: 'center',
-      paddingVertical: 40,
-    },
-    errorTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 8,
-    },
-    errorText: {
-      fontSize: 14,
-      color: theme.colors.textMuted,
-      textAlign: 'center',
-      marginBottom: 16,
-    },
-    retryButton: {
-      width: '100%',
-    },
-    listingsContainer: {
-      gap: 16,
-    },
-    listingCard: {
-      marginBottom: 0,
-    },
-    emptyCard: {
-      alignItems: 'center',
-      paddingVertical: 40,
-    },
-    emptyIcon: {
-      marginBottom: 16,
-    },
-    emptyTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 8,
-    },
-    emptyText: {
-      fontSize: 14,
-      color: theme.colors.textMuted,
-      textAlign: 'center',
-      marginBottom: 24,
-    },
-    emptyButton: {
-      width: '100%',
-    },
-    quickActions: {
-      paddingHorizontal: 20,
-      marginBottom: 24,
-    },
-    sectionTitle: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 16,
-    },
-    actionGrid: {
-      flexDirection: 'row',
-      gap: 12,
-      paddingRight: 20,
-    },
-    actionCard: {
-      width: 160,
-      alignItems: 'center',
-    },
-    actionIcon: {
-      fontSize: 32,
-      marginBottom: 8,
-    },
-    actionTitle: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.text,
-      marginBottom: 4,
-      textAlign: 'center',
-    },
-    actionDescription: {
-      fontSize: 12,
-      color: theme.colors.textMuted,
-      textAlign: 'center',
-    },
-    bottomSpacing: {
-      height: 100,
-    },
-  })
 }

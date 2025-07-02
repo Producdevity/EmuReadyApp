@@ -59,8 +59,10 @@ const createAxiosInstance = (): AxiosInstance => {
     (error) => {
       // Handle common errors
       if (error.response?.status === 401) {
-        // Unauthorized - could trigger logout or token refresh
-        console.warn('Unauthorized request - token may be expired')
+        // Unauthorized - only log in development to avoid noise
+        if (CONFIG.IS_DEV) {
+          console.warn('API request requires authentication')
+        }
       }
       
       // Log error details in development

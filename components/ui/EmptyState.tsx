@@ -6,7 +6,7 @@ import {
 } from 'react-native'
 import Animated, { FadeInUp } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
-import { Button } from '@/components/ui'
+import Button from './Button'
 import { useTheme } from '@/contexts/ThemeContext'
 
 interface EmptyStateProps {
