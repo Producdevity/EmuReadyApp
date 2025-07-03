@@ -59,12 +59,12 @@ export const useAppStore = create<AppStore>()(
     {
       name: 'emuready-app-store',
       storage: createJSONStorage(() => ({
-        getItem: (name) => {
-          const value = appStorage.get(name)
+        getItem: async (name) => {
+          const value = await appStorage.get(name)
           return value ? JSON.stringify(value) : null
         },
-        setItem: (name, value) => appStorage.set(name, JSON.parse(value)),
-        removeItem: (name) => appStorage.delete(name),
+        setItem: async (name, value) => await appStorage.set(name, JSON.parse(value)),
+        removeItem: async (name) => await appStorage.delete(name),
       })),
       partialize: (state) => ({
         user: state.user,

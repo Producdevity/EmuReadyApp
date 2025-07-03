@@ -107,9 +107,9 @@ export default function BrowseScreen() {
 
   // Load recent searches on mount
   useEffect(() => {
-    const loadRecentSearches = () => {
+    const loadRecentSearches = async () => {
       try {
-        const saved = appStorage.get<string[]>('recent_searches') || []
+        const saved = (await appStorage.get<string[]>('recent_searches')) || []
         setRecentSearches(saved.slice(0, 5))
       } catch (error) {
         console.error('Error loading recent searches:', error)
@@ -229,13 +229,13 @@ export default function BrowseScreen() {
     }
   }
 
-  const saveSearchToHistory = (query: string) => {
+  const saveSearchToHistory = async (query: string) => {
     if (!query.trim()) return
 
     try {
-      const current = appStorage.get<string[]>('recent_searches') || []
+      const current = (await appStorage.get<string[]>('recent_searches')) || []
       const updated = [query, ...current.filter((s) => s !== query)].slice(0, 5)
-      appStorage.set('recent_searches', updated)
+      await appStorage.set('recent_searches', updated)
       setRecentSearches(updated)
     } catch (error) {
       console.error('Error saving search:', error)
@@ -248,9 +248,9 @@ export default function BrowseScreen() {
     setShowSuggestions(false)
   }
 
-  const handleClearHistory = () => {
+  const handleClearHistory = async () => {
     try {
-      appStorage.delete('recent_searches')
+      await appStorage.delete('recent_searches')
       setRecentSearches([])
     } catch (error) {
       console.error('Error clearing search history:', error)
