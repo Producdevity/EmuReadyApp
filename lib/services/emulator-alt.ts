@@ -18,6 +18,8 @@ export class EmulatorAltService {
       await IntentLauncher.startActivityAsync(
         `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`,
         {
+          packageName: packageName,
+          className: 'org.yuzu.yuzu_emu.activities.EmulationActivity',
           extra: {
             title_id: titleId,
             custom_settings: customSettings,

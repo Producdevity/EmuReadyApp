@@ -241,8 +241,10 @@ export class EmulatorService {
           : `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`
 
       // Launch Eden emulator with custom configuration using expo-intent-launcher
+      // We need to target the EmulationActivity specifically since that's where the intent filter is defined
       await IntentLauncher.startActivityAsync(launchAction, {
-        data: packageName,
+        packageName: packageName,
+        className: 'org.yuzu.yuzu_emu.activities.EmulationActivity',
         extra: extras,
       })
     } catch (error) {

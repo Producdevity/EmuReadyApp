@@ -178,13 +178,13 @@ export default function BrowseScreen() {
 
     return {
       opacity,
-      transform: [{ translateY }],
+      transform: [{ translateY }] as any,
     }
   })
 
   const filtersAnimatedStyle = useAnimatedStyle(() => ({
     opacity: filtersOpacity.value,
-    transform: [{ scaleY: filtersHeight.value }],
+    transform: [{ scaleY: filtersHeight.value }] as any,
   }))
 
   const handleFilterChange = (key: keyof SearchFilters, value: any) => {
