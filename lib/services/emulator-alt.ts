@@ -32,7 +32,7 @@ export class EmulatorAltService {
     }
   }
 
-  // Method 2: Check if installed by trying to launch and catching error
+  // Method 2: Check if installed using multiple approaches
   static async checkIfInstalled(
     packageName: string = 'dev.eden.eden_emulator',
   ): Promise<boolean> {
@@ -40,17 +40,44 @@ export class EmulatorAltService {
       return false
     }
 
-    try {
-      // Try launching the main activity to test if app exists
-      await IntentLauncher.startActivityAsync('android.intent.action.MAIN', {
-        packageName,
-      })
-      console.log(`Package ${packageName} installed: true`)
-      return true
-    } catch (error) {
-      console.log('Package check failed:', error)
-      return false
+    console.log(`Checking installation of package: ${packageName}`)
+
+    // Try multiple intent URI formats
+    const intentUris = [
+      // Custom action intent
+      `intent://launch#Intent;package=${packageName};action=${packageName}.LAUNCH_WITH_CUSTOM_CONFIG;end`,
+      // Simple package intent  
+      `intent:#Intent;package=${packageName};end`,
+      // Market intent (will return false if package is installed)
+      `market://details?id=${packageName}`,
+    ]
+
+    for (const uri of intentUris) {
+      try {
+        console.log(`Trying intent URI: ${uri}`)
+        const canOpen = await Linking.canOpenURL(uri)
+        console.log(`Can open ${uri}: ${canOpen}`)
+        
+        // For market:// URI, if it can open, the app is NOT installed
+        // For intent:// URIs, if it can open, the app IS installed
+        if (uri.startsWith('market://')) {
+          if (!canOpen) {
+            console.log(`Package ${packageName} installed: true (market check failed)`)
+            return true
+          }
+        } else {
+          if (canOpen) {
+            console.log(`Package ${packageName} installed: true (intent check passed)`)
+            return true
+          }
+        }
+      } catch (error) {
+        console.log(`Intent URI failed: ${uri}`, error)
+      }
     }
+
+    console.log(`Package ${packageName} installation status: false`)
+    return false
   }
 
   // Method 3: Try opening with Linking API using intent URIs

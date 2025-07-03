@@ -143,11 +143,15 @@ driver_path=${fullPath}`
   const handleCheckInstallation = async () => {
     try {
       const isInstalled = await EmulatorAltService.checkIfInstalled(packageName)
+      console.log(
+        `Package ${packageName} is ${isInstalled ? 'installed' : 'NOT installed'}`,
+      )
       Alert.alert(
         'Installation Check',
         `Package ${packageName} is ${isInstalled ? 'installed' : 'NOT installed'}`,
       )
-    } catch {
+    } catch (error) {
+      console.error('Installation check failed:', error)
       Alert.alert('Installation Check', 'Could not verify installation status')
     }
   }
