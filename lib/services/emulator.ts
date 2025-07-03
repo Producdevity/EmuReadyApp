@@ -1,5 +1,5 @@
 import { Platform } from 'react-native'
-import SendIntentAndroid from 'react-native-send-intent'
+import * as IntentLauncher from 'expo-intent-launcher'
 
 // Eden emulator package name
 const EDEN_PACKAGE = 'dev.eden.eden_emulator'
@@ -239,11 +239,17 @@ export class EmulatorService {
           ? EDEN_LAUNCH_ACTION
           : `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`
 
-      // Launch Eden emulator with custom configuration
-      await SendIntentAndroid.openAppWithData(extras, launchAction, packageName)
+      // Launch Eden emulator with custom configuration using expo-intent-launcher
+      await IntentLauncher.startActivityAsync(launchAction, {
+        data: packageName,
+        extra: extras,
+      })
     } catch (error) {
       throw new Error(
-        `Failed to launch emulator (${packageName}). Please ensure the emulator is installed on your device.`,
+        `Failed to launch emulator (${packageName}). Please ensure the emulator is installed on your device.
+        
+        Launch Action: ${EDEN_LAUNCH_ACTION}
+        Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       )
     }
   }

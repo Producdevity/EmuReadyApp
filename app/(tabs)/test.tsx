@@ -172,7 +172,7 @@ driver_path=${fullPath}`
     try {
       switch (method) {
         case 'openApp':
-          await EmulatorAltService.launchWithOpenApp(titleId.trim(), customSettings, packageName.trim())
+          await EmulatorAltService.launchWithDirectIntent(titleId.trim(), customSettings, packageName.trim())
           break
         case 'linking':
           await EmulatorAltService.launchWithLinking(titleId.trim(), customSettings, packageName.trim())
@@ -186,7 +186,7 @@ driver_path=${fullPath}`
         default:
           throw new Error('Unknown method')
       }
-      
+
       Alert.alert('Success', `Alternative method "${method}" worked!`)
     } catch (error) {
       console.error(`Alternative method ${method} failed:`, error)
@@ -583,7 +583,7 @@ driver_path=${fullPath}`
                       Debug Options
                     </Text>
                   </View>
-                  
+
                   <Text
                     style={{
                       fontSize: theme.typography.fontSize.sm,
@@ -608,7 +608,7 @@ driver_path=${fullPath}`
                         />
                       }
                     />
-                    
+
                     <Button
                       title="Log Available Methods"
                       onPress={handleDebugMethods}
@@ -635,7 +635,7 @@ driver_path=${fullPath}`
                       Alternative Launch Methods:
                     </Text>
 
-                    <View style={{ 
+                    <View style={{
                       flexDirection: isLandscape ? 'row' : 'column',
                       gap: theme.spacing.sm,
                     }}>
@@ -657,7 +657,7 @@ driver_path=${fullPath}`
                       />
                     </View>
 
-                    <View style={{ 
+                    <View style={{
                       flexDirection: isLandscape ? 'row' : 'column',
                       gap: theme.spacing.sm,
                     }}>

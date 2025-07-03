@@ -58,32 +58,33 @@ export default function ConfigScreen() {
       }
 
       const file = result.assets[0]
-      
+
       // Read file content
       const content = await FileSystem.readAsStringAsync(file.uri)
-      
+
       // Extract title ID from filename
       const titleId = extractTitleIdFromFilename(file.name)
-      
+
       setConfigFile({
         name: file.name,
         content: content,
         titleId: titleId,
       })
-      
+
       if (titleId) {
         setCustomTitleId(titleId)
       }
-      
+
       Alert.alert(
         'File Loaded',
-        `Successfully loaded ${file.name}${titleId ? `\n\nDetected Title ID: ${titleId}` : '\n\nPlease enter the Title ID manually.'}`
+        `Successfully loaded ${file.name}${titleId ? `\n\nDetected Title ID: ${titleId}` : '\n\nPlease enter the Title ID manually.'}`,
       )
     } catch (error) {
       console.error('Error picking file:', error)
       Alert.alert(
         'Error',
-        'Failed to load configuration file. Please try again.'
+        `Failed to load configuration file. Please try again. 
+        ${error instanceof Error ? error.message : 'Unknown error'}`,
       )
     }
   }
@@ -92,18 +93,21 @@ export default function ConfigScreen() {
     if (Platform.OS !== 'android') {
       Alert.alert(
         'Platform Error',
-        'Eden emulator testing is only available on Android devices.'
+        'Eden emulator testing is only available on Android devices.',
       )
       return
     }
 
     if (!configFile) {
-      Alert.alert('No Configuration', 'Please select a configuration file first.')
+      Alert.alert(
+        'No Configuration',
+        'Please select a configuration file first.',
+      )
       return
     }
 
     const titleId = customTitleId || configFile.titleId
-    
+
     if (!titleId.trim()) {
       Alert.alert('Missing Title ID', 'Please enter a Title ID.')
       return
@@ -112,7 +116,7 @@ export default function ConfigScreen() {
     if (!EmulatorService.validateTitleId(titleId)) {
       Alert.alert(
         'Invalid Title ID',
-        'Title ID must be a 16-digit hexadecimal string (e.g., 0100000000010000).'
+        'Title ID must be a 16-digit hexadecimal string (e.g., 0100000000010000).',
       )
       return
     }
@@ -128,17 +132,17 @@ export default function ConfigScreen() {
 
       Alert.alert(
         'Launch Successful',
-        `Emulator launch command sent successfully to ${packageName}!`
+        `Emulator launch command sent successfully to ${packageName}!`,
       )
     } catch (error) {
       console.error('Error testing emulator:', error)
-      
+
       if (error instanceof Error) {
         Alert.alert('Launch Error', error.message)
       } else {
         Alert.alert(
           'Launch Error',
-          'An unexpected error occurred while testing the emulator.'
+          'An unexpected error occurred while testing the emulator.',
         )
       }
     } finally {
@@ -152,16 +156,16 @@ export default function ConfigScreen() {
       'Are you sure you want to clear the current configuration?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Clear', 
+        {
+          text: 'Clear',
           style: 'destructive',
           onPress: () => {
             setConfigFile(null)
             setCustomTitleId('')
             setShowContent(false)
-          }
-        }
-      ]
+          },
+        },
+      ],
     )
   }
 
@@ -175,14 +179,16 @@ export default function ConfigScreen() {
           style={{ flex: 1 }}
           contentContainerStyle={{
             padding: isLandscape ? theme.spacing.md : theme.spacing.lg,
-            paddingHorizontal: isLandscape ? theme.spacing.xl : theme.spacing.lg,
+            paddingHorizontal: isLandscape
+              ? theme.spacing.xl
+              : theme.spacing.lg,
           }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
           <Animated.View
             entering={FadeInDown.delay(getBaseDelay('instant')).duration(
-              ANIMATION_CONFIG.timing.fast
+              ANIMATION_CONFIG.timing.fast,
             )}
           >
             <View
@@ -235,7 +241,7 @@ export default function ConfigScreen() {
           {/* Information Card */}
           <Animated.View
             entering={FadeInUp.delay(getBaseDelay('fast')).duration(
-              ANIMATION_CONFIG.timing.fast
+              ANIMATION_CONFIG.timing.fast,
             )}
           >
             <Card style={{ marginBottom: theme.spacing.lg }}>
@@ -272,7 +278,9 @@ export default function ConfigScreen() {
                       theme.typography.fontSize.md,
                   }}
                 >
-                  Upload an INI configuration file (e.g., 0100000000010000.ini) to test custom game settings. The app will try to detect the Title ID from the filename.
+                  Upload an INI configuration file (e.g., 0100000000010000.ini)
+                  to test custom game settings. The app will try to detect the
+                  Title ID from the filename.
                 </Text>
               </View>
             </Card>
@@ -281,7 +289,7 @@ export default function ConfigScreen() {
           {/* File Upload Section */}
           <Animated.View
             entering={FadeInUp.delay(getBaseDelay('normal')).duration(
-              ANIMATION_CONFIG.timing.fast
+              ANIMATION_CONFIG.timing.fast,
             )}
           >
             <Card style={{ marginBottom: theme.spacing.lg }}>
@@ -303,7 +311,9 @@ export default function ConfigScreen() {
                   style={{
                     backgroundColor: theme.colors.surface,
                     borderWidth: 2,
-                    borderColor: configFile ? theme.colors.success : theme.colors.border,
+                    borderColor: configFile
+                      ? theme.colors.success
+                      : theme.colors.border,
                     borderRadius: theme.borderRadius.md,
                     borderStyle: 'dashed',
                     padding: theme.spacing.xl,
@@ -312,16 +322,20 @@ export default function ConfigScreen() {
                   }}
                 >
                   <Ionicons
-                    name={configFile ? "document-text" : "cloud-upload"}
+                    name={configFile ? 'document-text' : 'cloud-upload'}
                     size={48}
-                    color={configFile ? theme.colors.success : theme.colors.textMuted}
+                    color={
+                      configFile ? theme.colors.success : theme.colors.textMuted
+                    }
                     style={{ marginBottom: theme.spacing.md }}
                   />
                   <Text
                     style={{
                       fontSize: theme.typography.fontSize.md,
                       fontWeight: theme.typography.fontWeight.semibold,
-                      color: configFile ? theme.colors.success : theme.colors.text,
+                      color: configFile
+                        ? theme.colors.success
+                        : theme.colors.text,
                       marginBottom: theme.spacing.xs,
                     }}
                   >
@@ -334,7 +348,9 @@ export default function ConfigScreen() {
                       textAlign: 'center',
                     }}
                   >
-                    {configFile ? 'Tap to change file' : 'Tap to browse for configuration files'}
+                    {configFile
+                      ? 'Tap to change file'
+                      : 'Tap to browse for configuration files'}
                   </Text>
                 </Pressable>
 
@@ -359,7 +375,9 @@ export default function ConfigScreen() {
                           marginBottom: theme.spacing.sm,
                         }}
                       >
-                        {configFile.titleId ? 'Auto-detected from filename' : 'Enter the game Title ID'}
+                        {configFile.titleId
+                          ? 'Auto-detected from filename'
+                          : 'Enter the game Title ID'}
                       </Text>
                       <TextInput
                         style={{
@@ -375,7 +393,7 @@ export default function ConfigScreen() {
                         }}
                         value={customTitleId}
                         onChangeText={setCustomTitleId}
-                        placeholder={configFile.titleId || "0100000000010000"}
+                        placeholder={configFile.titleId || '0100000000010000'}
                         placeholderTextColor={theme.colors.textMuted}
                         maxLength={16}
                         autoCapitalize="characters"
@@ -424,14 +442,14 @@ export default function ConfigScreen() {
                       }}
                     >
                       <Button
-                        title={showContent ? "Hide Content" : "Show Content"}
+                        title={showContent ? 'Hide Content' : 'Show Content'}
                         onPress={() => setShowContent(!showContent)}
                         variant="outline"
                         size="lg"
                         style={{ flex: isLandscape ? 1 : undefined }}
                         leftIcon={
                           <Ionicons
-                            name={showContent ? "eye-off" : "eye"}
+                            name={showContent ? 'eye-off' : 'eye'}
                             size={20}
                             color={theme.colors.primary}
                           />
@@ -492,7 +510,7 @@ export default function ConfigScreen() {
           {configFile && showContent && (
             <Animated.View
               entering={FadeInUp.delay(getBaseDelay('fast')).duration(
-                ANIMATION_CONFIG.timing.fast
+                ANIMATION_CONFIG.timing.fast,
               )}
             >
               <Card>
@@ -505,7 +523,9 @@ export default function ConfigScreen() {
                       justifyContent: 'space-between',
                     }}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View
+                      style={{ flexDirection: 'row', alignItems: 'center' }}
+                    >
                       <Ionicons
                         name="code"
                         size={20}

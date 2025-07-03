@@ -1,10 +1,10 @@
 import { Platform, Linking } from 'react-native'
-import SendIntentAndroid from 'react-native-send-intent'
+import * as IntentLauncher from 'expo-intent-launcher'
 
-// Alternative launch methods for Eden emulator using REAL react-native-send-intent methods
+// Alternative launch methods for Eden emulator using expo-intent-launcher
 export class EmulatorAltService {
-  // Method 1: Try using the real openApp method (this exists!)
-  static async launchWithOpenApp(
+  // Method 1: Try using direct intent launch
+  static async launchWithDirectIntent(
     titleId: string,
     customSettings: string,
     packageName: string = 'dev.eden.eden_emulator'
@@ -14,30 +14,33 @@ export class EmulatorAltService {
     }
 
     try {
-      // openApp(packageName, extras) - this method actually exists but not in types
-      await (SendIntentAndroid as any).openApp(packageName, {
-        title_id: titleId,
-        custom_settings: customSettings,
+      await IntentLauncher.startActivityAsync(`${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`, {
+        extra: {
+          title_id: titleId,
+          custom_settings: customSettings,
+        },
       })
     } catch (error) {
-      console.log('openApp method failed:', error)
-      throw new Error(`openApp failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.log('Direct intent method failed:', error)
+      throw new Error(`Direct intent failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
-  // Method 2: Check if installed using the real isAppInstalled method
+  // Method 2: Check if installed by trying to launch and catching error
   static async checkIfInstalled(packageName: string = 'dev.eden.eden_emulator'): Promise<boolean> {
     if (Platform.OS !== 'android') {
       return false
     }
 
     try {
-      // isAppInstalled(packageName) - this method actually exists but not in types
-      const installed = await (SendIntentAndroid as any).isAppInstalled(packageName)
-      console.log(`Package ${packageName} installed:`, installed)
-      return installed
+      // Try launching the main activity to test if app exists
+      await IntentLauncher.startActivityAsync('android.intent.action.MAIN', {
+        packageName,
+      })
+      console.log(`Package ${packageName} installed: true`)
+      return true
     } catch (error) {
-      console.log('isAppInstalled check failed:', error)
+      console.log('Package check failed:', error)
       return false
     }
   }
@@ -59,9 +62,9 @@ export class EmulatorAltService {
     // Try different URI formats that Android supports
     const uris = [
       // Standard intent URI format
-      `intent://launch#Intent;scheme=eden;package=${packageName};action=dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG;S.title_id=${encodedTitleId};S.custom_settings=${encodedSettings};end`,
+      `intent://launch#Intent;scheme=eden;package=${packageName};action=${packageName}.LAUNCH_WITH_CUSTOM_CONFIG;S.title_id=${encodedTitleId};S.custom_settings=${encodedSettings};end`,
       // Simple package launch
-      `intent:#Intent;package=${packageName};action=dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG;S.title_id=${encodedTitleId};S.custom_settings=${encodedSettings};end`,
+      `intent:#Intent;package=${packageName};action=${packageName}.LAUNCH_WITH_CUSTOM_CONFIG;S.title_id=${encodedTitleId};S.custom_settings=${encodedSettings};end`,
       // Try to launch main activity with extras
       `intent:#Intent;package=${packageName};component=${packageName}/.MainActivity;S.title_id=${encodedTitleId};S.custom_settings=${encodedSettings};end`,
     ]
@@ -90,8 +93,10 @@ export class EmulatorAltService {
     }
 
     try {
-      // Just open the app without any data
-      await (SendIntentAndroid as any).openApp(packageName, {})
+      // Just open the app without any data using main action
+      await IntentLauncher.startActivityAsync('android.intent.action.MAIN', {
+        packageName,
+      })
     } catch (error) {
       console.log('Simple app launch failed:', error)
       throw new Error(`Could not launch ${packageName}: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -116,7 +121,7 @@ export class EmulatorAltService {
         const isInstalled = await this.checkIfInstalled(pkg)
         if (isInstalled) {
           console.log(`Found installed package: ${pkg}`)
-          await this.launchWithOpenApp(titleId, customSettings, pkg)
+          await this.launchWithDirectIntent(titleId, customSettings, pkg)
           return
         }
       } catch (error) {
@@ -127,40 +132,13 @@ export class EmulatorAltService {
     throw new Error('Could not find any compatible emulator package')
   }
 
-  // Method 6: Log all REAL available methods for debugging
+  // Method 6: Log available methods
   static logAvailableMethods(): void {
-    console.log('=== REAL SendIntentAndroid Methods ===')
-    console.log('Available methods:', Object.keys(SendIntentAndroid))
-    
-    // Check the actual documented methods
-    const realMethods = [
-      'sendText',
-      'sendMail', 
-      'sendSms',
-      'sendPhoneCall',
-      'sendPhoneDial',
-      'addCalendarEvent',
-      'isAppInstalled',
-      'installRemoteApp',
-      'openApp',
-      'openAppWithData',
-      'openChromeIntent',
-      'openCalendar',
-      'openCamera',
-      'openEmailApp',
-      'openAllEmailApp',
-      'openDownloadManager',
-      'openChooserWithOptions',
-      'openChooserWithMultipleOptions',
-      'openMaps',
-      'openMapsWithRoute',
-      'shareTextToLine',
-      'shareImageToInstagram',
-      'openSettings'
-    ]
-
-    realMethods.forEach(method => {
-      console.log(`- ${method}:`, typeof (SendIntentAndroid as any)[method])
-    })
+    console.log('=== Available Launch Methods ===')
+    console.log('1. launchWithDirectIntent - Direct intent with expo-intent-launcher')
+    console.log('2. checkIfInstalled - Check if package is installed')
+    console.log('3. launchWithLinking - Launch using Linking API with intent URIs')
+    console.log('4. launchAppOnly - Launch app without custom data')
+    console.log('5. tryDifferentPackageNames - Try multiple package names')
   }
 }
