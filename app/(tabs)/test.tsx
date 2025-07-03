@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/contexts/ThemeContext'
 import { Button, Card } from '@/components/ui'
 import { EmulatorService } from '@/lib/services/emulator'
+import { EmulatorAltService } from '@/lib/services/emulator-alt'
 import { getBaseDelay, ANIMATION_CONFIG } from '@/lib/animation/config'
 
 export default function TestScreen() {
@@ -27,6 +28,7 @@ export default function TestScreen() {
   const [packageName, setPackageName] = useState('dev.eden.eden_emulator')
   const [isLoading, setIsLoading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [showDebugOptions, setShowDebugOptions] = useState(false)
 
   const getFullDriverPath = (
     filename: string,
@@ -131,6 +133,64 @@ driver_path=${fullPath}`
           'An unexpected error occurred while testing the emulator.',
         )
       }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDebugMethods = () => {
+    EmulatorAltService.logAvailableMethods()
+    Alert.alert('Debug Info', 'Check console logs for available methods')
+  }
+
+  const handleCheckInstallation = async () => {
+    try {
+      const isInstalled = await EmulatorAltService.checkIfInstalled(packageName)
+      Alert.alert(
+        'Installation Check',
+        `Package ${packageName} is ${isInstalled ? 'installed' : 'NOT installed'}`
+      )
+    } catch {
+      Alert.alert('Installation Check', 'Could not verify installation status')
+    }
+  }
+
+  const handleTestAlternative = async (method: string) => {
+    if (Platform.OS !== 'android') {
+      Alert.alert('Platform Error', 'Only available on Android')
+      return
+    }
+
+    if (!titleId.trim() || !EmulatorService.validateTitleId(titleId)) {
+      Alert.alert('Invalid Title ID', 'Please enter a valid 16-digit hex Title ID')
+      return
+    }
+
+    setIsLoading(true)
+    const customSettings = generateCustomSettings(driverPath)
+
+    try {
+      switch (method) {
+        case 'openApp':
+          await EmulatorAltService.launchWithOpenApp(titleId.trim(), customSettings, packageName.trim())
+          break
+        case 'linking':
+          await EmulatorAltService.launchWithLinking(titleId.trim(), customSettings, packageName.trim())
+          break
+        case 'launchOnly':
+          await EmulatorAltService.launchAppOnly(packageName.trim())
+          break
+        case 'allPackages':
+          await EmulatorAltService.tryDifferentPackageNames(titleId.trim(), customSettings)
+          break
+        default:
+          throw new Error('Unknown method')
+      }
+      
+      Alert.alert('Success', `Alternative method "${method}" worked!`)
+    } catch (error) {
+      console.error(`Alternative method ${method} failed:`, error)
+      Alert.alert('Method Failed', `"${method}" method failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsLoading(false)
     }
@@ -457,6 +517,23 @@ driver_path=${fullPath}`
                   />
                 </View>
 
+                {/* Debug Options Toggle */}
+                <View style={{ marginTop: theme.spacing.md }}>
+                  <Button
+                    title={showDebugOptions ? "Hide Debug Options" : "Show Debug Options"}
+                    onPress={() => setShowDebugOptions(!showDebugOptions)}
+                    variant="ghost"
+                    size="md"
+                    leftIcon={
+                      <Ionicons
+                        name="bug"
+                        size={18}
+                        color={theme.colors.primary}
+                      />
+                    }
+                  />
+                </View>
+
                 {Platform.OS !== 'android' && (
                   <Text
                     style={{
@@ -473,6 +550,139 @@ driver_path=${fullPath}`
               </View>
             </Card>
           </Animated.View>
+
+          {/* Debug Options */}
+          {showDebugOptions && (
+            <Animated.View
+              entering={FadeInUp.delay(getBaseDelay('fast')).duration(
+                ANIMATION_CONFIG.timing.fast,
+              )}
+            >
+              <Card style={{ marginBottom: theme.spacing.lg }}>
+                <View style={{ padding: theme.spacing.lg }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginBottom: theme.spacing.md,
+                    }}
+                  >
+                    <Ionicons
+                      name="bug"
+                      size={20}
+                      color={theme.colors.primary}
+                      style={{ marginRight: theme.spacing.sm }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: theme.typography.fontSize.lg,
+                        fontWeight: theme.typography.fontWeight.semibold,
+                        color: theme.colors.text,
+                      }}
+                    >
+                      Debug Options
+                    </Text>
+                  </View>
+                  
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.sm,
+                      color: theme.colors.textMuted,
+                      marginBottom: theme.spacing.md,
+                    }}
+                  >
+                    Try different launch methods if the main method fails
+                  </Text>
+
+                  <View style={{ gap: theme.spacing.sm }}>
+                    <Button
+                      title="Check Installation"
+                      onPress={handleCheckInstallation}
+                      variant="outline"
+                      size="md"
+                      leftIcon={
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={18}
+                          color={theme.colors.primary}
+                        />
+                      }
+                    />
+                    
+                    <Button
+                      title="Log Available Methods"
+                      onPress={handleDebugMethods}
+                      variant="outline"
+                      size="md"
+                      leftIcon={
+                        <Ionicons
+                          name="terminal"
+                          size={18}
+                          color={theme.colors.primary}
+                        />
+                      }
+                    />
+
+                    <Text
+                      style={{
+                        fontSize: theme.typography.fontSize.sm,
+                        fontWeight: theme.typography.fontWeight.medium,
+                        color: theme.colors.text,
+                        marginTop: theme.spacing.sm,
+                        marginBottom: theme.spacing.xs,
+                      }}
+                    >
+                      Alternative Launch Methods:
+                    </Text>
+
+                    <View style={{ 
+                      flexDirection: isLandscape ? 'row' : 'column',
+                      gap: theme.spacing.sm,
+                    }}>
+                      <Button
+                        title="Try OpenApp"
+                        onPress={() => handleTestAlternative('openApp')}
+                        variant="secondary"
+                        size="sm"
+                        disabled={isLoading}
+                        style={{ flex: isLandscape ? 1 : undefined }}
+                      />
+                      <Button
+                        title="Try Intent URIs"
+                        onPress={() => handleTestAlternative('linking')}
+                        variant="secondary"
+                        size="sm"
+                        disabled={isLoading}
+                        style={{ flex: isLandscape ? 1 : undefined }}
+                      />
+                    </View>
+
+                    <View style={{ 
+                      flexDirection: isLandscape ? 'row' : 'column',
+                      gap: theme.spacing.sm,
+                    }}>
+                      <Button
+                        title="Launch App Only"
+                        onPress={() => handleTestAlternative('launchOnly')}
+                        variant="secondary"
+                        size="sm"
+                        disabled={isLoading}
+                        style={{ flex: isLandscape ? 1 : undefined }}
+                      />
+                      <Button
+                        title="Try All Packages"
+                        onPress={() => handleTestAlternative('allPackages')}
+                        variant="secondary"
+                        size="sm"
+                        disabled={isLoading}
+                        style={{ flex: isLandscape ? 1 : undefined }}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </Card>
+            </Animated.View>
+          )}
 
           {/* Settings Preview */}
           {showPreview && (

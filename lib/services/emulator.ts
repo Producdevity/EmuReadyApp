@@ -131,9 +131,21 @@ export class EmulatorService {
           ? EDEN_LAUNCH_ACTION
           : `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`
 
+      console.log('Attempting to launch emulator with:', {
+        packageName,
+        launchAction,
+        titleId,
+        customSettingsLength: customSettings.length,
+      })
+
       await SendIntentAndroid.openAppWithData(extras, launchAction, packageName)
     } catch (error) {
       console.error('Failed to launch emulator:', error)
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        packageName,
+        action: packageName === EDEN_PACKAGE ? EDEN_LAUNCH_ACTION : `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`,
+      })
       throw new Error(
         `Failed to launch emulator (${packageName}). Please ensure the emulator is installed on your device.`,
       )

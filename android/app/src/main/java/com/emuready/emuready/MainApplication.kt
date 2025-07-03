@@ -1,4 +1,4 @@
-package com.anonymous.emureadyapp
+package com.emuready.emuready
 
 import android.app.Application
 import android.content.res.Configuration

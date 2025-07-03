@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anonymous.emureadyapp'
+    namespace 'com.emuready.emuready'
     defaultConfig {
-        applicationId 'com.anonymous.emureadyapp'
+        applicationId 'com.emuready.emuready'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

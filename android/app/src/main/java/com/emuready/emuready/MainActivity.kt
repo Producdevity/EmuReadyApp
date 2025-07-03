@@ -1,4 +1,4 @@
-package com.anonymous.emureadyapp
+package com.emuready.emuready
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
