@@ -14,8 +14,8 @@ export class EmulatorAltService {
     }
 
     try {
-      // openApp(packageName, extras) - this method actually exists
-      await SendIntentAndroid.openApp(packageName, {
+      // openApp(packageName, extras) - this method actually exists but not in types
+      await (SendIntentAndroid as any).openApp(packageName, {
         title_id: titleId,
         custom_settings: customSettings,
       })
@@ -32,8 +32,8 @@ export class EmulatorAltService {
     }
 
     try {
-      // isAppInstalled(packageName) - this method actually exists
-      const installed = await SendIntentAndroid.isAppInstalled(packageName)
+      // isAppInstalled(packageName) - this method actually exists but not in types
+      const installed = await (SendIntentAndroid as any).isAppInstalled(packageName)
       console.log(`Package ${packageName} installed:`, installed)
       return installed
     } catch (error) {
@@ -91,7 +91,7 @@ export class EmulatorAltService {
 
     try {
       // Just open the app without any data
-      await SendIntentAndroid.openApp(packageName, {})
+      await (SendIntentAndroid as any).openApp(packageName, {})
     } catch (error) {
       console.log('Simple app launch failed:', error)
       throw new Error(`Could not launch ${packageName}: ${error instanceof Error ? error.message : 'Unknown error'}`)
