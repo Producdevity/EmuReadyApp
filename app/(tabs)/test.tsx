@@ -116,15 +116,13 @@ driver_path=${fullPath}`
       console.log('Driver Path:', driverPath)
       console.log('Package Name:', packageName.trim())
       
-      const customSettings = generateCustomSettings(driverPath)
-      console.log('Generated custom settings successfully')
-
-      console.log('Calling EmulatorService.launchGameWithCustomSettings...')
-      await EmulatorService.launchGameWithCustomSettings({
-        titleId: titleId.trim(),
-        customSettings,
-        packageName: packageName.trim(),
-      })
+      // Use the "Known Working Config" preset instead of basic settings
+      console.log('Using "Known Working Config" preset with Turnip GPU driver')
+      await EmulatorService.launchGameWithPreset(
+        titleId.trim(),
+        'Known Working Config',
+        packageName.trim()
+      )
 
       console.log('EmulatorService call completed successfully')
       Alert.alert(

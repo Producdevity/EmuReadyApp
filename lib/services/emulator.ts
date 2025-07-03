@@ -124,9 +124,7 @@ sound_index\\\\use_global=true
 
 
 [GpuDriver]
-driver_path\\\\use_global=false
-driver_path\\\\default=false
-driver_path=/storage/emulated/0/Android/data/dev.eden.eden_emulator/files/gpu_drivers/turnip_mrpurple-T19-toasted.adpkg.zip`,
+driver_path\\\\use_global=true`,
   },
   {
     name: 'High Performance',
@@ -264,9 +262,9 @@ export class EmulatorService {
         message: (error as any)?.message,
         stack: (error as any)?.stack,
       })
-      
+
       const actionUsed = packageName === EDEN_PACKAGE ? EDEN_LAUNCH_ACTION : `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`
-      
+
       throw new Error(
         `Failed to launch emulator (${packageName}). Please ensure the emulator is installed on your device.
         

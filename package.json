@@ -65,7 +65,8 @@
     "react-native-webview": "13.13.5",
     "remeda": "^2.23.0",
     "tailwindcss": "^3.4.17",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.5",
+    "expo-dev-client": "~5.2.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
