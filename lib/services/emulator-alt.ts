@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@/lib/utils'
 import { Platform, Linking } from 'react-native'
 import * as IntentLauncher from 'expo-intent-launcher'
 
@@ -7,27 +8,32 @@ export class EmulatorAltService {
   static async launchWithDirectIntent(
     titleId: string,
     customSettings: string,
-    packageName: string = 'dev.eden.eden_emulator'
+    packageName: string = 'dev.eden.eden_emulator',
   ): Promise<void> {
     if (Platform.OS !== 'android') {
       throw new Error('Only available on Android')
     }
 
     try {
-      await IntentLauncher.startActivityAsync(`${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`, {
-        extra: {
-          title_id: titleId,
-          custom_settings: customSettings,
+      await IntentLauncher.startActivityAsync(
+        `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`,
+        {
+          extra: {
+            title_id: titleId,
+            custom_settings: customSettings,
+          },
         },
-      })
+      )
     } catch (error) {
       console.log('Direct intent method failed:', error)
-      throw new Error(`Direct intent failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(`Direct intent failed: ${getErrorMessage(error)}`)
     }
   }
 
   // Method 2: Check if installed by trying to launch and catching error
-  static async checkIfInstalled(packageName: string = 'dev.eden.eden_emulator'): Promise<boolean> {
+  static async checkIfInstalled(
+    packageName: string = 'dev.eden.eden_emulator',
+  ): Promise<boolean> {
     if (Platform.OS !== 'android') {
       return false
     }
@@ -49,7 +55,7 @@ export class EmulatorAltService {
   static async launchWithLinking(
     titleId: string,
     customSettings: string,
-    packageName: string = 'dev.eden.eden_emulator'
+    packageName: string = 'dev.eden.eden_emulator',
   ): Promise<void> {
     if (Platform.OS !== 'android') {
       throw new Error('Only available on Android')
@@ -58,7 +64,7 @@ export class EmulatorAltService {
     // Build Android intent URIs
     const encodedSettings = encodeURIComponent(customSettings)
     const encodedTitleId = encodeURIComponent(titleId)
-    
+
     // Try different URI formats that Android supports
     const uris = [
       // Standard intent URI format
@@ -87,7 +93,9 @@ export class EmulatorAltService {
   }
 
   // Method 4: Just launch the app normally (without custom data)
-  static async launchAppOnly(packageName: string = 'dev.eden.eden_emulator'): Promise<void> {
+  static async launchAppOnly(
+    packageName: string = 'dev.eden.eden_emulator',
+  ): Promise<void> {
     if (Platform.OS !== 'android') {
       throw new Error('Only available on Android')
     }
@@ -99,20 +107,22 @@ export class EmulatorAltService {
       })
     } catch (error) {
       console.log('Simple app launch failed:', error)
-      throw new Error(`Could not launch ${packageName}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      throw new Error(
+        `Could not launch ${packageName}: ${getErrorMessage(error)}`,
+      )
     }
   }
 
   // Method 5: Try with different package names
   static async tryDifferentPackageNames(
     titleId: string,
-    customSettings: string
+    customSettings: string,
   ): Promise<void> {
     const possiblePackages = [
       'dev.eden.eden_emulator',
-      'org.yuzu.yuzu_emu',
-      'dev.eden.edenemu',
+      'com.eden.eden_emulator',
       'com.eden.emulator',
+      'org.yuzu.yuzu_emu',
     ]
 
     for (const pkg of possiblePackages) {
@@ -135,9 +145,13 @@ export class EmulatorAltService {
   // Method 6: Log available methods
   static logAvailableMethods(): void {
     console.log('=== Available Launch Methods ===')
-    console.log('1. launchWithDirectIntent - Direct intent with expo-intent-launcher')
+    console.log(
+      '1. launchWithDirectIntent - Direct intent with expo-intent-launcher',
+    )
     console.log('2. checkIfInstalled - Check if package is installed')
-    console.log('3. launchWithLinking - Launch using Linking API with intent URIs')
+    console.log(
+      '3. launchWithLinking - Launch using Linking API with intent URIs',
+    )
     console.log('4. launchAppOnly - Launch app without custom data')
     console.log('5. tryDifferentPackageNames - Try multiple package names')
   }

@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@/lib/utils'
 import React, { useState } from 'react'
 import {
   View,
@@ -165,7 +166,7 @@ export default function GameDetailScreen() {
             ],
           )
         } else {
-          Alert.alert('Launch Error', error.message)
+          Alert.alert('Launch Error', getErrorMessage(error))
         }
       }
     }

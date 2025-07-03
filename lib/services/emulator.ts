@@ -1,5 +1,6 @@
 import { Platform } from 'react-native'
 import * as IntentLauncher from 'expo-intent-launcher'
+import { getErrorMessage } from '@/lib/utils'
 
 // Eden emulator package name
 const EDEN_PACKAGE = 'dev.eden.eden_emulator'
@@ -249,7 +250,7 @@ export class EmulatorService {
         `Failed to launch emulator (${packageName}). Please ensure the emulator is installed on your device.
         
         Launch Action: ${EDEN_LAUNCH_ACTION}
-        Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        Error: ${getErrorMessage(error)}`,
       )
     }
   }

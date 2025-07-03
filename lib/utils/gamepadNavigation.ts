@@ -1,6 +1,6 @@
 import { Dimensions, Platform } from 'react-native'
 
-interface NavigationNode {
+export interface NavigationNode {
   id: string
   ref: any
   onFocus?: () => void
@@ -14,7 +14,7 @@ interface NavigationNode {
   disabled?: boolean
 }
 
-interface GamepadEvent {
+export interface GamepadEvent {
   nativeEvent: {
     keyCode: number
     action: number
@@ -57,7 +57,7 @@ class GamepadNavigationManager {
 
   registerNode(node: NavigationNode): () => void {
     this.nodes.set(node.id, node)
-    
+
     // Auto-focus first node if none is focused
     if (!this.currentFocus && !node.disabled) {
       this.setFocus(node.id)
@@ -79,7 +79,9 @@ class GamepadNavigationManager {
   }
 
   setFocus(nodeId: string) {
-    const prevNode = this.currentFocus ? this.nodes.get(this.currentFocus) : null
+    const prevNode = this.currentFocus
+      ? this.nodes.get(this.currentFocus)
+      : null
     const nextNode = this.nodes.get(nodeId)
 
     if (!nextNode || nextNode.disabled) return
@@ -94,14 +96,18 @@ class GamepadNavigationManager {
     nextNode.onFocus?.()
   }
 
-  private findNextFocus(direction: 'up' | 'down' | 'left' | 'right'): string | null {
+  private findNextFocus(
+    direction: 'up' | 'down' | 'left' | 'right',
+  ): string | null {
     if (!this.currentFocus) return null
 
     const currentNode = this.nodes.get(this.currentFocus)
     if (!currentNode) return null
 
     // Check explicit next focus override
-    const explicitNext = currentNode[`nextFocus${direction.charAt(0).toUpperCase() + direction.slice(1)}` as keyof NavigationNode] as string
+    const explicitNext = currentNode[
+      `nextFocus${direction.charAt(0).toUpperCase() + direction.slice(1)}` as keyof NavigationNode
+    ] as string
     if (explicitNext && this.nodes.has(explicitNext)) {
       return explicitNext
     }
@@ -115,7 +121,9 @@ class GamepadNavigationManager {
     return this.findClosestNode(direction)
   }
 
-  private findClosestNode(direction: 'up' | 'down' | 'left' | 'right'): string | null {
+  private findClosestNode(
+    direction: 'up' | 'down' | 'left' | 'right',
+  ): string | null {
     // Simplified spatial navigation algorithm
     // In a real implementation, this would calculate actual positions
     const availableNodes = Array.from(this.nodes.entries())
@@ -133,7 +141,7 @@ class GamepadNavigationManager {
     if (Platform.OS !== 'android') return false
 
     const { keyCode } = event.nativeEvent
-    
+
     switch (keyCode) {
       case this.KEYCODE_DPAD_UP: {
         const next = this.findNextFocus('up')
@@ -169,7 +177,9 @@ class GamepadNavigationManager {
       }
       case this.KEYCODE_DPAD_CENTER:
       case this.KEYCODE_BUTTON_A: {
-        const currentNode = this.currentFocus ? this.nodes.get(this.currentFocus) : null
+        const currentNode = this.currentFocus
+          ? this.nodes.get(this.currentFocus)
+          : null
         if (currentNode?.onSelect) {
           currentNode.onSelect()
           return true
@@ -209,4 +219,3 @@ class GamepadNavigationManager {
 }
 
 export const gamepadNavigation = new GamepadNavigationManager()
-export type { NavigationNode, GamepadEvent } 

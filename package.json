@@ -1,7 +1,9 @@
 {
   "name": "emuready-app",
   "main": "expo-router/entry",
+  "author": "Producdevity",
   "version": "0.0.1",
+  "private": false,
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
@@ -74,5 +76,13 @@
     "prettier": "^3.5.3",
     "typescript": "~5.8.3"
   },
-  "private": true
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "enabled": true,
+        "exclude": ["remeda"],
+        "listUnknownPackages": true
+      }
+    }
+  }
 }

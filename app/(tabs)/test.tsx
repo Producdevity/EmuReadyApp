@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@/lib/utils'
 import React, { useState } from 'react'
 import {
   View,
@@ -125,14 +126,10 @@ driver_path=${fullPath}`
     } catch (error) {
       console.error('Error testing emulator:', error)
 
-      if (error instanceof Error) {
-        Alert.alert('Launch Error', error.message)
-      } else {
-        Alert.alert(
-          'Launch Error',
-          'An unexpected error occurred while testing the emulator.',
-        )
-      }
+      Alert.alert(
+        'Launch Error',
+        `An unexpected error occurred while testing the emulator. ${getErrorMessage(error)}`,
+      )
     } finally {
       setIsLoading(false)
     }
@@ -148,7 +145,7 @@ driver_path=${fullPath}`
       const isInstalled = await EmulatorAltService.checkIfInstalled(packageName)
       Alert.alert(
         'Installation Check',
-        `Package ${packageName} is ${isInstalled ? 'installed' : 'NOT installed'}`
+        `Package ${packageName} is ${isInstalled ? 'installed' : 'NOT installed'}`,
       )
     } catch {
       Alert.alert('Installation Check', 'Could not verify installation status')
@@ -162,7 +159,10 @@ driver_path=${fullPath}`
     }
 
     if (!titleId.trim() || !EmulatorService.validateTitleId(titleId)) {
-      Alert.alert('Invalid Title ID', 'Please enter a valid 16-digit hex Title ID')
+      Alert.alert(
+        'Invalid Title ID',
+        'Please enter a valid 16-digit hex Title ID',
+      )
       return
     }
 
@@ -172,16 +172,27 @@ driver_path=${fullPath}`
     try {
       switch (method) {
         case 'openApp':
-          await EmulatorAltService.launchWithDirectIntent(titleId.trim(), customSettings, packageName.trim())
+          await EmulatorAltService.launchWithDirectIntent(
+            titleId.trim(),
+            customSettings,
+            packageName.trim(),
+          )
           break
         case 'linking':
-          await EmulatorAltService.launchWithLinking(titleId.trim(), customSettings, packageName.trim())
+          await EmulatorAltService.launchWithLinking(
+            titleId.trim(),
+            customSettings,
+            packageName.trim(),
+          )
           break
         case 'launchOnly':
           await EmulatorAltService.launchAppOnly(packageName.trim())
           break
         case 'allPackages':
-          await EmulatorAltService.tryDifferentPackageNames(titleId.trim(), customSettings)
+          await EmulatorAltService.tryDifferentPackageNames(
+            titleId.trim(),
+            customSettings,
+          )
           break
         default:
           throw new Error('Unknown method')
@@ -190,7 +201,10 @@ driver_path=${fullPath}`
       Alert.alert('Success', `Alternative method "${method}" worked!`)
     } catch (error) {
       console.error(`Alternative method ${method} failed:`, error)
-      Alert.alert('Method Failed', `"${method}" method failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      Alert.alert(
+        'Method Failed',
+        `"${method}" method failed: ${getErrorMessage(error)}`,
+      )
     } finally {
       setIsLoading(false)
     }
@@ -520,7 +534,11 @@ driver_path=${fullPath}`
                 {/* Debug Options Toggle */}
                 <View style={{ marginTop: theme.spacing.md }}>
                   <Button
-                    title={showDebugOptions ? "Hide Debug Options" : "Show Debug Options"}
+                    title={
+                      showDebugOptions
+                        ? 'Hide Debug Options'
+                        : 'Show Debug Options'
+                    }
                     onPress={() => setShowDebugOptions(!showDebugOptions)}
                     variant="ghost"
                     size="md"
@@ -635,10 +653,12 @@ driver_path=${fullPath}`
                       Alternative Launch Methods:
                     </Text>
 
-                    <View style={{
-                      flexDirection: isLandscape ? 'row' : 'column',
-                      gap: theme.spacing.sm,
-                    }}>
+                    <View
+                      style={{
+                        flexDirection: isLandscape ? 'row' : 'column',
+                        gap: theme.spacing.sm,
+                      }}
+                    >
                       <Button
                         title="Try OpenApp"
                         onPress={() => handleTestAlternative('openApp')}
@@ -657,10 +677,12 @@ driver_path=${fullPath}`
                       />
                     </View>
 
-                    <View style={{
-                      flexDirection: isLandscape ? 'row' : 'column',
-                      gap: theme.spacing.sm,
-                    }}>
+                    <View
+                      style={{
+                        flexDirection: isLandscape ? 'row' : 'column',
+                        gap: theme.spacing.sm,
+                      }}
+                    >
                       <Button
                         title="Launch App Only"
                         onPress={() => handleTestAlternative('launchOnly')}

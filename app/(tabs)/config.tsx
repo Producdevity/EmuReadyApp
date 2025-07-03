@@ -20,6 +20,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { Button, Card } from '@/components/ui'
 import { EmulatorService } from '@/lib/services/emulator'
 import { getBaseDelay, ANIMATION_CONFIG } from '@/lib/animation/config'
+import { getErrorMessage } from '@/lib/utils'
 
 interface ConfigFile {
   name: string
@@ -84,7 +85,7 @@ export default function ConfigScreen() {
       Alert.alert(
         'Error',
         `Failed to load configuration file. Please try again. 
-        ${error instanceof Error ? error.message : 'Unknown error'}`,
+        ${getErrorMessage(error)}`,
       )
     }
   }
@@ -136,15 +137,10 @@ export default function ConfigScreen() {
       )
     } catch (error) {
       console.error('Error testing emulator:', error)
-
-      if (error instanceof Error) {
-        Alert.alert('Launch Error', error.message)
-      } else {
-        Alert.alert(
-          'Launch Error',
-          'An unexpected error occurred while testing the emulator.',
-        )
-      }
+      Alert.alert(
+        'Launch Error',
+        `An unexpected error occurred while testing the emulator. ${getErrorMessage(error)}`,
+      )
     } finally {
       setIsLoading(false)
     }
