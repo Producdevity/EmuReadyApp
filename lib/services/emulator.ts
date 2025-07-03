@@ -1,4 +1,4 @@
-import { Platform } from 'react-native'
+import { Platform, Linking } from 'react-native'
 import * as IntentLauncher from 'expo-intent-launcher'
 import { getErrorMessage } from '@/lib/utils'
 
@@ -246,13 +246,15 @@ export class EmulatorService {
       console.log('Custom Settings Length:', customSettings.length)
       console.log('Extras:', JSON.stringify(extras, null, 2))
 
-      // Launch Eden emulator with custom configuration using expo-intent-launcher
-      // We need to target the EmulationActivity specifically since that's where the intent filter is defined
-      await IntentLauncher.startActivityAsync(launchAction, {
-        packageName: packageName,
-        className: 'org.yuzu.yuzu_emu.activities.EmulationActivity',
-        extra: extras,
-      })
+      // Use Linking instead of IntentLauncher for better compatibility
+      const intentUri = `intent://launch#Intent;package=${packageName};action=${launchAction};S.title_id=${titleId};S.custom_settings=${encodeURIComponent(customSettings)};end`
+      
+      const canOpen = await Linking.canOpenURL(intentUri)
+      if (!canOpen) {
+        throw new Error(`Cannot open intent URI for ${packageName}`)
+      }
+      
+      await Linking.openURL(intentUri)
 
       console.log('Intent launch successful!')
     } catch (error) {

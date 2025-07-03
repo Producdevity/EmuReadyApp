@@ -25,6 +25,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="emuready"/>
+        <data android:scheme="exp+emuready"/>
       </intent-filter>
     </activity>
   </application>
