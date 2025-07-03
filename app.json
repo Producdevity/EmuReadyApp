@@ -16,7 +16,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon/foreground.png",
-        "backgroundColor": "./assets/images/adaptive-icon/background.png"
+        "backgroundColor": "#023c69"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.emuready.emuready"
