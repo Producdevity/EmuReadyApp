@@ -43,36 +43,36 @@ export default function TestScreen() {
   const generateCustomSettings = (driverFilename: string) => {
     const fullPath = getFullDriverPath(driverFilename, packageName)
     return `[Controls]
-vibration_enabled\\\\use_global=true
-enable_accurate_vibrations\\\\use_global=true
-motion_enabled\\\\use_global=true
+vibration_enabled\\\\\\\\use_global=true
+enable_accurate_vibrations\\\\\\\\use_global=true
+motion_enabled\\\\\\\\use_global=true
 
 [Core]
-use_multi_core\\\\use_global=true
-memory_layout_mode\\\\use_global=true
-use_speed_limit\\\\use_global=true
+use_multi_core\\\\\\\\use_global=true
+memory_layout_mode\\\\\\\\use_global=true
+use_speed_limit\\\\\\\\use_global=true
 
 [Renderer]
-backend\\\\use_global=true
-shader_backend\\\\use_global=true
-use_vsync\\\\use_global=false
-use_vsync\\\\default=false
+backend\\\\\\\\use_global=true
+shader_backend\\\\\\\\use_global=true
+use_vsync\\\\\\\\use_global=false
+use_vsync\\\\\\\\default=false
 use_vsync=0
-use_asynchronous_shaders\\\\use_global=false
-use_asynchronous_shaders\\\\default=false
+use_asynchronous_shaders\\\\\\\\use_global=false
+use_asynchronous_shaders\\\\\\\\default=false
 use_asynchronous_shaders=true
 
 [Audio]
-output_engine\\\\use_global=true
-volume\\\\use_global=true
+output_engine\\\\\\\\use_global=true
+volume\\\\\\\\use_global=true
 
 [System]
-use_docked_mode\\\\use_global=true
-language_index\\\\use_global=true
+use_docked_mode\\\\\\\\use_global=true
+language_index\\\\\\\\use_global=true
 
 [GpuDriver]
-driver_path\\\\use_global=false
-driver_path\\\\default=false
+driver_path\\\\\\\\use_global=false
+driver_path\\\\\\\\default=false
 driver_path=${fullPath}`
   }
 
@@ -111,26 +111,42 @@ driver_path=${fullPath}`
     setIsLoading(true)
 
     try {
+      console.log('=== Starting Eden Emulator Test ===')
+      console.log('Title ID:', titleId.trim())
+      console.log('Driver Path:', driverPath)
+      console.log('Package Name:', packageName.trim())
+      
       const customSettings = generateCustomSettings(driverPath)
+      console.log('Generated custom settings successfully')
 
+      console.log('Calling EmulatorService.launchGameWithCustomSettings...')
       await EmulatorService.launchGameWithCustomSettings({
         titleId: titleId.trim(),
         customSettings,
         packageName: packageName.trim(),
       })
 
+      console.log('EmulatorService call completed successfully')
       Alert.alert(
         'Launch Successful',
         `Emulator launch command sent successfully to ${packageName}!`,
       )
     } catch (error) {
-      console.error('Error testing emulator:', error)
+      console.error('=== Error testing emulator ===')
+      console.error('Error object:', error)
+      console.error('Error message:', (error as any)?.message)
+      console.error('Error name:', (error as any)?.name)
+      console.error('Error stack:', (error as any)?.stack)
+
+      const errorMessage = getErrorMessage(error)
+      console.error('Formatted error message:', errorMessage)
 
       Alert.alert(
         'Launch Error',
-        `An unexpected error occurred while testing the emulator. ${getErrorMessage(error)}`,
+        `Failed to launch Eden emulator.\n\nError: ${errorMessage}\n\nCheck console logs for detailed information.`,
       )
     } finally {
+      console.log('=== Eden Emulator Test Completed ===')
       setIsLoading(false)
     }
   }

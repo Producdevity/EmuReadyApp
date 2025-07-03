@@ -7,7 +7,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>emuready-app</string>
+    <string>EmuReady</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -27,8 +27,8 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>emureadyapp</string>
-          <string>com.anonymous.emureadyapp</string>
+          <string>emuready</string>
+          <string>com.emuready.emuready</string>
         </array>
       </dict>
     </array>

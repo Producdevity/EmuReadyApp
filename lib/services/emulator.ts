@@ -240,6 +240,14 @@ export class EmulatorService {
           ? EDEN_LAUNCH_ACTION
           : `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`
 
+      console.log('=== Eden Emulator Launch Details ===')
+      console.log('Package Name:', packageName)
+      console.log('Launch Action:', launchAction)
+      console.log('Target Class:', 'org.yuzu.yuzu_emu.activities.EmulationActivity')
+      console.log('Title ID:', titleId)
+      console.log('Custom Settings Length:', customSettings.length)
+      console.log('Extras:', JSON.stringify(extras, null, 2))
+
       // Launch Eden emulator with custom configuration using expo-intent-launcher
       // We need to target the EmulationActivity specifically since that's where the intent filter is defined
       await IntentLauncher.startActivityAsync(launchAction, {
@@ -247,11 +255,24 @@ export class EmulatorService {
         className: 'org.yuzu.yuzu_emu.activities.EmulationActivity',
         extra: extras,
       })
+
+      console.log('Intent launch successful!')
     } catch (error) {
+      console.error('Intent launch failed:', error)
+      console.error('Error details:', {
+        name: (error as any)?.name,
+        message: (error as any)?.message,
+        stack: (error as any)?.stack,
+      })
+      
+      const actionUsed = packageName === EDEN_PACKAGE ? EDEN_LAUNCH_ACTION : `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`
+      
       throw new Error(
         `Failed to launch emulator (${packageName}). Please ensure the emulator is installed on your device.
         
-        Launch Action: ${EDEN_LAUNCH_ACTION}
+        Launch Action: ${actionUsed}
+        Package: ${packageName}
+        Activity: org.yuzu.yuzu_emu.activities.EmulationActivity
         Error: ${getErrorMessage(error)}`,
       )
     }
