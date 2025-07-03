@@ -47,10 +47,14 @@ export default function DeviceDetailScreen() {
   const scrollY = useSharedValue(0)
 
   // TODO: Replace with proper API hooks
-  const deviceQuery = { data: [], isLoading: false, error: null }
-  const device = null
+  const deviceQuery = { data: [], isLoading: false, error: null, refetch: () => Promise.resolve({ data: [] }) }
+  const device = null as { 
+    modelName: string; 
+    brand: { name: string }; 
+    soc: { manufacturer: string; name: string } 
+  } | null
 
-  const listingsQuery = { data: { listings: [] }, isLoading: false, error: null }
+  const listingsQuery = { data: { listings: [] }, isLoading: false, error: null, refetch: () => Promise.resolve({ data: { listings: [] } }) }
 
   const styles = createStyles(theme)
 
@@ -121,8 +125,8 @@ export default function DeviceDetailScreen() {
   const handleShare = async () => {
     try {
       const shareContent =
-        `Check out ${device?.modelName} on EmuReady!\n\n` +
-        `Brand: ${device?.brand?.name}\n` +
+        `Check out ${device?.modelName || 'Device'} on EmuReady!\n\n` +
+        `Brand: ${device?.brand || 'Unknown'}\n` +
         `${listings.length} performance listing${listings.length !== 1 ? 's' : ''} available\n\n` +
         `Discover how well games run on this device!`
 
@@ -314,7 +318,7 @@ export default function DeviceDetailScreen() {
             style={[styles.headerTitle, { color: theme.colors.text }]}
             numberOfLines={1}
           >
-            {device.modelName}
+            {device?.modelName || 'Device'}
           </Text>
           <Pressable onPress={handleShare} style={styles.shareButton}>
             <Ionicons
@@ -361,7 +365,7 @@ export default function DeviceDetailScreen() {
                   style={[styles.deviceTitle, { color: theme.colors.text }]}
                   entering={FadeInUp.delay(400).springify()}
                 >
-                  {device.modelName}
+                  {device?.modelName || 'Device'}
                 </Animated.Text>
                 <Animated.Text
                   style={[
@@ -370,7 +374,7 @@ export default function DeviceDetailScreen() {
                   ]}
                   entering={FadeInUp.delay(500).springify()}
                 >
-                  {device.brand?.name}
+                  {device?.brand?.name}
                 </Animated.Text>
 
                 <Animated.View
@@ -430,7 +434,7 @@ export default function DeviceDetailScreen() {
                     <Text
                       style={[styles.statValue, { color: theme.colors.info }]}
                     >
-                      {device.soc ? '1' : '0'}
+                      {device?.soc ? '1' : '0'}
                     </Text>
                     <Text
                       style={[styles.statLabel, { color: theme.colors.text }]}
@@ -532,7 +536,7 @@ export default function DeviceDetailScreen() {
                   <Text
                     style={[styles.infoValue, { color: theme.colors.text }]}
                   >
-                    {device.brand?.name}
+                    {device?.brand?.name}
                   </Text>
                 </View>
                 <View style={styles.infoRow}>
@@ -547,10 +551,10 @@ export default function DeviceDetailScreen() {
                   <Text
                     style={[styles.infoValue, { color: theme.colors.text }]}
                   >
-                    {device.modelName}
+                    {device?.modelName || 'Device'}
                   </Text>
                 </View>
-                {device.soc && (
+                {device?.soc && (
                   <>
                     <View style={styles.infoRow}>
                       <Text
@@ -564,8 +568,8 @@ export default function DeviceDetailScreen() {
                       <Text
                         style={[styles.infoValue, { color: theme.colors.text }]}
                       >
-                        {device.soc.manufacturer}{' '}
-                        {device.soc.name}
+                        {device?.soc.manufacturer}{' '}
+                        {device?.soc.name}
                       </Text>
                     </View>
                   </>

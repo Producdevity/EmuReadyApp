@@ -34,7 +34,7 @@ export default function ProfileScreen() {
   // Only fetch user data and listings when authenticated
   // TODO: Implement current user query with Clerk user data
   const currentUserQuery = {
-    data: null,
+    data: null as { name: string; email: string } | null,
     isLoading: false,
     error: null,
     refetch: () => Promise.resolve({ data: null }),
@@ -364,10 +364,10 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.profileDetails}>
               <Text style={styles.profileName}>
-                {currentUserQuery.data.name}
+                {currentUserQuery.data?.name || 'User'}
               </Text>
               <Text style={styles.profileEmail}>
-                {currentUserQuery.data.email}
+                {currentUserQuery.data?.email || 'user@example.com'}
               </Text>
               <Text style={styles.profileStats}>
                 {userListings.length} listing
