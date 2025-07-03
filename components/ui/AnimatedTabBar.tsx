@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
-import { Home, Search, Plus, Bell, User } from 'lucide-react-native'
+import { Home, Search, Plus, Bell, User, FlaskConical, FileText } from 'lucide-react-native'
 import { useTheme } from '@/contexts/ThemeContext'
 
 interface TabBarProps {
@@ -57,6 +57,10 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
         return <Bell color={color} size={size} strokeWidth={2.5} />
       case 'profile':
         return <User color={color} size={size} strokeWidth={2.5} />
+      case 'test':
+        return <FlaskConical  color={color} size={size} strokeWidth={2.5} />
+      case 'config':
+        return <FileText color={color} size={size} strokeWidth={2.5} />
       default:
         return <Home color={color} size={size} strokeWidth={2.5} />
     }
@@ -140,8 +144,8 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
         {/* Animated background for focused state */}
         <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
           <LinearGradient
-            colors={route.name === 'create' 
-              ? [theme.colors.accent, `${theme.colors.accent}dd`] 
+            colors={route.name === 'create'
+              ? [theme.colors.accent, `${theme.colors.accent}dd`]
               : [theme.colors.primary, theme.colors.primaryDark]
             }
             style={styles.gradientBackground}
@@ -188,10 +192,10 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: TabBa
         tint={theme.isDark ? 'dark' : 'light'}
         style={StyleSheet.absoluteFillObject}
       />
-      
+
       {/* Gradient overlay */}
       <LinearGradient
-        colors={theme.isDark 
+        colors={theme.isDark
           ? ['rgba(15, 23, 42, 0.97)', 'rgba(30, 41, 59, 0.99)']
           : ['rgba(255, 255, 255, 0.97)', 'rgba(248, 250, 252, 0.99)']
         }
@@ -273,7 +277,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 16,
-    minHeight: 44,
+    minHeight: 38,
     position: 'relative',
   },
   focusBackground: {
@@ -310,4 +314,4 @@ const styles = StyleSheet.create({
     borderRadius: 1.5,
     backgroundColor: '#ffffff',
   },
-}) 
+})

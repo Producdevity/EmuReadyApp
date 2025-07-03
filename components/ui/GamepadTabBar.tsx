@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
-import { Home, Search, Plus, Bell, User } from 'lucide-react-native'
+import { Home, Search, Plus, Bell, User, FlaskConical, FileText } from 'lucide-react-native'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useGamepadNavigation, useOrientationOptimized } from '@/hooks/useGamepadNavigation'
 
@@ -89,6 +89,10 @@ const GamepadTabButton = ({
         return <Bell color={color} size={size} strokeWidth={2.5} />
       case 'profile':
         return <User color={color} size={size} strokeWidth={2.5} />
+      case 'test':
+        return <FlaskConical color={color} size={size} strokeWidth={2.5} />
+      case 'config':
+        return <FileText color={color} size={size} strokeWidth={2.5} />
       default:
         return <Home color={color} size={size} strokeWidth={2.5} />
     }

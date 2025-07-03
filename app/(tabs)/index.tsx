@@ -15,8 +15,6 @@ import { BlurView } from 'expo-blur'
 import Animated, {
   FadeInUp,
   FadeInDown,
-  SlideInRight,
-  SlideInLeft,
   ZoomIn,
   useSharedValue,
   useAnimatedScrollHandler,
@@ -31,6 +29,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useAppStats, useFeaturedListings, usePopularGames } from '@/lib/api/hooks'
 import { Card, Button, CachedImage, SkeletonLoader } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
+import { getStaggerDelay, getBaseDelay, ANIMATION_CONFIG } from '@/lib/animation/config'
 import type { Listing, Game } from '@/types'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -111,7 +110,7 @@ export default function HomeScreen() {
   const renderStatsCard = (stat: { label: string; value: string; color: string; icon: string }, index: number) => (
     <Animated.View
       key={stat.label}
-      entering={ZoomIn.delay(600 + index * 150).springify()}
+      entering={ZoomIn.delay(getStaggerDelay(index, 'fast', 'fast')).duration(ANIMATION_CONFIG.timing.fast)}
       style={{ flex: 1, marginHorizontal: theme.spacing.xs }}
     >
       <Card style={{ overflow: 'hidden', alignItems: 'center' }}>
@@ -161,7 +160,7 @@ export default function HomeScreen() {
   const renderGameCard = (game: Game, index: number) => (
     <Animated.View
       key={game.id}
-      entering={SlideInRight.delay(800 + index * 100).springify()}
+      entering={FadeInUp.delay(getStaggerDelay(index, 'normal', 'normal')).duration(ANIMATION_CONFIG.timing.fast)}
       style={{ marginRight: theme.spacing.lg, width: 160 }}
     >
       <Pressable
@@ -346,7 +345,7 @@ export default function HomeScreen() {
           <Animated.View style={headerAnimatedStyle}>
             <SafeAreaView style={{ flex: 1, paddingHorizontal: 20 }}>
               <View style={{ flex: 1, justifyContent: 'center' }}>
-                <Animated.View entering={FadeInDown.delay(200).springify()}>
+                <Animated.View entering={FadeInDown.delay(getBaseDelay('instant')).duration(ANIMATION_CONFIG.timing.fast)}>
                   <Text style={{
                     fontSize: theme.typography.fontSize.xxxl + 8,
                     fontWeight: theme.typography.fontWeight.extrabold,
@@ -373,7 +372,7 @@ export default function HomeScreen() {
               {/* Enhanced Search Bar with Glass Morphism */}
               <Animated.View
                 style={[searchBarAnimatedStyle]}
-                entering={FadeInUp.delay(400).springify()}
+                entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
               >
                 <BlurView
                   intensity={80}
@@ -443,7 +442,7 @@ export default function HomeScreen() {
         {/* Enhanced Stats Section */}
         <View style={{ paddingHorizontal: theme.spacing.lg, marginBottom: theme.spacing.xxl }}>
           <Animated.Text
-            entering={FadeInUp.delay(500).springify()}
+            entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
             style={{
               fontSize: theme.typography.fontSize.xl,
               fontWeight: theme.typography.fontWeight.bold,
@@ -456,7 +455,7 @@ export default function HomeScreen() {
           </Animated.Text>
           
           <Animated.View
-            entering={FadeInUp.delay(600).springify()}
+            entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
             style={{
               flexDirection: 'row',
               gap: theme.spacing.md,
@@ -466,7 +465,7 @@ export default function HomeScreen() {
               Array.from({ length: 3 }).map((_, index) => (
                 <Animated.View
                   key={index}
-                  entering={ZoomIn.delay(600 + index * 150).springify()}
+                  entering={ZoomIn.delay(getStaggerDelay(index, 'normal', 'fast')).duration(ANIMATION_CONFIG.timing.fast)}
                   style={{ flex: 1 }}
                 >
                   <Card style={{ alignItems: 'center', padding: theme.spacing.lg }}>
@@ -485,7 +484,7 @@ export default function HomeScreen() {
         {/* Popular Games Section */}
         <View style={{ marginBottom: 32 }}>
           <Animated.View
-            entering={FadeInUp.delay(800).springify()}
+            entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
             style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
@@ -521,7 +520,7 @@ export default function HomeScreen() {
               Array.from({ length: 5 }).map((_, index) => (
                 <Animated.View
                   key={index}
-                  entering={SlideInRight.delay(800 + index * 100).springify()}
+                  entering={FadeInUp.delay(getStaggerDelay(index, 'normal', 'normal')).duration(ANIMATION_CONFIG.timing.fast)}
                   style={{ marginRight: theme.spacing.lg, width: 160 }}
                 >
                   <Card style={{ height: 220, padding: 0, overflow: 'hidden' }}>
@@ -573,7 +572,7 @@ export default function HomeScreen() {
               Array.from({ length: 3 }).map((_, index) => (
                 <Animated.View
                   key={index}
-                  entering={SlideInLeft.delay(1200 + index * 150).springify()}
+                  entering={FadeInUp.delay(getStaggerDelay(index, 'normal', 'normal')).duration(ANIMATION_CONFIG.timing.fast)}
                 >
                   <Card style={{ height: 120, padding: theme.spacing.lg }}>
                     <View style={{ flexDirection: 'row', gap: theme.spacing.md }}>
@@ -591,7 +590,7 @@ export default function HomeScreen() {
               Array.isArray(featuredListingsQuery.data) ? featuredListingsQuery.data.slice(0, 4).map((listing: Listing, index: number) => (
                 <Animated.View
                   key={listing.id}
-                  entering={SlideInLeft.delay(1200 + index * 150).springify()}
+                  entering={FadeInUp.delay(getStaggerDelay(index, 'normal', 'normal')).duration(ANIMATION_CONFIG.timing.fast)}
                 >
                   <ListingCard
                     listing={listing}
@@ -603,7 +602,7 @@ export default function HomeScreen() {
           </View>
 
           {(!Array.isArray(featuredListingsQuery.data) || featuredListingsQuery.data.length === 0) && !featuredListingsQuery.isLoading && (
-            <Animated.View entering={ZoomIn.delay(1200).springify()}>
+            <Animated.View entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}>
               <Card style={{ overflow: 'hidden' }}>
                 <LinearGradient
                   colors={theme.colors.gradients.secondary as [string, string, ...string[]]}
@@ -683,7 +682,7 @@ export default function HomeScreen() {
           >
             <Animated.View 
               style={{ flex: 1 }}
-              entering={SlideInLeft.delay(1500).springify()}
+              entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
             >
               <Pressable
                 onPress={() => router.push('/browse')}
@@ -712,7 +711,7 @@ export default function HomeScreen() {
             
             <Animated.View 
               style={{ flex: 1 }}
-              entering={SlideInRight.delay(1500).springify()}
+              entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
             >
               <Pressable
                 onPress={() => router.push('/(tabs)/create')}

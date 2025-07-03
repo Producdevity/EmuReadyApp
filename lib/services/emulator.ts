@@ -1,18 +1,21 @@
-import { Linking, Platform } from 'react-native';
-import SendIntentAndroid from 'react-native-send-intent';
+import { Platform } from 'react-native'
+import SendIntentAndroid from 'react-native-send-intent'
 
-const EDEN_PACKAGE = 'dev.eden.eden_emulator';
-const EDEN_LAUNCH_ACTION = 'dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG';
+// Eden emulator package name
+const EDEN_PACKAGE = 'dev.eden.eden_emulator'
+// Eden emulator custom action
+const EDEN_LAUNCH_ACTION = 'dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG'
 
 export interface EmulatorConfig {
-  titleId: string;
-  customSettings: string;
+  titleId: string
+  customSettings: string
+  packageName?: string
 }
 
 export interface EmulatorPreset {
-  name: string;
-  description: string;
-  settings: string;
+  name: string
+  description: string
+  settings: string
 }
 
 export const EMULATOR_PRESETS: EmulatorPreset[] = [
@@ -37,7 +40,7 @@ gpu_accuracy=0
 
 [System]
 use_docked_mode\\\\use_global=false
-use_docked_mode=1`
+use_docked_mode=1`,
   },
   {
     name: 'Battery Optimized',
@@ -56,7 +59,7 @@ resolution_setup=2
 
 [System]
 use_docked_mode\\\\use_global=false
-use_docked_mode=0`
+use_docked_mode=0`,
   },
   {
     name: 'Balanced',
@@ -87,27 +90,29 @@ volume\\\\use_global=true
 
 [System]
 use_docked_mode\\\\use_global=true
-language_index\\\\use_global=true`
-  }
-];
+language_index\\\\use_global=true`,
+  },
+]
 
 export class EmulatorService {
   static validateTitleId(titleId: string): boolean {
-    const regex = /^[0-9A-Fa-f]{16}$/;
-    return regex.test(titleId);
+    const regex = /^[0-9A-Fa-f]{16}$/
+    return regex.test(titleId)
   }
-
 
   static async launchGameWithCustomSettings({
     titleId,
-    customSettings
+    customSettings,
+    packageName = EDEN_PACKAGE,
   }: EmulatorConfig): Promise<void> {
     if (Platform.OS !== 'android') {
-      throw new Error('Emulator integration is only available on Android');
+      throw new Error('Emulator integration is only available on Android')
     }
 
     if (!this.validateTitleId(titleId)) {
-      throw new Error('Invalid title ID format. Must be 16-digit hexadecimal string.');
+      throw new Error(
+        'Invalid title ID format. Must be 16-digit hexadecimal string.',
+      )
     }
 
     // Note: We'll attempt to launch regardless of installation check
@@ -116,33 +121,39 @@ export class EmulatorService {
     try {
       const extras = {
         title_id: titleId,
-        custom_settings: customSettings
-      };
+        custom_settings: customSettings,
+      }
 
-      await SendIntentAndroid.openAppWithData(
-        extras,
-        EDEN_LAUNCH_ACTION,
-        EDEN_PACKAGE
-      );
+      // For Eden emulator, use the exact action from the source code
+      // For other emulators, we assume they follow the same pattern
+      const launchAction =
+        packageName === EDEN_PACKAGE
+          ? EDEN_LAUNCH_ACTION
+          : `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`
+
+      await SendIntentAndroid.openAppWithData(extras, launchAction, packageName)
     } catch (error) {
-      console.error('Failed to launch emulator:', error);
-      throw new Error('Failed to launch Eden emulator. Please ensure the Eden emulator is installed on your device.');
+      console.error('Failed to launch emulator:', error)
+      throw new Error(
+        `Failed to launch emulator (${packageName}). Please ensure the emulator is installed on your device.`,
+      )
     }
   }
 
   static async launchGameWithPreset(
     titleId: string,
-    presetName: string
+    presetName: string,
+    packageName?: string,
   ): Promise<void> {
-    const preset = EMULATOR_PRESETS.find(p => p.name === presetName);
+    const preset = EMULATOR_PRESETS.find((p) => p.name === presetName)
     if (!preset) {
-      throw new Error(`Preset "${presetName}" not found`);
+      throw new Error(`Preset "${presetName}" not found`)
     }
 
     await this.launchGameWithCustomSettings({
       titleId,
-      customSettings: preset.settings
-    });
+      customSettings: preset.settings,
+      packageName,
+    })
   }
-
 }

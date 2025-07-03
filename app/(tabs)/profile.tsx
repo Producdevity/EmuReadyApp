@@ -33,7 +33,12 @@ export default function ProfileScreen() {
 
   // Only fetch user data and listings when authenticated
   // TODO: Implement current user query with Clerk user data
-  const currentUserQuery = { data: null, isLoading: false, error: null, refetch: () => Promise.resolve({ data: null }) }
+  const currentUserQuery = {
+    data: null,
+    isLoading: false,
+    error: null,
+    refetch: () => Promise.resolve({ data: null }),
+  }
   const _unreadCountQuery = useUnreadNotificationCount()
   const userListingsQuery = useListings({
     page: 1,
@@ -71,10 +76,13 @@ export default function ProfileScreen() {
       'Please sign in to access your profile and create listings.',
       [
         { text: 'Cancel' },
-        { text: 'Sign In', onPress: () => {
-          router.push('/(auth)/sign-in')
-        }}
-      ]
+        {
+          text: 'Sign In',
+          onPress: () => {
+            router.push('/(auth)/sign-in')
+          },
+        },
+      ],
     )
   }
 
@@ -85,10 +93,13 @@ export default function ProfileScreen() {
       'Join EmuReady to share your emulation experiences.',
       [
         { text: 'Cancel' },
-        { text: 'Sign Up', onPress: () => {
-          router.push('/(auth)/sign-up')
-        }}
-      ]
+        {
+          text: 'Sign Up',
+          onPress: () => {
+            router.push('/(auth)/sign-up')
+          },
+        },
+      ],
     )
   }
 
@@ -116,17 +127,18 @@ export default function ProfileScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.authContainer}>
           <View style={styles.authContent}>
-            <Ionicons 
-              name="person-circle" 
-              size={100} 
-              color={theme.colors.textSecondary} 
+            <Ionicons
+              name="person-circle"
+              size={100}
+              color={theme.colors.textSecondary}
               style={styles.authIcon}
             />
             <Text style={styles.authTitle}>Welcome to EmuReady</Text>
             <Text style={styles.authDescription}>
-              Sign in to access your profile, create listings, and connect with the emulation community.
+              Sign in to access your profile, create listings, and connect with
+              the emulation community.
             </Text>
-            
+
             <View style={styles.authButtons}>
               <Button
                 title="Sign In"
@@ -142,14 +154,14 @@ export default function ProfileScreen() {
               />
             </View>
           </View>
-          
+
           {/* Theme setting for unauthenticated users */}
           <View style={styles.guestSettings}>
             <Card style={styles.settingCard} padding="md">
               <View style={styles.settingRow}>
                 <View style={styles.settingInfo}>
                   <Ionicons
-                    name={theme.isDark ? "moon" : "sunny"}
+                    name={theme.isDark ? 'moon' : 'sunny'}
                     size={20}
                     color={theme.colors.text}
                     style={styles.settingIcon}
@@ -157,16 +169,31 @@ export default function ProfileScreen() {
                   <View>
                     <Text style={styles.settingTitle}>Theme</Text>
                     <Text style={styles.settingDescription}>
-                      {themeMode === 'system' ? 'Follow system' : themeMode === 'dark' ? 'Dark mode' : 'Light mode'}
+                      {themeMode === 'system'
+                        ? 'Follow system'
+                        : themeMode === 'dark'
+                          ? 'Dark mode'
+                          : 'Light mode'}
                     </Text>
                   </View>
                 </View>
                 <Button
-                  title={themeMode === 'system' ? 'Auto' : themeMode === 'dark' ? 'Dark' : 'Light'}
+                  title={
+                    themeMode === 'system'
+                      ? 'Auto'
+                      : themeMode === 'dark'
+                        ? 'Dark'
+                        : 'Light'
+                  }
                   variant="outline"
                   size="sm"
                   onPress={() => {
-                    const nextMode = themeMode === 'light' ? 'dark' : themeMode === 'dark' ? 'system' : 'light'
+                    const nextMode =
+                      themeMode === 'light'
+                        ? 'dark'
+                        : themeMode === 'dark'
+                          ? 'system'
+                          : 'light'
                     setThemeMode(nextMode)
                   }}
                 />
@@ -195,11 +222,7 @@ export default function ProfileScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Ionicons 
-            name="alert-circle" 
-            size={64} 
-            color={theme.colors.error} 
-          />
+          <Ionicons name="alert-circle" size={64} color={theme.colors.error} />
           <Text style={styles.errorTitle}>Failed to Load Profile</Text>
           <Text style={styles.errorDescription}>
             There was an error loading your profile data.
@@ -208,7 +231,10 @@ export default function ProfileScreen() {
             title="Try Again"
             variant="primary"
             onPress={async () => {
-              await Promise.all([currentUserQuery.refetch(), userListingsQuery.refetch()])
+              await Promise.all([
+                currentUserQuery.refetch(),
+                userListingsQuery.refetch(),
+              ])
             }}
             style={styles.retryButton}
           />
@@ -354,7 +380,9 @@ export default function ProfileScreen() {
             variant="outline"
             size="sm"
             onPress={handleEditProfile}
-            rightIcon={<Ionicons name="pencil" size={14} color={theme.colors.text} />}
+            rightIcon={
+              <Ionicons name="pencil" size={14} color={theme.colors.text} />
+            }
           />
         </View>
 
@@ -378,7 +406,11 @@ export default function ProfileScreen() {
                 <Ionicons
                   name={tab.icon as any}
                   size={16}
-                  color={activeTab === tab.key ? theme.colors.primary : theme.colors.textSecondary}
+                  color={
+                    activeTab === tab.key
+                      ? theme.colors.primary
+                      : theme.colors.textSecondary
+                  }
                   style={styles.tabIcon}
                 />
                 <Text
@@ -421,8 +453,15 @@ export default function ProfileScreen() {
               <Switch
                 value={notificationsEnabled}
                 onValueChange={setNotificationsEnabled}
-                trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
-                thumbColor={notificationsEnabled ? theme.colors.card : theme.colors.background}
+                trackColor={{
+                  false: theme.colors.border,
+                  true: theme.colors.primary,
+                }}
+                thumbColor={
+                  notificationsEnabled
+                    ? theme.colors.card
+                    : theme.colors.background
+                }
               />
             </View>
           </Card>
@@ -432,7 +471,7 @@ export default function ProfileScreen() {
             <View style={styles.settingRow}>
               <View style={styles.settingInfo}>
                 <Ionicons
-                  name={theme.isDark ? "moon" : "sunny"}
+                  name={theme.isDark ? 'moon' : 'sunny'}
                   size={20}
                   color={theme.colors.text}
                   style={styles.settingIcon}
@@ -440,16 +479,31 @@ export default function ProfileScreen() {
                 <View>
                   <Text style={styles.settingTitle}>Theme</Text>
                   <Text style={styles.settingDescription}>
-                    {themeMode === 'system' ? 'Follow system' : themeMode === 'dark' ? 'Dark mode' : 'Light mode'}
+                    {themeMode === 'system'
+                      ? 'Follow system'
+                      : themeMode === 'dark'
+                        ? 'Dark mode'
+                        : 'Light mode'}
                   </Text>
                 </View>
               </View>
               <Button
-                title={themeMode === 'system' ? 'Auto' : themeMode === 'dark' ? 'Dark' : 'Light'}
+                title={
+                  themeMode === 'system'
+                    ? 'Auto'
+                    : themeMode === 'dark'
+                      ? 'Dark'
+                      : 'Light'
+                }
                 variant="outline"
                 size="sm"
                 onPress={() => {
-                  const nextMode = themeMode === 'light' ? 'dark' : themeMode === 'dark' ? 'system' : 'light'
+                  const nextMode =
+                    themeMode === 'light'
+                      ? 'dark'
+                      : themeMode === 'dark'
+                        ? 'system'
+                        : 'light'
                   setThemeMode(nextMode)
                 }}
               />
@@ -495,7 +549,11 @@ export default function ProfileScreen() {
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color={theme.colors.textMuted} />
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={theme.colors.textMuted}
+                />
               </View>
             </Card>
           ))}
@@ -534,7 +592,7 @@ function createStyles(theme: any) {
     scrollView: {
       flex: 1,
     },
-    
+
     // Auth screen styles
     authContainer: {
       flex: 1,
@@ -574,7 +632,7 @@ function createStyles(theme: any) {
     guestSettings: {
       paddingBottom: 20,
     },
-    
+
     // Loading and error states
     loadingContainer: {
       flex: 1,
@@ -609,7 +667,7 @@ function createStyles(theme: any) {
     retryButton: {
       minWidth: 120,
     },
-    
+
     // Profile styles
     profileHeader: {
       flexDirection: 'row',
@@ -645,7 +703,7 @@ function createStyles(theme: any) {
       fontSize: 12,
       color: theme.colors.textSecondary,
     },
-    
+
     // Tabs
     tabsContainer: {
       paddingHorizontal: 20,
@@ -680,7 +738,7 @@ function createStyles(theme: any) {
       color: theme.colors.primary,
       fontWeight: '600',
     },
-    
+
     // Tab content
     tabContent: {
       paddingHorizontal: 20,
@@ -718,7 +776,7 @@ function createStyles(theme: any) {
     emptyButton: {
       minWidth: 180,
     },
-    
+
     // Settings
     settingsSection: {
       paddingHorizontal: 20,
@@ -757,7 +815,7 @@ function createStyles(theme: any) {
       fontSize: 12,
       color: theme.colors.textSecondary,
     },
-    
+
     // Sign out
     signOutSection: {
       paddingHorizontal: 20,

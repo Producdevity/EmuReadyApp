@@ -18,7 +18,6 @@ import { BlurView } from 'expo-blur'
 import Animated, {
   FadeInDown,
   FadeInUp,
-  SlideInRight,
   useSharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -30,9 +29,20 @@ import { Ionicons } from '@expo/vector-icons'
 
 import { useTheme } from '@/contexts/ThemeContext'
 import { useGameById, useListingsByGame } from '@/lib/api/hooks'
-import { CachedImage, Button, Card, EmptyState, SkeletonLoader } from '@/components/ui'
+import {
+  CachedImage,
+  Button,
+  Card,
+  EmptyState,
+  SkeletonLoader,
+} from '@/components/ui'
 import { ListingCard } from '@/components/cards'
 import { EmulatorService, EMULATOR_PRESETS } from '@/lib/services/emulator'
+import {
+  getStaggerDelay,
+  getBaseDelay,
+  ANIMATION_CONFIG,
+} from '@/lib/animation/config'
 import type { Listing } from '@/types'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -43,9 +53,11 @@ export default function GameDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const { theme } = useTheme()
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'listings' | 'stats'>('overview')
+  const [selectedTab, setSelectedTab] = useState<
+    'overview' | 'listings' | 'stats'
+  >('overview')
   const [refreshing, setRefreshing] = useState(false)
-  
+
   const scrollY = useSharedValue(0)
   const headerOpacity = useSharedValue(1)
 
@@ -56,13 +68,13 @@ export default function GameDetailScreen() {
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y
-      
+
       // Update header opacity
       const opacity = interpolate(
         scrollY.value,
         [0, HEADER_HEIGHT * 0.3, HEADER_HEIGHT * 0.7],
         [1, 0.8, 0],
-        Extrapolation.CLAMP
+        Extrapolation.CLAMP,
       )
       headerOpacity.value = withSpring(opacity)
     },
@@ -73,14 +85,14 @@ export default function GameDetailScreen() {
       scrollY.value,
       [0, HEADER_HEIGHT],
       [0, -HEADER_HEIGHT * 0.3],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
-    
+
     const scale = interpolate(
       scrollY.value,
       [0, HEADER_HEIGHT],
       [1, 1.2],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
 
     return {
@@ -94,9 +106,9 @@ export default function GameDetailScreen() {
       scrollY.value,
       [0, HEADER_HEIGHT * 0.4, HEADER_HEIGHT * 0.8],
       [0, 0.5, 0.9],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
-    
+
     return {
       opacity,
     }
@@ -105,10 +117,7 @@ export default function GameDetailScreen() {
   const onRefresh = async () => {
     setRefreshing(true)
     try {
-      await Promise.all([
-        gameQuery.refetch(),
-        listingsQuery.refetch(),
-      ])
+      await Promise.all([gameQuery.refetch(), listingsQuery.refetch()])
     } catch (error) {
       console.error('Error refreshing data:', error)
     } finally {
@@ -118,7 +127,7 @@ export default function GameDetailScreen() {
 
   const handleShare = async () => {
     if (!gameQuery.data) return
-    
+
     try {
       await Share.share({
         message: `Check out ${gameQuery.data.title} on EmuReady!`,
@@ -135,13 +144,16 @@ export default function GameDetailScreen() {
     try {
       // For now, using a hardcoded title ID - in the future this would come from game data
       const titleId = '0100000000010000'
-      
+
       await EmulatorService.launchGameWithPreset(titleId, presetName)
     } catch (error) {
       console.error('Error launching emulator:', error)
-      
+
       if (error instanceof Error) {
-        if (error.message.includes('not installed') || error.message.includes('Failed to launch')) {
+        if (
+          error.message.includes('not installed') ||
+          error.message.includes('Failed to launch')
+        ) {
           Alert.alert(
             'Eden Emulator Required',
             'The Eden emulator app was not found on your device. Eden emulator is a custom application that needs to be installed separately.\n\nPlease ensure you have the Eden emulator APK installed on your device.',
@@ -150,7 +162,7 @@ export default function GameDetailScreen() {
                 text: 'OK',
                 style: 'default',
               },
-            ]
+            ],
           )
         } else {
           Alert.alert('Launch Error', error.message)
@@ -175,66 +187,88 @@ export default function GameDetailScreen() {
   const renderOverviewTab = () => (
     <View style={{ padding: theme.spacing.lg }}>
       {/* Game Info Card */}
-      <Animated.View entering={FadeInUp.delay(300).springify()}>
-        <Card 
+      <Animated.View
+        entering={FadeInUp.delay(getBaseDelay('fast')).duration(
+          ANIMATION_CONFIG.timing.fast,
+        )}
+      >
+        <Card
           style={{
             marginBottom: theme.spacing.lg,
             overflow: 'hidden',
           }}
         >
           <LinearGradient
-            colors={theme.colors.gradients.card as [string, string, ...string[]]}
+            colors={
+              theme.colors.gradients.card as [string, string, ...string[]]
+            }
             style={{
               padding: theme.spacing.lg,
             }}
           >
-            <Text style={{
-              fontSize: theme.typography.fontSize.xxl,
-              fontWeight: theme.typography.fontWeight.bold,
-              color: theme.colors.text,
-              marginBottom: theme.spacing.sm,
-            }}>
+            <Text
+              style={{
+                fontSize: theme.typography.fontSize.xxl,
+                fontWeight: theme.typography.fontWeight.bold,
+                color: theme.colors.text,
+                marginBottom: theme.spacing.sm,
+              }}
+            >
               Game Information
             </Text>
-            
-            <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
-              <Text style={{
-                fontSize: theme.typography.fontSize.md,
-                fontWeight: theme.typography.fontWeight.medium,
-                color: theme.colors.textMuted,
-                width: 80,
-              }}>
+
+            <View
+              style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}
+            >
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.md,
+                  fontWeight: theme.typography.fontWeight.medium,
+                  color: theme.colors.textMuted,
+                  width: 80,
+                }}
+              >
                 System:
               </Text>
-              <Text style={{
-                fontSize: theme.typography.fontSize.md,
-                color: theme.colors.text,
-                flex: 1,
-              }}>
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.md,
+                  color: theme.colors.text,
+                  flex: 1,
+                }}
+              >
                 {gameQuery.data?.system?.name || 'Unknown'}
               </Text>
             </View>
 
-            <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
-              <Text style={{
-                fontSize: theme.typography.fontSize.md,
-                fontWeight: theme.typography.fontWeight.medium,
-                color: theme.colors.textMuted,
-                width: 80,
-              }}>
+            <View
+              style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}
+            >
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.md,
+                  fontWeight: theme.typography.fontWeight.medium,
+                  color: theme.colors.textMuted,
+                  width: 80,
+                }}
+              >
                 Status:
               </Text>
-              <View style={{
-                backgroundColor: theme.colors.successLight,
-                paddingHorizontal: theme.spacing.sm,
-                paddingVertical: theme.spacing.xs,
-                borderRadius: theme.borderRadius.sm,
-              }}>
-                <Text style={{
-                  fontSize: theme.typography.fontSize.sm,
-                  fontWeight: theme.typography.fontWeight.medium,
-                  color: theme.colors.success,
-                }}>
+              <View
+                style={{
+                  backgroundColor: theme.colors.successLight,
+                  paddingHorizontal: theme.spacing.sm,
+                  paddingVertical: theme.spacing.xs,
+                  borderRadius: theme.borderRadius.sm,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: theme.typography.fontSize.sm,
+                    fontWeight: theme.typography.fontWeight.medium,
+                    color: theme.colors.success,
+                  }}
+                >
                   Approved
                 </Text>
               </View>
@@ -244,34 +278,46 @@ export default function GameDetailScreen() {
       </Animated.View>
 
       {/* Performance Stats */}
-      <Animated.View entering={FadeInUp.delay(400).springify()}>
+      <Animated.View
+        entering={FadeInUp.delay(getBaseDelay('normal')).duration(
+          ANIMATION_CONFIG.timing.fast,
+        )}
+      >
         <Card style={{ marginBottom: theme.spacing.lg }}>
           <LinearGradient
-            colors={theme.colors.gradients.primary as [string, string, ...string[]]}
+            colors={
+              theme.colors.gradients.primary as [string, string, ...string[]]
+            }
             style={{
               padding: theme.spacing.lg,
             }}
           >
-            <Text style={{
-              fontSize: theme.typography.fontSize.xl,
-              fontWeight: theme.typography.fontWeight.bold,
-              color: theme.colors.textInverse,
-              marginBottom: theme.spacing.md,
-            }}>
+            <Text
+              style={{
+                fontSize: theme.typography.fontSize.xl,
+                fontWeight: theme.typography.fontWeight.bold,
+                color: theme.colors.textInverse,
+                marginBottom: theme.spacing.md,
+              }}
+            >
               Performance Overview
             </Text>
-            
-            <View style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: theme.borderRadius.md,
-              padding: theme.spacing.md,
-            }}>
-              <Text style={{
-                fontSize: theme.typography.fontSize.lg,
-                fontWeight: theme.typography.fontWeight.semibold,
-                color: theme.colors.textInverse,
-                textAlign: 'center',
-              }}>
+
+            <View
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: theme.borderRadius.md,
+                padding: theme.spacing.md,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.lg,
+                  fontWeight: theme.typography.fontWeight.semibold,
+                  color: theme.colors.textInverse,
+                  textAlign: 'center',
+                }}
+              >
                 {listingsQuery.data?.length || 0} Performance Reports
               </Text>
             </View>
@@ -281,30 +327,42 @@ export default function GameDetailScreen() {
 
       {/* Emulator Launch Options */}
       {Platform.OS === 'android' && (
-        <Animated.View entering={FadeInUp.delay(500).springify()}>
+        <Animated.View
+          entering={FadeInUp.delay(getBaseDelay('normal')).duration(
+            ANIMATION_CONFIG.timing.fast,
+          )}
+        >
           <Card style={{ marginBottom: theme.spacing.lg }}>
             <View style={{ padding: theme.spacing.lg }}>
-              <Text style={{
-                fontSize: theme.typography.fontSize.xl,
-                fontWeight: theme.typography.fontWeight.bold,
-                color: theme.colors.text,
-                marginBottom: theme.spacing.sm,
-              }}>
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.xl,
+                  fontWeight: theme.typography.fontWeight.bold,
+                  color: theme.colors.text,
+                  marginBottom: theme.spacing.sm,
+                }}
+              >
                 Launch with Eden Emulator
               </Text>
-              
-              <Text style={{
-                fontSize: theme.typography.fontSize.md,
-                color: theme.colors.textMuted,
-                marginBottom: theme.spacing.md,
-              }}>
-                Launch this game directly with optimized settings using the Eden Nintendo Switch emulator (requires Eden emulator APK to be installed)
+
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.md,
+                  color: theme.colors.textMuted,
+                  marginBottom: theme.spacing.md,
+                }}
+              >
+                Launch this game directly with optimized settings using the Eden
+                Nintendo Switch emulator (requires Eden emulator APK to be
+                installed)
               </Text>
 
               {EMULATOR_PRESETS.map((preset, index) => (
                 <Animated.View
                   key={preset.name}
-                  entering={FadeInUp.delay(600 + index * 100).springify()}
+                  entering={FadeInUp.delay(
+                    getStaggerDelay(index, 'normal', 'fast'),
+                  ).duration(ANIMATION_CONFIG.timing.fast)}
                   style={{ marginBottom: theme.spacing.sm }}
                 >
                   <Button
@@ -337,14 +395,20 @@ export default function GameDetailScreen() {
             entering={FadeInUp.delay(index * 100).springify()}
             style={{ marginBottom: theme.spacing.md }}
           >
-            <SkeletonLoader width="100%" height={120} borderRadius={theme.borderRadius.lg} />
+            <SkeletonLoader
+              width="100%"
+              height={120}
+              borderRadius={theme.borderRadius.lg}
+            />
           </Animated.View>
         ))
       ) : listingsQuery.data && listingsQuery.data.length > 0 ? (
         listingsQuery.data.map((listing: Listing, index: number) => (
           <Animated.View
             key={listing.id}
-            entering={SlideInRight.delay(index * 100).springify()}
+            entering={FadeInUp.delay(
+              getStaggerDelay(index, 'fast', 'fast'),
+            ).duration(ANIMATION_CONFIG.timing.fast)}
             style={{ marginBottom: theme.spacing.md }}
           >
             <ListingCard
@@ -367,23 +431,31 @@ export default function GameDetailScreen() {
 
   const renderStatsTab = () => (
     <View style={{ padding: theme.spacing.lg }}>
-      <Animated.View entering={FadeInUp.delay(300).springify()}>
+      <Animated.View
+        entering={FadeInUp.delay(getBaseDelay('fast')).duration(
+          ANIMATION_CONFIG.timing.fast,
+        )}
+      >
         <Card>
           <View style={{ padding: theme.spacing.lg }}>
-            <Text style={{
-              fontSize: theme.typography.fontSize.xl,
-              fontWeight: theme.typography.fontWeight.bold,
-              color: theme.colors.text,
-              textAlign: 'center',
-            }}>
+            <Text
+              style={{
+                fontSize: theme.typography.fontSize.xl,
+                fontWeight: theme.typography.fontWeight.bold,
+                color: theme.colors.text,
+                textAlign: 'center',
+              }}
+            >
               Game Statistics
             </Text>
-            <Text style={{
-              fontSize: theme.typography.fontSize.md,
-              color: theme.colors.textMuted,
-              textAlign: 'center',
-              marginTop: theme.spacing.sm,
-            }}>
+            <Text
+              style={{
+                fontSize: theme.typography.fontSize.md,
+                color: theme.colors.textMuted,
+                textAlign: 'center',
+                marginTop: theme.spacing.sm,
+              }}
+            >
               Coming soon...
             </Text>
           </View>
@@ -395,7 +467,9 @@ export default function GameDetailScreen() {
   // Guard against missing id
   if (!id) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
         <EmptyState
           icon="alert-circle"
           title="Invalid Game"
@@ -412,28 +486,41 @@ export default function GameDetailScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
-        
+
         {/* Header Skeleton */}
         <View style={{ height: HEADER_HEIGHT }}>
           <SkeletonLoader width="100%" height={HEADER_HEIGHT} />
-          <View style={{
-            position: 'absolute',
-            bottom: theme.spacing.xl,
-            left: theme.spacing.lg,
-            right: theme.spacing.lg,
-          }}>
-            <SkeletonLoader width="80%" height={32} borderRadius={theme.borderRadius.sm} style={{ marginBottom: theme.spacing.sm }} />
-            <SkeletonLoader width="60%" height={20} borderRadius={theme.borderRadius.sm} />
+          <View
+            style={{
+              position: 'absolute',
+              bottom: theme.spacing.xl,
+              left: theme.spacing.lg,
+              right: theme.spacing.lg,
+            }}
+          >
+            <SkeletonLoader
+              width="80%"
+              height={32}
+              borderRadius={theme.borderRadius.sm}
+              style={{ marginBottom: theme.spacing.sm }}
+            />
+            <SkeletonLoader
+              width="60%"
+              height={20}
+              borderRadius={theme.borderRadius.sm}
+            />
           </View>
         </View>
 
         {/* Tab Skeleton */}
-        <View style={{
-          flexDirection: 'row',
-          paddingHorizontal: theme.spacing.lg,
-          paddingVertical: theme.spacing.md,
-          backgroundColor: theme.colors.surface,
-        }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.md,
+            backgroundColor: theme.colors.surface,
+          }}
+        >
           {Array.from({ length: 3 }).map((_, index) => (
             <SkeletonLoader
               key={index}
@@ -446,7 +533,10 @@ export default function GameDetailScreen() {
         </View>
 
         {/* Content Skeleton */}
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: theme.spacing.lg }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: theme.spacing.lg }}
+        >
           {Array.from({ length: 3 }).map((_, index) => (
             <SkeletonLoader
               key={index}
@@ -464,7 +554,9 @@ export default function GameDetailScreen() {
   // Error state
   if (gameQuery.error) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
         <EmptyState
           icon="alert-circle"
           title="Error Loading Game"
@@ -481,7 +573,7 @@ export default function GameDetailScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
-      
+
       {/* Parallax Header */}
       <Animated.View
         style={[
@@ -497,15 +589,18 @@ export default function GameDetailScreen() {
         ]}
       >
         <CachedImage
-          source={{ 
-            uri: game?.coverImageUrl || game?.boxArtUrl || 'https://via.placeholder.com/400x600'
+          source={{
+            uri:
+              game?.coverImageUrl ||
+              game?.boxArtUrl ||
+              'https://via.placeholder.com/400x600',
           }}
           style={{
             width: '100%',
             height: '100%',
           }}
         />
-        
+
         {/* Gradient Overlay */}
         <Animated.View
           style={[
@@ -532,14 +627,20 @@ export default function GameDetailScreen() {
       </Animated.View>
 
       {/* Navigation Header */}
-      <SafeAreaView style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
-        <BlurView intensity={80} tint={theme.isDark ? 'dark' : 'light'} style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: theme.spacing.lg,
-          paddingVertical: theme.spacing.md,
-        }}>
+      <SafeAreaView
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}
+      >
+        <BlurView
+          intensity={80}
+          tint={theme.isDark ? 'dark' : 'light'}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.md,
+          }}
+        >
           <Pressable
             onPress={() => router.back()}
             style={{
@@ -585,46 +686,58 @@ export default function GameDetailScreen() {
           />
         }
         style={{ flex: 1 }}
-        contentContainerStyle={{ 
+        contentContainerStyle={{
           paddingTop: HEADER_HEIGHT - theme.spacing.xxl,
         }}
       >
         {/* Game Title Section */}
         <Animated.View
-          entering={FadeInDown.delay(200).springify()}
+          entering={FadeInDown.delay(getBaseDelay('instant')).duration(
+            ANIMATION_CONFIG.timing.fast,
+          )}
           style={{
             padding: theme.spacing.lg,
             paddingBottom: 0,
           }}
         >
-          <Text style={{
-            fontSize: theme.typography.fontSize.xxxl,
-            fontWeight: theme.typography.fontWeight.extrabold,
-            color: theme.colors.text,
-            marginBottom: theme.spacing.sm,
-            lineHeight: theme.typography.lineHeight.tight * theme.typography.fontSize.xxxl,
-          }}>
+          <Text
+            style={{
+              fontSize: theme.typography.fontSize.xxxl,
+              fontWeight: theme.typography.fontWeight.extrabold,
+              color: theme.colors.text,
+              marginBottom: theme.spacing.sm,
+              lineHeight:
+                theme.typography.lineHeight.tight *
+                theme.typography.fontSize.xxxl,
+            }}
+          >
             {game?.title}
           </Text>
-          
+
           {game?.system && (
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: theme.spacing.lg,
-            }}>
-              <View style={{
-                backgroundColor: theme.colors.primary,
-                paddingHorizontal: theme.spacing.md,
-                paddingVertical: theme.spacing.xs,
-                borderRadius: theme.borderRadius.lg,
-                marginRight: theme.spacing.sm,
-              }}>
-                <Text style={{
-                  fontSize: theme.typography.fontSize.sm,
-                  fontWeight: theme.typography.fontWeight.semibold,
-                  color: theme.colors.textInverse,
-                }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: theme.spacing.lg,
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: theme.colors.primary,
+                  paddingHorizontal: theme.spacing.md,
+                  paddingVertical: theme.spacing.xs,
+                  borderRadius: theme.borderRadius.lg,
+                  marginRight: theme.spacing.sm,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: theme.typography.fontSize.sm,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                    color: theme.colors.textInverse,
+                  }}
+                >
                   {game.system.name}
                 </Text>
               </View>
@@ -640,14 +753,20 @@ export default function GameDetailScreen() {
             marginBottom: theme.spacing.lg,
           }}
         >
-          <View style={{
-            flexDirection: 'row',
-            backgroundColor: theme.colors.surface,
-            borderRadius: theme.borderRadius.xl,
-            padding: theme.spacing.xs,
-          }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor: theme.colors.surface,
+              borderRadius: theme.borderRadius.xl,
+              padding: theme.spacing.xs,
+            }}
+          >
             {[
-              { key: 'overview', label: 'Overview', icon: 'information-circle' },
+              {
+                key: 'overview',
+                label: 'Overview',
+                icon: 'information-circle',
+              },
               { key: 'listings', label: 'Reports', icon: 'list' },
               { key: 'stats', label: 'Stats', icon: 'stats-chart' },
             ].map((tab) => (
@@ -662,20 +781,32 @@ export default function GameDetailScreen() {
                   paddingVertical: theme.spacing.md,
                   paddingHorizontal: theme.spacing.sm,
                   borderRadius: theme.borderRadius.lg,
-                  backgroundColor: selectedTab === tab.key ? theme.colors.primary : 'transparent',
+                  backgroundColor:
+                    selectedTab === tab.key
+                      ? theme.colors.primary
+                      : 'transparent',
                 }}
               >
                 <Ionicons
                   name={tab.icon as any}
                   size={16}
-                  color={selectedTab === tab.key ? theme.colors.textInverse : theme.colors.textMuted}
+                  color={
+                    selectedTab === tab.key
+                      ? theme.colors.textInverse
+                      : theme.colors.textMuted
+                  }
                   style={{ marginRight: theme.spacing.xs }}
                 />
-                <Text style={{
-                  fontSize: theme.typography.fontSize.sm,
-                  fontWeight: theme.typography.fontWeight.semibold,
-                  color: selectedTab === tab.key ? theme.colors.textInverse : theme.colors.textMuted,
-                }}>
+                <Text
+                  style={{
+                    fontSize: theme.typography.fontSize.sm,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                    color:
+                      selectedTab === tab.key
+                        ? theme.colors.textInverse
+                        : theme.colors.textMuted,
+                  }}
+                >
                   {tab.label}
                 </Text>
               </Pressable>

@@ -4,17 +4,14 @@ import {
   SlideInRight, 
   SlideInLeft,
 } from 'react-native-reanimated'
+import { ANIMATION_CONFIG, getStaggerDelay, getBaseDelay } from '@/lib/animation/config'
 
 type AnimationType = 'fadeUp' | 'fadeDown' | 'slideRight' | 'slideLeft'
 
 interface EntranceAnimationConfig {
   type?: AnimationType
-  baseDelay?: number
-  stagger?: number
-  springConfig?: {
-    damping?: number
-    stiffness?: number
-  }
+  baseDelay?: keyof typeof ANIMATION_CONFIG.baseDelay
+  stagger?: keyof typeof ANIMATION_CONFIG.stagger
 }
 
 interface UseEntranceAnimationReturn {
@@ -28,9 +25,8 @@ export const useEntranceAnimation = (
 ): UseEntranceAnimationReturn => {
   const {
     type = 'fadeUp',
-    baseDelay = 200,
-    stagger = 50,
-    springConfig = { damping: 15, stiffness: 150 }
+    baseDelay = 'fast',
+    stagger = 'normal',
   } = config
 
   const getAnimationBuilder = (animationType: AnimationType) => {
@@ -48,22 +44,22 @@ export const useEntranceAnimation = (
   }
 
   const getItemAnimation = (index: number) => {
-    const delay = baseDelay + (index * stagger)
+    const delay = getStaggerDelay(index, baseDelay, stagger)
     return getAnimationBuilder(type)
       .delay(delay)
-      .springify()
+      .duration(ANIMATION_CONFIG.timing.fast)
   }
 
   const getContainerAnimation = () => {
     return getAnimationBuilder(type)
-      .delay(baseDelay - 100)
-      .springify()
+      .delay(getBaseDelay('instant'))
+      .duration(ANIMATION_CONFIG.timing.fast)
   }
 
   const getHeaderAnimation = () => {
     return FadeInDown
-      .delay(100)
-      .springify()
+      .delay(getBaseDelay('instant'))
+      .duration(ANIMATION_CONFIG.timing.fast)
   }
 
   return {
@@ -77,33 +73,32 @@ export const useEntranceAnimation = (
 export const useListAnimation = () => {
   return useEntranceAnimation({
     type: 'fadeUp',
-    baseDelay: 300,
-    stagger: 50,
+    baseDelay: 'fast',
+    stagger: 'normal',
   })
 }
 
 export const useCardGridAnimation = () => {
   return useEntranceAnimation({
     type: 'fadeUp',
-    baseDelay: 200,
-    stagger: 75,
+    baseDelay: 'fast',
+    stagger: 'slow',
   })
 }
 
 export const useSlideInAnimation = () => {
   return useEntranceAnimation({
     type: 'slideRight',
-    baseDelay: 250,
-    stagger: 100,
+    baseDelay: 'normal',
+    stagger: 'normal',
   })
 }
 
 export const useQuickAnimation = () => {
   return useEntranceAnimation({
     type: 'fadeUp',
-    baseDelay: 100,
-    stagger: 25,
-    springConfig: { damping: 20, stiffness: 200 }
+    baseDelay: 'instant',
+    stagger: 'fast',
   })
 }
 
@@ -111,8 +106,8 @@ export const useQuickAnimation = () => {
 export const createStaggeredAnimation = (
   count: number,
   animationType: AnimationType = 'fadeUp',
-  stagger: number = 50,
-  baseDelay: number = 200
+  stagger: keyof typeof ANIMATION_CONFIG.stagger = 'normal',
+  baseDelay: keyof typeof ANIMATION_CONFIG.baseDelay = 'fast'
 ) => {
   const getBuilder = (type: AnimationType) => {
     switch (type) {
@@ -125,11 +120,11 @@ export const createStaggeredAnimation = (
 
   const animations = []
   for (let i = 0; i < count; i++) {
-    const delay = baseDelay + (i * stagger)
+    const delay = getStaggerDelay(i, baseDelay, stagger)
     animations.push(
       getBuilder(animationType)
         .delay(delay)
-        .springify()
+        .duration(ANIMATION_CONFIG.timing.fast)
     )
   }
   return animations

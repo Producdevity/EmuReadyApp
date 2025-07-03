@@ -75,6 +75,13 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="config"
+          options={{
+            title: 'Config',
+            tabBarIcon: ({ color }) => <IconSymbol size={28} name="doc.text.fill" color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="notifications"
           options={{
             title: 'Notifications',

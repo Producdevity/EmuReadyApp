@@ -1,24 +1,25 @@
 {
   "expo": {
-    "name": "emuready-app",
-    "slug": "emuready-app",
+    "name": "EmuReady",
+    "slug": "EmuReady",
+    "owner": "emuready",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "emureadyapp",
+    "scheme": "emuready",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.emureadyapp"
+      "bundleIdentifier": "com.emuready.emuready"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/adaptive-icon/foreground.png",
+        "backgroundColor": "./assets/images/adaptive-icon/background.png"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.emureadyapp"
+      "package": "com.emuready.emuready"
     },
     "web": {
       "bundler": "metro",
@@ -39,6 +40,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "59a19d7c-ad8e-4779-8689-fa4c6a6d9827"
+      }
     }
   }
 }

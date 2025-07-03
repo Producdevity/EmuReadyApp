@@ -11,12 +11,11 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
-  withTiming,
 } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { useTheme } from '@/contexts/ThemeContext'
+import { createSpringAnimation, createTimingAnimation, ANIMATION_CONFIG } from '@/lib/animation/config'
 
 interface ButtonProps {
   title: string
@@ -74,21 +73,15 @@ export default function Button({
 
   const handlePressIn = () => {
     if (!disabled && !loading) {
-      scale.value = withSpring(0.95, {
-        damping: 15,
-        stiffness: 350,
-      })
-      backgroundOpacity.value = withTiming(0.85, { duration: 120 })
+      scale.value = createSpringAnimation(ANIMATION_CONFIG.scale.press)
+      backgroundOpacity.value = createTimingAnimation(0.85, 'fast')
     }
   }
 
   const handlePressOut = () => {
     if (!disabled && !loading) {
-      scale.value = withSpring(1, {
-        damping: 15,
-        stiffness: 350,
-      })
-      backgroundOpacity.value = withTiming(1, { duration: 150 })
+      scale.value = createSpringAnimation(1)
+      backgroundOpacity.value = createTimingAnimation(1, 'fast')
     }
   }
 
