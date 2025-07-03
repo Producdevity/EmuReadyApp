@@ -1,19 +1,11 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import {
   StyleSheet,
   View,
   type DimensionValue,
   type ViewStyle,
 } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withRepeat,
-  withSequence,
-  interpolate,
-} from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
+import { Skeleton } from 'moti/skeleton'
 import { useTheme } from '@/contexts/ThemeContext'
 
 interface SkeletonLoaderProps {
@@ -26,60 +18,14 @@ interface SkeletonLoaderProps {
 export function SkeletonLoader(props: SkeletonLoaderProps) {
   const { theme } = useTheme()
   const borderRadius = props.borderRadius ?? 8
-  const shimmerValue = useSharedValue(0)
-
-  useEffect(() => {
-    shimmerValue.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 1200 }),
-        withTiming(0, { duration: 1200 })
-      ),
-      -1,
-      false
-    )
-  }, [shimmerValue])
-
-  const shimmerStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(
-      shimmerValue.value,
-      [0, 1],
-      [-200, 200]
-    )
-
-    return {
-      transform: [{ translateX }],
-    }
-  })
-
-  const baseColor = theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'
-  const highlightColor = theme.isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'
 
   return (
     <View style={[{ width: props.width ?? '100%' }, props.style]}>
-      <View
-        style={[
-          styles.skeleton,
-          {
-            height: props.height ?? 20,
-            borderRadius,
-            backgroundColor: baseColor,
-            overflow: 'hidden',
-          },
-        ]}
-      >
-        <Animated.View style={[StyleSheet.absoluteFillObject, shimmerStyle]}>
-          <LinearGradient
-            colors={[
-              'transparent',
-              highlightColor,
-              'transparent',
-            ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={StyleSheet.absoluteFillObject}
-          />
-        </Animated.View>
-      </View>
+      <Skeleton
+        height={props.height ?? 20}
+        radius={borderRadius}
+        colorMode={theme.isDark ? 'dark' : 'light'}
+      />
     </View>
   )
 }
@@ -172,9 +118,6 @@ export function SkeletonListingCard(props: { style?: ViewStyle }) {
 }
 
 const styles = StyleSheet.create({
-  skeleton: {
-    backgroundColor: '#e5e7eb',
-  },
   textContainer: {
     // No specific styles needed
   },

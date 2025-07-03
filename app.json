@@ -19,7 +19,8 @@
         "backgroundColor": "#023c69"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.emuready.emuready"
+      "package": "com.emuready.emuready",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "bundler": "metro",
