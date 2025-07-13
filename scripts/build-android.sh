@@ -40,7 +40,7 @@ fi
 
 # Install dependencies
 echo -e "${BLUE}📦 Installing dependencies...${NC}"
-npm ci
+npm install
 
 # Check if Expo CLI is installed
 if ! command -v expo &> /dev/null; then
@@ -48,9 +48,13 @@ if ! command -v expo &> /dev/null; then
     npm install -g @expo/cli@latest
 fi
 
-# Run prebuild
-echo -e "${BLUE}🔨 Running Expo prebuild...${NC}"
-npx expo prebuild --platform android
+# Run prebuild only if android folder doesn't exist
+if [ ! -d "android" ]; then
+    echo -e "${BLUE}🔨 Running Expo prebuild...${NC}"
+    npx expo prebuild --platform android
+else
+    echo -e "${GREEN}✅ Android folder exists, skipping prebuild${NC}"
+fi
 
 # Check if Android directory exists
 if [ ! -d "android" ]; then

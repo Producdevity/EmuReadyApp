@@ -68,6 +68,27 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="pc"
+          options={{
+            title: 'PC Gaming',
+            tabBarIcon: ({ color }) => <IconSymbol size={28} name="desktopcomputer" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="hardware"
+          options={{
+            title: 'Hardware',
+            tabBarIcon: ({ color }) => <IconSymbol size={28} name="cpu" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="media"
+          options={{
+            title: 'Media',
+            tabBarIcon: ({ color }) => <IconSymbol size={28} name="photo.stack" color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="test"
           options={{
             title: 'Test',

@@ -26,53 +26,7 @@ export const queryClient = new QueryClient({
   },
 })
 
-// Function to check API availability
-export const checkApiAvailability = async (): Promise<boolean> => {
-  try {
-    // Try a simple HEAD request to check if the API is reachable
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
-    const response = await fetch(`${CONFIG.API_URL}/api/health`, {
-      method: 'HEAD',
-      signal: controller.signal,
-    })
-
-    clearTimeout(timeoutId)
-    return response.ok
-  } catch (error) {
-    console.warn('API availability check failed:', error)
-    return false
-  }
-}
-
-// Error handling utility
-export const handleApiError = (error: unknown) => {
-  console.error('API Error:', error)
-
-  const typedError = error as { 
-    message?: string; 
-    status?: number; 
-    data?: { code?: string }; 
-    stack?: string 
-  }
-
-  // Log additional context for debugging
-  if (CONFIG.IS_DEV) {
-    console.error('Error details:', {
-      message: typedError?.message,
-      status: typedError?.status,
-      data: typedError?.data,
-      stack: typedError?.stack,
-    })
-  }
-
-  return {
-    message: typedError?.message || 'An unexpected error occurred',
-    code: typedError?.data?.code || 'UNKNOWN_ERROR',
-    status: typedError?.status,
-  }
-}
 
 // Network status utilities for mobile
 export const networkUtils = {

@@ -34,6 +34,7 @@ import {
   SkeletonLoader,
 } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
+import QuickAccessSection from '@/components/sections/QuickAccessSection'
 import { useListings, useSystems, useSearchSuggestions } from '@/lib/api/hooks'
 import { useTheme } from '@/contexts/ThemeContext'
 import { appStorage } from '@/lib/storage'
@@ -893,6 +894,19 @@ export default function BrowseScreen() {
             </Animated.View>
           )}
         </View>
+
+        {/* Quick Access to New Features */}
+        {!filters.query && !filters.systemId && !filters.performanceRank && (
+          <Animated.View
+            entering={FadeInUp.delay(800).springify()}
+            style={{ 
+              paddingHorizontal: theme.spacing.lg, 
+              marginBottom: theme.spacing.lg,
+            }}
+          >
+            <QuickAccessSection />
+          </Animated.View>
+        )}
 
         {/* Enhanced Quick Actions */}
         {!filters.query && !filters.systemId && !filters.performanceRank && (

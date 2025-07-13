@@ -37,6 +37,7 @@ import {
   useUserVote 
 } from '@/lib/api/hooks'
 import { CachedImage, Button, Card, EmptyState, SkeletonLoader } from '@/components/ui'
+import ReportButton from '@/components/ui/ReportButton'
 import type { Comment } from '@/types'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -333,6 +334,25 @@ export default function ListingDetailScreen() {
             >
               <Ionicons name="share" size={20} color={theme.colors.text} />
             </Pressable>
+            
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: theme.colors.glass,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ReportButton
+                listingId={id!}
+                listingTitle={listing?.game?.title}
+                variant="button"
+                size="sm"
+                showText={false}
+              />
+            </View>
           </View>
         </BlurView>
       </SafeAreaView>

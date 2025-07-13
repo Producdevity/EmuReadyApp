@@ -40,8 +40,9 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const scrollY = useSharedValue(0)
-  
+
   const statsQuery = useAppStats()
+  console.log('Stats Query:', JSON.stringify(statsQuery.data, null, 2))
   const featuredListingsQuery = useFeaturedListings()
   const popularGamesQuery = usePopularGames()
 
@@ -58,7 +59,7 @@ export default function HomeScreen() {
       [1, 0.8, 0],
       Extrapolation.CLAMP
     )
-    
+
     const translateY = interpolate(
       scrollY.value,
       [0, HEADER_HEIGHT],
@@ -212,8 +213,8 @@ export default function HomeScreen() {
               </View>
             )}
           </View>
-          
-          <View style={{ 
+
+          <View style={{
             padding: theme.spacing.md,
             flex: 1,
             justifyContent: 'space-between',
@@ -297,7 +298,7 @@ export default function HomeScreen() {
         backgroundColor="transparent"
         translucent
       />
-      
+
       {/* Dynamic Gradient Background */}
       <LinearGradient
         colors={theme.colors.gradients.hero as [string, string, ...string[]]}
@@ -309,7 +310,7 @@ export default function HomeScreen() {
           height: HEADER_HEIGHT + 200,
         }}
       />
-      
+
       {/* Secondary gradient for depth */}
       <LinearGradient
         colors={[
@@ -453,7 +454,7 @@ export default function HomeScreen() {
           >
             Community Overview
           </Animated.Text>
-          
+
           <Animated.View
             entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
             style={{
@@ -680,7 +681,7 @@ export default function HomeScreen() {
               gap: theme.spacing.md,
             }}
           >
-            <Animated.View 
+            <Animated.View
               style={{ flex: 1 }}
               entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
             >
@@ -708,8 +709,8 @@ export default function HomeScreen() {
                 </Text>
               </Pressable>
             </Animated.View>
-            
-            <Animated.View 
+
+            <Animated.View
               style={{ flex: 1 }}
               entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
             >

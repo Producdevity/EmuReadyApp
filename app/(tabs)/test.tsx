@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
-import * as IntentLauncher from 'expo-intent-launcher'
 
 import { useTheme } from '@/contexts/ThemeContext'
 import { Button, Card } from '@/components/ui'
@@ -31,7 +30,7 @@ export default function TestScreen() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [showDebugOptions, setShowDebugOptions] = useState(false)
-  const [debugMessages, setDebugMessages] = useState<string[]>([])
+  const [debugMessages, _setDebugMessages] = useState<string[]>([])
 
   const getFullDriverPath = (
     filename: string,

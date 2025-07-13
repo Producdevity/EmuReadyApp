@@ -254,7 +254,7 @@ export class EmulatorService {
         await IntentLauncher.startActivityAsync(launchAction, {
           packageName,
           className: packageName === EDEN_PACKAGE ? EMULATION_ACTIVITY : undefined,
-          data: extras,
+          extra: extras,
           flags: 268435456, // Intent.FLAG_ACTIVITY_NEW_TASK
         })
         console.log('IntentLauncher approach successful!')

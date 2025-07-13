@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,10 +36,10 @@ jobs:
       - name: Setup Expo CLI
         run: npm install -g @expo/cli@latest
 
-      - name: Create .env file with defaults
+      - name: Create .env file
         run: |
-          echo "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_dummy_key_for_build" >> .env
-          echo "EXPO_PUBLIC_API_URL=https://api.example.com" >> .env
+          echo "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY }}" >> .env
+          echo "EXPO_PUBLIC_API_URL=https://www.emuready.com" >> .env
           echo "EXPO_PUBLIC_ENV=development" >> .env
           echo "EXPO_PUBLIC_NAME=EmuReady" >> .env
           echo "EXPO_PUBLIC_VERSION=1.0.0" >> .env

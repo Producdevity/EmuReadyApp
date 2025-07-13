@@ -38,6 +38,7 @@ import {
   SkeletonLoader,
 } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
+import GameMediaSection from '@/components/game/GameMediaSection'
 import { EmulatorService, EMULATOR_PRESETS } from '@/lib/services/emulator'
 import {
   getStaggerDelay,
@@ -384,6 +385,18 @@ export default function GameDetailScreen() {
           </Card>
         </Animated.View>
       )}
+
+      {/* Game Media Section */}
+      <Animated.View
+        entering={FadeInUp.delay(getBaseDelay('fast')).duration(
+          ANIMATION_CONFIG.timing.fast,
+        )}
+      >
+        <GameMediaSection 
+          gameName={gameQuery.data?.title || ''} 
+          gameId={gameQuery.data?.id}
+        />
+      </Animated.View>
     </View>
   )
 

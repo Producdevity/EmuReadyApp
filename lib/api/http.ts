@@ -1,17 +1,112 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, {
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+} from 'axios'
 import { Platform } from 'react-native'
+import { deserialize, type SuperJSONResult } from 'superjson'
 import { CONFIG } from '@/lib/constants/config'
 
-// Types for API response wrapper
-interface ApiResponse<T = unknown> {
-  json: T
-}
+// Response unwrapping utilities
 
 // Global auth token getter
 let getAuthToken: (() => Promise<string | null>) | null = null
 
 export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
   getAuthToken = getter
+}
+
+// Response unwrapping utilities
+type UnwrapResult = { data: unknown; format: string } | null
+
+// Type guard to check if data is a SuperJSONResult
+const isSuperJSONResult = (data: unknown): data is SuperJSONResult => {
+  // Must be a non-null object
+  if (typeof data !== 'object' || data === null) return false
+
+  // Must have a 'json' property
+  if (!Reflect.has(data, 'json')) return false
+
+  // If it has 'meta', it must be undefined or an object
+  if (Reflect.has(data, 'meta')) {
+    const metaValue = Reflect.get(data, 'meta')
+    if (
+      metaValue !== undefined &&
+      (typeof metaValue !== 'object' || metaValue === null)
+    ) {
+      return false
+    }
+  }
+
+  return true
+}
+
+const deserializeIfNeeded = (data: unknown): unknown => {
+  try {
+    // Check if the data is in superjson format using proper type guard
+    if (isSuperJSONResult(data)) return deserialize(data)
+
+    // Return data as-is if it doesn't need deserialization
+    return data
+  } catch (error) {
+    if (CONFIG.IS_DEV) {
+      console.warn(
+        '⚠️ Superjson deserialization failed, using raw data:',
+        error,
+      )
+    }
+    return data
+  }
+}
+
+const unwrapTrpcResponse = (response: AxiosResponse): UnwrapResult => {
+  const { data, config } = response
+
+  // Define unwrapping strategies in order of precedence
+  const strategies = [
+    {
+      name: 'tRPC + json',
+      condition: () => data?.result?.data?.json !== undefined,
+      extract: () => data.result.data.json,
+    },
+    {
+      name: 'tRPC direct',
+      condition: () => data?.result?.data !== undefined,
+      extract: () => data.result.data,
+    },
+    {
+      name: 'json wrapped',
+      condition: () => data?.json !== undefined,
+      extract: () => data.json,
+    },
+  ]
+
+  // Try each strategy
+  for (const strategy of strategies) {
+    if (strategy.condition()) {
+      const extractedData = strategy.extract()
+
+      if (CONFIG.IS_DEV) {
+        console.log(
+          `📥 API Response (${strategy.name}):`,
+          config?.url,
+          `→ Unwrapped`,
+        )
+      }
+
+      // Apply superjson deserialization for tRPC data handling
+      const deserializedData = deserializeIfNeeded(extractedData)
+
+      return { data: deserializedData, format: strategy.name }
+    }
+  }
+
+  // No unwrapping needed
+  if (CONFIG.IS_DEV && config?.url?.includes('/trpc/')) {
+    console.log('📥 API Response (no wrapper):', config?.url, '→ Direct')
+  }
+
+  return null
 }
 
 // Create axios instance with default configuration
@@ -33,28 +128,21 @@ const createAxiosInstance = (): AxiosInstance => {
     async (config) => {
       if (getAuthToken) {
         const token = await getAuthToken()
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`
-        }
+        if (token) config.headers.Authorization = `Bearer ${token}`
       }
       return config
     },
-    (error) => {
-      return Promise.reject(error)
-    }
+    (error) => Promise.reject(error),
   )
 
   // Response interceptor to handle tRPC response format
   instance.interceptors.response.use(
     (response: AxiosResponse) => {
-      // tRPC returns data in result.data.json format
-      if (response.data?.result?.data?.json !== undefined) {
-        return {
-          ...response,
-          data: response.data.result.data.json,
-        }
-      }
-      return response
+      const unwrappedData = unwrapTrpcResponse(response)
+
+      return unwrappedData !== null
+        ? { ...response, data: unwrappedData.data }
+        : response
     },
     (error) => {
       // Handle common errors
@@ -64,7 +152,7 @@ const createAxiosInstance = (): AxiosInstance => {
           console.warn('API request requires authentication')
         }
       }
-      
+
       // Log error details in development
       if (CONFIG.IS_DEV) {
         console.error('API Error:', {
@@ -73,9 +161,9 @@ const createAxiosInstance = (): AxiosInstance => {
           message: error.message,
         })
       }
-      
+
       return Promise.reject(error)
-    }
+    },
   )
 
   return instance
@@ -86,65 +174,30 @@ export const httpClient = createAxiosInstance()
 
 // Utility functions for common HTTP methods with proper typing
 export const api = {
-  get: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> => 
-    httpClient.get<T>(url, config).then(response => response.data),
-    
-  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => 
-    httpClient.post<T>(url, data, config).then(response => response.data),
-    
-  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => 
-    httpClient.put<T>(url, data, config).then(response => response.data),
-    
-  patch: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => 
-    httpClient.patch<T>(url, data, config).then(response => response.data),
-    
-  delete: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> => 
-    httpClient.delete<T>(url, config).then(response => response.data),
-}
+  get: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> =>
+    httpClient.get<T>(url, config).then((response) => response.data),
 
-// Network utilities
-export const networkUtils = {
-  isOnline: async (): Promise<boolean> => {
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
+  post: <T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<T> =>
+    httpClient.post<T>(url, data, config).then((response) => response.data),
 
-      const response = await fetch(`${CONFIG.API_URL}/api/health`, {
-        method: 'HEAD',
-        signal: controller.signal,
-      })
+  put: <T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<T> =>
+    httpClient.put<T>(url, data, config).then((response) => response.data),
 
-      clearTimeout(timeoutId)
-      return response.ok
-    } catch {
-      return false
-    }
-  },
+  patch: <T = unknown>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<T> =>
+    httpClient.patch<T>(url, data, config).then((response) => response.data),
 
-  retryWithBackoff: async <T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> => {
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        return await fn()
-      } catch (error) {
-        if (i === maxRetries - 1) throw error
-
-        const delay = Math.pow(2, i) * 1000
-        await new Promise((resolve) => setTimeout(resolve, delay))
-      }
-    }
-    throw new Error('Retry function failed to return')
-  },
-}
-
-// Error handling utility
-export const handleApiError = (error: unknown) => {
-  console.error('API Error:', error)
-
-  const axiosError = error as { response?: { data?: { message?: string; code?: string }; status?: number }; message?: string }
-
-  return {
-    message: axiosError?.response?.data?.message || axiosError?.message || 'An unexpected error occurred',
-    code: axiosError?.response?.data?.code || 'UNKNOWN_ERROR',
-    status: axiosError?.response?.status,
-  }
+  delete: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> =>
+    httpClient.delete<T>(url, config).then((response) => response.data),
 }
