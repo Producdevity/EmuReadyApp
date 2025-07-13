@@ -18,6 +18,7 @@
         "foregroundImage": "./assets/images/adaptive-icon/foreground.png",
         "backgroundColor": "#023c69"
       },
+      "edgeToEdgeEnabled": true,
       "package": "com.emuready.emuready",
       "softwareKeyboardLayoutMode": "pan",
       "intentFilters": [
