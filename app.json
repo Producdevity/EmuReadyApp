@@ -20,7 +20,31 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.emuready.emuready",
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "emuready"
+            }
+          ],
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ]
+        }
+      ],
+      "queries": {
+        "package": [
+          "dev.eden.eden_emulator"
+        ],
+        "intent": [
+          {
+            "action": "dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG"
+          }
+        ]
+      }
     },
     "web": {
       "bundler": "metro",

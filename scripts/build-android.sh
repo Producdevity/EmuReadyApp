@@ -50,7 +50,7 @@ fi
 
 # Run prebuild
 echo -e "${BLUE}🔨 Running Expo prebuild...${NC}"
-npx expo prebuild --platform android --clean
+npx expo prebuild --platform android
 
 # Check if Android directory exists
 if [ ! -d "android" ]; then

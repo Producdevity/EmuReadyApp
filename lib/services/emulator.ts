@@ -6,6 +6,8 @@ import { getErrorMessage } from '@/lib/utils'
 const EDEN_PACKAGE = 'dev.eden.eden_emulator'
 // Eden emulator custom action
 const EDEN_LAUNCH_ACTION = 'dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG'
+// Eden emulator activity class
+const EMULATION_ACTIVITY = 'org.yuzu.yuzu_emu.activities.EmulationActivity'
 
 export interface EmulatorConfig {
   titleId: string
@@ -246,15 +248,30 @@ export class EmulatorService {
       console.log('Custom Settings Length:', customSettings.length)
       console.log('Extras:', JSON.stringify(extras, null, 2))
 
-      // Use Linking instead of IntentLauncher for better compatibility
-      const intentUri = `intent://launch#Intent;package=${packageName};action=${launchAction};S.title_id=${titleId};S.custom_settings=${encodeURIComponent(customSettings)};end`
-      
-      const canOpen = await Linking.canOpenURL(intentUri)
-      if (!canOpen) {
-        throw new Error(`Cannot open intent URI for ${packageName}`)
+      // Try both Linking and IntentLauncher approaches
+      try {
+        // First try IntentLauncher approach (more direct)
+        await IntentLauncher.startActivityAsync(launchAction, {
+          packageName,
+          className: packageName === EDEN_PACKAGE ? EMULATION_ACTIVITY : undefined,
+          data: extras,
+          flags: 268435456, // Intent.FLAG_ACTIVITY_NEW_TASK
+        })
+        console.log('IntentLauncher approach successful!')
+      } catch (intentError) {
+        console.log('IntentLauncher failed, trying Linking approach...', intentError)
+        
+        // Fallback to Linking with proper intent URI
+        const intentUri = `intent://#Intent;package=${packageName};action=${launchAction};component=${packageName}/${EMULATION_ACTIVITY};S.title_id=${titleId};S.custom_settings=${encodeURIComponent(customSettings)};i.flags=268435456;end`
+        
+        const canOpen = await Linking.canOpenURL(intentUri)
+        if (!canOpen) {
+          throw new Error(`Cannot open intent URI for ${packageName}`)
+        }
+        
+        await Linking.openURL(intentUri)
+        console.log('Linking approach successful!')
       }
-      
-      await Linking.openURL(intentUri)
 
       console.log('Intent launch successful!')
     } catch (error) {
