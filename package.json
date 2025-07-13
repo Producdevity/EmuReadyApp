@@ -14,7 +14,10 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run typecheck",
     "format": "prettier --write .",
-    "build:android": "./scripts/build-android.sh"
+    "build:android": "./scripts/build-android.sh",
+    "clear-cache": "npx expo start --clear",
+    "fresh-start": "rm -rf node_modules .expo && npm install && npx expo start --clear",
+    "clean-android": "npx expo prebuild --clean && npx expo run:android"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.13.1",
