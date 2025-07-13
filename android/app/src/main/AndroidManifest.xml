@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
@@ -9,6 +10,12 @@
       <action android:name="android.intent.action.VIEW"/>
       <category android:name="android.intent.category.BROWSABLE"/>
       <data android:scheme="https"/>
+    </intent>
+  </queries>
+  <queries>
+    <package android:name="dev.eden.eden_emulator"/>
+    <intent>
+      <action android:name="dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG"/>
     </intent>
   </queries>
   <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="true" android:theme="@style/AppTheme" android:supportsRtl="true">
