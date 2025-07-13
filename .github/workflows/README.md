@@ -28,7 +28,7 @@ This directory contains GitHub Actions workflows for automated building and test
 
 ### Required Secrets (for signed builds)
 
-Add these secrets in your GitHub repository settings (`Settings > Secrets and variables > Actions`):
+Add these secrets in to GitHub repository settings (`Settings > Secrets and variables > Actions`):
 
 #### Environment Variables
 ```

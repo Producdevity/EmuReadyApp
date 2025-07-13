@@ -21,6 +21,7 @@
     "@expo/vector-icons": "^14.1.0",
     "@gorhom/bottom-sheet": "^5.1.6",
     "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-native-picker/picker": "^2.11.1",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
@@ -28,8 +29,10 @@
     "@tanstack/react-query": "^5.80.7",
     "axios": "^1.10.0",
     "expo": "53.0.19",
+    "expo-auth-session": "~6.2.1",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.6",
+    "expo-dev-client": "~5.2.4",
     "expo-document-picker": "^13.1.6",
     "expo-file-system": "^18.1.11",
     "expo-font": "~13.3.1",
@@ -64,9 +67,9 @@
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
     "remeda": "^2.23.0",
+    "superjson": "^2.2.2",
     "tailwindcss": "^3.4.17",
-    "zustand": "^5.0.5",
-    "expo-dev-client": "~5.2.4"
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

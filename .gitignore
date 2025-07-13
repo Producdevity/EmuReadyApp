@@ -43,3 +43,4 @@ yarn-error.*
 .vscode/
 .cursor/
 .claude/
+CLAUDE.md
