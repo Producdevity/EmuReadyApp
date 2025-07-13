@@ -3,6 +3,10 @@
 # dependencies
 node_modules/
 
+#Expo generated native folders
+/android/
+/ios/
+
 # Expo
 .expo/
 dist/
@@ -44,3 +48,9 @@ yarn-error.*
 .cursor/
 .claude/
 CLAUDE.md
+
+# Android build files
+emuready-app-unsigned.apk
+
+# Docs
+mobile-openapi.json
