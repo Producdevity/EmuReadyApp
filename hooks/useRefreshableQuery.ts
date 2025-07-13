@@ -12,20 +12,17 @@ interface UseRefreshableQueryReturn {
   onRefresh: () => Promise<void>
 }
 
-export const useRefreshableQuery = ({ 
-  queries, 
-  onRefresh: customOnRefresh 
+export const useRefreshableQuery = ({
+  queries,
+  onRefresh: customOnRefresh,
 }: UseRefreshableQueryProps): UseRefreshableQueryReturn => {
   const [refreshing, setRefreshing] = useState(false)
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
-    
+
     try {
-      await Promise.all([
-        ...queries.map(query => query()),
-        customOnRefresh?.(),
-      ].filter(Boolean))
+      await Promise.all([...queries.map((query) => query()), customOnRefresh?.()].filter(Boolean))
     } catch (error) {
       console.error('Refresh failed:', error)
     } finally {

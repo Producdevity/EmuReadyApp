@@ -27,12 +27,12 @@ export default function GameMediaScreen() {
   // Fetch from selected source
   const { data: rawgData, isLoading: rawgLoading } = useRawgSearchGameImages(
     { query: debouncedSearch, pageSize: 20 },
-    { enabled: selectedSource === 'rawg' && !!debouncedSearch }
+    { enabled: selectedSource === 'rawg' && !!debouncedSearch },
   )
 
   const { data: tgdbData, isLoading: tgdbLoading } = useTgdbSearchGameImages(
     { name: debouncedSearch },
-    { enabled: selectedSource === 'tgdb' && !!debouncedSearch }
+    { enabled: selectedSource === 'tgdb' && !!debouncedSearch },
   )
 
   const isLoading = selectedSource === 'rawg' ? rawgLoading : tgdbLoading
@@ -43,9 +43,10 @@ export default function GameMediaScreen() {
   }
 
   const renderMediaItem = ({ item }: { item: any }) => {
-    const imageUrl = selectedSource === 'rawg' 
-      ? item.background_image || item.short_screenshots?.[0]?.image
-      : item.thumb || item.images?.[0]?.thumb
+    const imageUrl =
+      selectedSource === 'rawg'
+        ? item.background_image || item.short_screenshots?.[0]?.image
+        : item.thumb || item.images?.[0]?.thumb
 
     return (
       <TouchableOpacity
@@ -56,13 +57,9 @@ export default function GameMediaScreen() {
         <Card>
           <View className="aspect-video overflow-hidden rounded-lg">
             {imageUrl ? (
-              <Image
-                source={{ uri: imageUrl }}
-                className="w-full h-full"
-                resizeMode="cover"
-              />
+              <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode="cover" />
             ) : (
-              <View 
+              <View
                 className="w-full h-full items-center justify-center"
                 style={{ backgroundColor: theme.colors.surface }}
               >
@@ -70,30 +67,26 @@ export default function GameMediaScreen() {
               </View>
             )}
           </View>
-          
+
           <View className="p-3">
-            <Text 
+            <Text
               className="font-semibold text-sm"
               style={{ color: theme.colors.text }}
               numberOfLines={2}
             >
               {item.name}
             </Text>
-            
+
             <View className="flex-row items-center mt-1">
-              <Ionicons 
-                name={selectedSource === 'rawg' ? 'star' : 'game-controller'} 
-                size={12} 
-                color={theme.colors.primary} 
+              <Ionicons
+                name={selectedSource === 'rawg' ? 'star' : 'game-controller'}
+                size={12}
+                color={theme.colors.primary}
               />
-              <Text 
-                className="text-xs ml-1"
-                style={{ color: theme.colors.textSecondary }}
-              >
-                {selectedSource === 'rawg' 
+              <Text className="text-xs ml-1" style={{ color: theme.colors.textSecondary }}>
+                {selectedSource === 'rawg'
                   ? `${item.rating || 0}/5`
-                  : `${item.platform || 'Multiple'}`
-                }
+                  : `${item.platform || 'Multiple'}`}
               </Text>
             </View>
           </View>
@@ -109,10 +102,9 @@ export default function GameMediaScreen() {
         {debouncedSearch ? 'No Media Found' : 'Search Game Media'}
       </Text>
       <Text className="text-center mb-6" style={{ color: theme.colors.textSecondary }}>
-        {debouncedSearch 
+        {debouncedSearch
           ? `No results found for "${debouncedSearch}" in ${selectedSource.toUpperCase()}`
-          : 'Enter a game name to search for images and media'
-        }
+          : 'Enter a game name to search for images and media'}
       </Text>
     </View>
   )
@@ -148,35 +140,38 @@ export default function GameMediaScreen() {
         </View>
 
         {/* Source Selection */}
-        <View className="flex-row bg-gray-100 rounded-lg p-1" style={{ backgroundColor: theme.colors.surface }}>
+        <View
+          className="flex-row bg-gray-100 rounded-lg p-1"
+          style={{ backgroundColor: theme.colors.surface }}
+        >
           <TouchableOpacity
             onPress={() => setSelectedSource('rawg')}
             className={`flex-1 py-2 px-3 rounded-md ${selectedSource === 'rawg' ? 'shadow-sm' : ''}`}
-            style={{ 
-              backgroundColor: selectedSource === 'rawg' ? theme.colors.primary : 'transparent' 
+            style={{
+              backgroundColor: selectedSource === 'rawg' ? theme.colors.primary : 'transparent',
             }}
           >
-            <Text 
+            <Text
               className="text-center font-medium"
-              style={{ 
-                color: selectedSource === 'rawg' ? '#fff' : theme.colors.text 
+              style={{
+                color: selectedSource === 'rawg' ? '#fff' : theme.colors.text,
               }}
             >
               RAWG
             </Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             onPress={() => setSelectedSource('tgdb')}
             className={`flex-1 py-2 px-3 rounded-md ${selectedSource === 'tgdb' ? 'shadow-sm' : ''}`}
-            style={{ 
-              backgroundColor: selectedSource === 'tgdb' ? theme.colors.primary : 'transparent' 
+            style={{
+              backgroundColor: selectedSource === 'tgdb' ? theme.colors.primary : 'transparent',
             }}
           >
-            <Text 
+            <Text
               className="text-center font-medium"
-              style={{ 
-                color: selectedSource === 'tgdb' ? '#fff' : theme.colors.text 
+              style={{
+                color: selectedSource === 'tgdb' ? '#fff' : theme.colors.text,
               }}
             >
               TGDB

@@ -33,6 +33,8 @@ pnpm-lock.yaml
 /dist
 /build
 /public
+/android
+/ios
 
 # Logs
 /logs

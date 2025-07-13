@@ -1,7 +1,7 @@
 // UI Components
 export * from './ui'
 
-// Card Components  
+// Card Components
 export * from './cards'
 
 // List Components
@@ -14,6 +14,6 @@ export * from './themed'
 export { default as ErrorBoundary } from './ErrorBoundary'
 export { default as EnhancedErrorBoundary } from './EnhancedErrorBoundary'
 
-// Utility Components  
+// Utility Components
 export { ExternalLink } from './ExternalLink'
 export { HapticTab } from './HapticTab'

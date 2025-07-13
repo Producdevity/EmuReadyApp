@@ -17,10 +17,7 @@ module.exports = defineConfig([
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
       ],
       '@typescript-eslint/no-namespace': 'off',
-      '@typescript-eslint/no-redeclare': [
-        'error',
-        { ignoreDeclarationMerge: true },
-      ],
+      '@typescript-eslint/no-redeclare': ['error', { ignoreDeclarationMerge: true }],
       '@typescript-eslint/no-unused-vars': [
         'error',
         {

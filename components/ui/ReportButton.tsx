@@ -35,21 +35,15 @@ export default function ReportButton({
   if (variant === 'menu-item') {
     return (
       <>
-        <TouchableOpacity
-          onPress={handlePress}
-          className="flex-row items-center py-3 px-4"
-        >
+        <TouchableOpacity onPress={handlePress} className="flex-row items-center py-3 px-4">
           <Ionicons name="flag-outline" size={iconSize} color={theme.colors.error} />
           {showText && (
-            <Text
-              className={`ml-3 ${textSize}`}
-              style={{ color: theme.colors.error }}
-            >
+            <Text className={`ml-3 ${textSize}`} style={{ color: theme.colors.error }}>
               Report Listing
             </Text>
           )}
         </TouchableOpacity>
-        
+
         <ReportListingModal
           visible={showReportModal}
           onClose={() => setShowReportModal(false)}
@@ -74,15 +68,12 @@ export default function ReportButton({
       >
         <Ionicons name="flag-outline" size={iconSize} color={theme.colors.error} />
         {showText && (
-          <Text
-            className={`ml-2 font-medium ${textSize}`}
-            style={{ color: theme.colors.error }}
-          >
+          <Text className={`ml-2 font-medium ${textSize}`} style={{ color: theme.colors.error }}>
             Report
           </Text>
         )}
       </TouchableOpacity>
-      
+
       <ReportListingModal
         visible={showReportModal}
         onClose={() => setShowReportModal(false)}

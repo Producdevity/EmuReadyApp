@@ -28,11 +28,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 
-import {
-  Card,
-  SearchSuggestions,
-  SkeletonLoader,
-} from '@/components/ui'
+import { Card, SearchSuggestions, SkeletonLoader } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
 import QuickAccessSection from '@/components/sections/QuickAccessSection'
 import { useListings, useSystems, useSearchSuggestions } from '@/lib/api/hooks'
@@ -84,7 +80,7 @@ export default function BrowseScreen() {
   const systemsQuery = useSystems()
   const suggestionsQuery = useSearchSuggestions(
     { query: debouncedQuery, limit: 10 },
-    { enabled: debouncedQuery.length > 0 }
+    { enabled: debouncedQuery.length > 0 },
   )
 
   const listings = listingsQuery.data?.listings || []
@@ -123,19 +119,12 @@ export default function BrowseScreen() {
   const filteredListings = listings.filter((listing: Listing) => {
     const matchesQuery =
       !debouncedQuery ||
-      listing.game?.title
-        ?.toLowerCase()
-        .includes(debouncedQuery.toLowerCase()) ||
-      listing.device?.modelName
-        ?.toLowerCase()
-        .includes(debouncedQuery.toLowerCase()) ||
-      listing.emulator?.name
-        ?.toLowerCase()
-        .includes(debouncedQuery.toLowerCase())
+      listing.game?.title?.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+      listing.device?.modelName?.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+      listing.emulator?.name?.toLowerCase().includes(debouncedQuery.toLowerCase())
 
     const matchesPerformance =
-      !filters.performanceRank ||
-      listing.performance?.rank === filters.performanceRank
+      !filters.performanceRank || listing.performance?.rank === filters.performanceRank
 
     return matchesQuery && matchesPerformance
   })
@@ -167,14 +156,14 @@ export default function BrowseScreen() {
       scrollY.value,
       [0, HEADER_HEIGHT * 0.3, HEADER_HEIGHT * 0.7],
       [1, 0.8, 0.3],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
-    
+
     const translateY = interpolate(
       scrollY.value,
       [0, HEADER_HEIGHT],
       [0, -HEADER_HEIGHT * 0.5],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
 
     return {
@@ -304,14 +293,10 @@ export default function BrowseScreen() {
           height: HEADER_HEIGHT + 100,
         }}
       />
-      
+
       {/* Secondary gradient for depth */}
       <LinearGradient
-        colors={[
-          'transparent',
-          `${theme.colors.background}80`,
-          theme.colors.background,
-        ]}
+        colors={['transparent', `${theme.colors.background}80`, theme.colors.background]}
         style={{
           position: 'absolute',
           top: HEADER_HEIGHT - 50,
@@ -343,24 +328,32 @@ export default function BrowseScreen() {
             <SafeAreaView style={{ flex: 1, paddingHorizontal: theme.spacing.lg }}>
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <Animated.View entering={FadeInDown.delay(200).springify()}>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.xxxl,
-                    fontWeight: theme.typography.fontWeight.extrabold,
-                    color: theme.isDark ? theme.colors.textInverse : theme.colors.text,
-                    marginBottom: theme.spacing.sm,
-                    textAlign: 'center',
-                    lineHeight: theme.typography.lineHeight.tight * theme.typography.fontSize.xxxl,
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.xxxl,
+                      fontWeight: theme.typography.fontWeight.extrabold,
+                      color: theme.isDark ? theme.colors.textInverse : theme.colors.text,
+                      marginBottom: theme.spacing.sm,
+                      textAlign: 'center',
+                      lineHeight:
+                        theme.typography.lineHeight.tight * theme.typography.fontSize.xxxl,
+                    }}
+                  >
                     Browse Listings
                   </Text>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.lg,
-                    fontWeight: theme.typography.fontWeight.medium,
-                    color: theme.isDark ? `${theme.colors.textInverse}CC` : theme.colors.textSecondary,
-                    textAlign: 'center',
-                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.lg,
-                    paddingHorizontal: theme.spacing.lg,
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.lg,
+                      fontWeight: theme.typography.fontWeight.medium,
+                      color: theme.isDark
+                        ? `${theme.colors.textInverse}CC`
+                        : theme.colors.textSecondary,
+                      textAlign: 'center',
+                      lineHeight:
+                        theme.typography.lineHeight.relaxed * theme.typography.fontSize.lg,
+                      paddingHorizontal: theme.spacing.lg,
+                    }}
+                  >
                     Find performance data for your favorite games
                   </Text>
                 </Animated.View>
@@ -370,10 +363,10 @@ export default function BrowseScreen() {
         </View>
 
         {/* Enhanced Search Bar with Glass Morphism */}
-        <Animated.View 
+        <Animated.View
           entering={FadeInUp.delay(400).springify()}
-          style={{ 
-            marginHorizontal: theme.spacing.lg, 
+          style={{
+            marginHorizontal: theme.spacing.lg,
             marginBottom: theme.spacing.lg,
             marginTop: -theme.spacing.xl,
           }}
@@ -386,21 +379,19 @@ export default function BrowseScreen() {
               overflow: 'hidden',
             }}
           >
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: theme.colors.glass,
-              paddingHorizontal: theme.spacing.lg,
-              paddingVertical: theme.spacing.md,
-              borderWidth: 1,
-              borderColor: theme.colors.borderLight,
-              gap: theme.spacing.md,
-            }}>
-              <Ionicons
-                name="search"
-                size={22}
-                color={theme.colors.primary}
-              />
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: theme.colors.glass,
+                paddingHorizontal: theme.spacing.lg,
+                paddingVertical: theme.spacing.md,
+                borderWidth: 1,
+                borderColor: theme.colors.borderLight,
+                gap: theme.spacing.md,
+              }}
+            >
+              <Ionicons name="search" size={22} color={theme.colors.primary} />
               <TextInput
                 style={{
                   flex: 1,
@@ -423,27 +414,31 @@ export default function BrowseScreen() {
               />
               <Pressable
                 onPress={toggleFilters}
-                style={({ pressed }) => [{
-                  backgroundColor: showFilters ? theme.colors.primary : theme.colors.surface,
-                  paddingHorizontal: theme.spacing.md,
-                  paddingVertical: theme.spacing.sm,
-                  borderRadius: theme.borderRadius.md,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: theme.spacing.sm,
-                  opacity: pressed ? 0.8 : 1,
-                }]}
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: showFilters ? theme.colors.primary : theme.colors.surface,
+                    paddingHorizontal: theme.spacing.md,
+                    paddingVertical: theme.spacing.sm,
+                    borderRadius: theme.borderRadius.md,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: theme.spacing.sm,
+                    opacity: pressed ? 0.8 : 1,
+                  },
+                ]}
               >
                 <Ionicons
                   name="filter"
                   size={18}
                   color={showFilters ? theme.colors.textInverse : theme.colors.primary}
                 />
-                <Text style={{
-                  color: showFilters ? theme.colors.textInverse : theme.colors.primary,
-                  fontSize: theme.typography.fontSize.sm,
-                  fontWeight: theme.typography.fontWeight.semibold,
-                }}>
+                <Text
+                  style={{
+                    color: showFilters ? theme.colors.textInverse : theme.colors.primary,
+                    fontSize: theme.typography.fontSize.sm,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                  }}
+                >
                   Filters
                 </Text>
               </Pressable>
@@ -455,7 +450,9 @@ export default function BrowseScreen() {
         <SearchSuggestions
           visible={
             showSuggestions &&
-            (recentSearches.length > 0 || filters.query.length === 0 || (suggestionsQuery.data?.length ?? 0) > 0)
+            (recentSearches.length > 0 ||
+              filters.query.length === 0 ||
+              (suggestionsQuery.data?.length ?? 0) > 0)
           }
           recentSearches={recentSearches}
           popularSuggestions={
@@ -474,10 +471,13 @@ export default function BrowseScreen() {
         {/* Enhanced Filters Panel */}
         {showFilters && (
           <Animated.View
-            style={[{ 
-              marginHorizontal: theme.spacing.lg, 
-              marginBottom: theme.spacing.lg,
-            }, filtersAnimatedStyle]}
+            style={[
+              {
+                marginHorizontal: theme.spacing.lg,
+                marginBottom: theme.spacing.lg,
+              },
+              filtersAnimatedStyle,
+            ]}
             entering={SlideInLeft.delay(100).springify()}
           >
             <Card style={{ overflow: 'hidden' }}>
@@ -485,17 +485,21 @@ export default function BrowseScreen() {
                 colors={theme.colors.gradients.card as [string, string, ...string[]]}
                 style={{ padding: theme.spacing.lg }}
               >
-                <View style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: theme.spacing.lg,
-                }}>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.xl,
-                    fontWeight: theme.typography.fontWeight.bold,
-                    color: theme.colors.text,
-                  }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: theme.spacing.lg,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.xl,
+                      fontWeight: theme.typography.fontWeight.bold,
+                      color: theme.colors.text,
+                    }}
+                  >
                     Filters
                   </Text>
                   <Pressable
@@ -507,11 +511,13 @@ export default function BrowseScreen() {
                       backgroundColor: theme.colors.surface,
                     }}
                   >
-                    <Text style={{
-                      color: theme.colors.textMuted,
-                      fontSize: theme.typography.fontSize.sm,
-                      fontWeight: theme.typography.fontWeight.medium,
-                    }}>
+                    <Text
+                      style={{
+                        color: theme.colors.textMuted,
+                        fontSize: theme.typography.fontSize.sm,
+                        fontWeight: theme.typography.fontWeight.medium,
+                      }}
+                    >
                       Clear All
                     </Text>
                   </Pressable>
@@ -519,36 +525,46 @@ export default function BrowseScreen() {
 
                 {/* Enhanced System Filter */}
                 <View style={{ marginBottom: theme.spacing.lg }}>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.md,
-                    fontWeight: theme.typography.fontWeight.semibold,
-                    color: theme.colors.text,
-                    marginBottom: theme.spacing.md,
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.md,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                      color: theme.colors.text,
+                      marginBottom: theme.spacing.md,
+                    }}
+                  >
                     System
                   </Text>
                   <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={{
-                      flexDirection: 'row',
-                      gap: theme.spacing.sm,
-                      paddingRight: theme.spacing.lg,
-                    }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        gap: theme.spacing.sm,
+                        paddingRight: theme.spacing.lg,
+                      }}
+                    >
                       <Pressable
                         onPress={() => handleFilterChange('systemId', null)}
                         style={{
-                          backgroundColor: !filters.systemId ? theme.colors.primary : theme.colors.surface,
+                          backgroundColor: !filters.systemId
+                            ? theme.colors.primary
+                            : theme.colors.surface,
                           paddingHorizontal: theme.spacing.md,
                           paddingVertical: theme.spacing.sm,
                           borderRadius: theme.borderRadius.lg,
                           borderWidth: 1,
-                          borderColor: !filters.systemId ? theme.colors.primary : theme.colors.border,
+                          borderColor: !filters.systemId
+                            ? theme.colors.primary
+                            : theme.colors.border,
                         }}
                       >
-                        <Text style={{
-                          fontSize: theme.typography.fontSize.sm,
-                          fontWeight: theme.typography.fontWeight.medium,
-                          color: !filters.systemId ? theme.colors.textInverse : theme.colors.text,
-                        }}>
+                        <Text
+                          style={{
+                            fontSize: theme.typography.fontSize.sm,
+                            fontWeight: theme.typography.fontWeight.medium,
+                            color: !filters.systemId ? theme.colors.textInverse : theme.colors.text,
+                          }}
+                        >
                           All
                         </Text>
                       </Pressable>
@@ -557,19 +573,30 @@ export default function BrowseScreen() {
                           key={system.id}
                           onPress={() => handleFilterChange('systemId', system.id)}
                           style={{
-                            backgroundColor: filters.systemId === system.id ? theme.colors.primary : theme.colors.surface,
+                            backgroundColor:
+                              filters.systemId === system.id
+                                ? theme.colors.primary
+                                : theme.colors.surface,
                             paddingHorizontal: theme.spacing.md,
                             paddingVertical: theme.spacing.sm,
                             borderRadius: theme.borderRadius.lg,
                             borderWidth: 1,
-                            borderColor: filters.systemId === system.id ? theme.colors.primary : theme.colors.border,
+                            borderColor:
+                              filters.systemId === system.id
+                                ? theme.colors.primary
+                                : theme.colors.border,
                           }}
                         >
-                          <Text style={{
-                            fontSize: theme.typography.fontSize.sm,
-                            fontWeight: theme.typography.fontWeight.medium,
-                            color: filters.systemId === system.id ? theme.colors.textInverse : theme.colors.text,
-                          }}>
+                          <Text
+                            style={{
+                              fontSize: theme.typography.fontSize.sm,
+                              fontWeight: theme.typography.fontWeight.medium,
+                              color:
+                                filters.systemId === system.id
+                                  ? theme.colors.textInverse
+                                  : theme.colors.text,
+                            }}
+                          >
                             {system.name}
                           </Text>
                         </Pressable>
@@ -580,36 +607,48 @@ export default function BrowseScreen() {
 
                 {/* Enhanced Performance Filter */}
                 <View style={{ marginBottom: theme.spacing.lg }}>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.md,
-                    fontWeight: theme.typography.fontWeight.semibold,
-                    color: theme.colors.text,
-                    marginBottom: theme.spacing.md,
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.md,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                      color: theme.colors.text,
+                      marginBottom: theme.spacing.md,
+                    }}
+                  >
                     Performance
                   </Text>
                   <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View style={{
-                      flexDirection: 'row',
-                      gap: theme.spacing.sm,
-                      paddingRight: theme.spacing.lg,
-                    }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        gap: theme.spacing.sm,
+                        paddingRight: theme.spacing.lg,
+                      }}
+                    >
                       <Pressable
                         onPress={() => handleFilterChange('performanceRank', null)}
                         style={{
-                          backgroundColor: !filters.performanceRank ? theme.colors.primary : theme.colors.surface,
+                          backgroundColor: !filters.performanceRank
+                            ? theme.colors.primary
+                            : theme.colors.surface,
                           paddingHorizontal: theme.spacing.md,
                           paddingVertical: theme.spacing.sm,
                           borderRadius: theme.borderRadius.lg,
                           borderWidth: 1,
-                          borderColor: !filters.performanceRank ? theme.colors.primary : theme.colors.border,
+                          borderColor: !filters.performanceRank
+                            ? theme.colors.primary
+                            : theme.colors.border,
                         }}
                       >
-                        <Text style={{
-                          fontSize: theme.typography.fontSize.sm,
-                          fontWeight: theme.typography.fontWeight.medium,
-                          color: !filters.performanceRank ? theme.colors.textInverse : theme.colors.text,
-                        }}>
+                        <Text
+                          style={{
+                            fontSize: theme.typography.fontSize.sm,
+                            fontWeight: theme.typography.fontWeight.medium,
+                            color: !filters.performanceRank
+                              ? theme.colors.textInverse
+                              : theme.colors.text,
+                          }}
+                        >
                           All
                         </Text>
                       </Pressable>
@@ -618,28 +657,44 @@ export default function BrowseScreen() {
                           key={option.rank}
                           onPress={() => handleFilterChange('performanceRank', option.rank)}
                           style={{
-                            backgroundColor: filters.performanceRank === option.rank ? option.color : theme.colors.surface,
+                            backgroundColor:
+                              filters.performanceRank === option.rank
+                                ? option.color
+                                : theme.colors.surface,
                             paddingHorizontal: theme.spacing.md,
                             paddingVertical: theme.spacing.sm,
                             borderRadius: theme.borderRadius.lg,
                             borderWidth: 1,
-                            borderColor: filters.performanceRank === option.rank ? option.color : theme.colors.border,
+                            borderColor:
+                              filters.performanceRank === option.rank
+                                ? option.color
+                                : theme.colors.border,
                             flexDirection: 'row',
                             alignItems: 'center',
                             gap: theme.spacing.sm,
                           }}
                         >
-                          <View style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: 4,
-                            backgroundColor: filters.performanceRank === option.rank ? theme.colors.textInverse : option.color,
-                          }} />
-                          <Text style={{
-                            fontSize: theme.typography.fontSize.sm,
-                            fontWeight: theme.typography.fontWeight.medium,
-                            color: filters.performanceRank === option.rank ? theme.colors.textInverse : theme.colors.text,
-                          }}>
+                          <View
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: 4,
+                              backgroundColor:
+                                filters.performanceRank === option.rank
+                                  ? theme.colors.textInverse
+                                  : option.color,
+                            }}
+                          />
+                          <Text
+                            style={{
+                              fontSize: theme.typography.fontSize.sm,
+                              fontWeight: theme.typography.fontWeight.medium,
+                              color:
+                                filters.performanceRank === option.rank
+                                  ? theme.colors.textInverse
+                                  : theme.colors.text,
+                            }}
+                          >
                             {option.label}
                           </Text>
                         </Pressable>
@@ -650,37 +705,52 @@ export default function BrowseScreen() {
 
                 {/* Enhanced Sort Options */}
                 <View>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.md,
-                    fontWeight: theme.typography.fontWeight.semibold,
-                    color: theme.colors.text,
-                    marginBottom: theme.spacing.md,
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.md,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                      color: theme.colors.text,
+                      marginBottom: theme.spacing.md,
+                    }}
+                  >
                     Sort By
                   </Text>
-                  <View style={{
-                    flexDirection: 'row',
-                    flexWrap: 'wrap',
-                    gap: theme.spacing.sm,
-                  }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                      gap: theme.spacing.sm,
+                    }}
+                  >
                     {sortOptions.map((option) => (
                       <Pressable
                         key={option.value}
                         onPress={() => handleFilterChange('sortBy', option.value)}
                         style={{
-                          backgroundColor: filters.sortBy === option.value ? theme.colors.secondary : theme.colors.surface,
+                          backgroundColor:
+                            filters.sortBy === option.value
+                              ? theme.colors.secondary
+                              : theme.colors.surface,
                           paddingHorizontal: theme.spacing.md,
                           paddingVertical: theme.spacing.sm,
                           borderRadius: theme.borderRadius.lg,
                           borderWidth: 1,
-                          borderColor: filters.sortBy === option.value ? theme.colors.secondary : theme.colors.border,
+                          borderColor:
+                            filters.sortBy === option.value
+                              ? theme.colors.secondary
+                              : theme.colors.border,
                         }}
                       >
-                        <Text style={{
-                          fontSize: theme.typography.fontSize.sm,
-                          fontWeight: theme.typography.fontWeight.medium,
-                          color: filters.sortBy === option.value ? theme.colors.textInverse : theme.colors.text,
-                        }}>
+                        <Text
+                          style={{
+                            fontSize: theme.typography.fontSize.sm,
+                            fontWeight: theme.typography.fontWeight.medium,
+                            color:
+                              filters.sortBy === option.value
+                                ? theme.colors.textInverse
+                                : theme.colors.text,
+                          }}
+                        >
                           {option.label}
                         </Text>
                       </Pressable>
@@ -693,28 +763,34 @@ export default function BrowseScreen() {
         )}
 
         {/* Enhanced Results Section */}
-        <View style={{ 
-          marginHorizontal: theme.spacing.lg, 
-          marginBottom: theme.spacing.xl,
-        }}>
-          <Animated.View 
+        <View
+          style={{
+            marginHorizontal: theme.spacing.lg,
+            marginBottom: theme.spacing.xl,
+          }}
+        >
+          <Animated.View
             entering={FadeInUp.delay(600).springify()}
             style={{ marginBottom: theme.spacing.lg }}
           >
-            <Text style={{
-              fontSize: theme.typography.fontSize.xl,
-              fontWeight: theme.typography.fontWeight.bold,
-              color: theme.colors.text,
-              marginBottom: theme.spacing.xs,
-            }}>
+            <Text
+              style={{
+                fontSize: theme.typography.fontSize.xl,
+                fontWeight: theme.typography.fontWeight.bold,
+                color: theme.colors.text,
+                marginBottom: theme.spacing.xs,
+              }}
+            >
               {sortedListings.length} Results
             </Text>
             {(filters.query || filters.systemId || filters.performanceRank) && (
-              <Text style={{
-                fontSize: theme.typography.fontSize.md,
-                color: theme.colors.textMuted,
-                lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
-              }}>
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.md,
+                  color: theme.colors.textMuted,
+                  lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+                }}
+              >
                 {filters.query && `"${filters.query}"`}
                 {filters.systemId &&
                   ` in ${systemsQuery.data?.find((s: System) => s.id === filters.systemId)?.name}`}
@@ -758,37 +834,40 @@ export default function BrowseScreen() {
                     alignItems: 'center',
                   }}
                 >
-                  <View style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 40,
-                    backgroundColor: `${theme.colors.error}20`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: theme.spacing.lg,
-                  }}>
-                    <Ionicons
-                      name="cloud-offline"
-                      size={40}
-                      color={theme.colors.error}
-                    />
+                  <View
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 40,
+                      backgroundColor: `${theme.colors.error}20`,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: theme.spacing.lg,
+                    }}
+                  >
+                    <Ionicons name="cloud-offline" size={40} color={theme.colors.error} />
                   </View>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.xl,
-                    fontWeight: theme.typography.fontWeight.bold,
-                    color: theme.colors.text,
-                    marginBottom: theme.spacing.sm,
-                    textAlign: 'center',
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.xl,
+                      fontWeight: theme.typography.fontWeight.bold,
+                      color: theme.colors.text,
+                      marginBottom: theme.spacing.sm,
+                      textAlign: 'center',
+                    }}
+                  >
                     Unable to Load Listings
                   </Text>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.md,
-                    color: theme.colors.textMuted,
-                    textAlign: 'center',
-                    marginBottom: theme.spacing.lg,
-                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.md,
+                      color: theme.colors.textMuted,
+                      textAlign: 'center',
+                      marginBottom: theme.spacing.lg,
+                      lineHeight:
+                        theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+                    }}
+                  >
                     Please check your connection and try again.
                   </Text>
                   <Pressable
@@ -804,11 +883,13 @@ export default function BrowseScreen() {
                     }}
                   >
                     <Ionicons name="refresh" size={20} color={theme.colors.textInverse} />
-                    <Text style={{
-                      color: theme.colors.textInverse,
-                      fontSize: theme.typography.fontSize.md,
-                      fontWeight: theme.typography.fontWeight.semibold,
-                    }}>
+                    <Text
+                      style={{
+                        color: theme.colors.textInverse,
+                        fontSize: theme.typography.fontSize.md,
+                        fontWeight: theme.typography.fontWeight.semibold,
+                      }}
+                    >
                       Retry
                     </Text>
                   </Pressable>
@@ -822,10 +903,7 @@ export default function BrowseScreen() {
                   key={listing.id}
                   entering={SlideInLeft.delay(700 + index * 100).springify()}
                 >
-                  <ListingCard
-                    listing={listing}
-                    onPress={() => handleListingPress(listing.id)}
-                  />
+                  <ListingCard listing={listing} onPress={() => handleListingPress(listing.id)} />
                 </Animated.View>
               ))}
             </View>
@@ -839,37 +917,40 @@ export default function BrowseScreen() {
                     alignItems: 'center',
                   }}
                 >
-                  <View style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 40,
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: theme.spacing.lg,
-                  }}>
-                    <Ionicons
-                      name="search"
-                      size={40}
-                      color={theme.colors.textInverse}
-                    />
+                  <View
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 40,
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: theme.spacing.lg,
+                    }}
+                  >
+                    <Ionicons name="search" size={40} color={theme.colors.textInverse} />
                   </View>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.xl,
-                    fontWeight: theme.typography.fontWeight.bold,
-                    color: theme.colors.textInverse,
-                    marginBottom: theme.spacing.sm,
-                    textAlign: 'center',
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.xl,
+                      fontWeight: theme.typography.fontWeight.bold,
+                      color: theme.colors.textInverse,
+                      marginBottom: theme.spacing.sm,
+                      textAlign: 'center',
+                    }}
+                  >
                     No Results Found
                   </Text>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.md,
-                    color: `${theme.colors.textInverse}CC`,
-                    textAlign: 'center',
-                    marginBottom: theme.spacing.lg,
-                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.md,
+                      color: `${theme.colors.textInverse}CC`,
+                      textAlign: 'center',
+                      marginBottom: theme.spacing.lg,
+                      lineHeight:
+                        theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+                    }}
+                  >
                     Try adjusting your search terms or filters to find what you&apos;re looking for.
                   </Text>
                   <Pressable
@@ -881,11 +962,13 @@ export default function BrowseScreen() {
                       borderRadius: theme.borderRadius.lg,
                     }}
                   >
-                    <Text style={{
-                      color: theme.colors.textInverse,
-                      fontSize: theme.typography.fontSize.md,
-                      fontWeight: theme.typography.fontWeight.semibold,
-                    }}>
+                    <Text
+                      style={{
+                        color: theme.colors.textInverse,
+                        fontSize: theme.typography.fontSize.md,
+                        fontWeight: theme.typography.fontWeight.semibold,
+                      }}
+                    >
                       Clear Filters
                     </Text>
                   </Pressable>
@@ -899,8 +982,8 @@ export default function BrowseScreen() {
         {!filters.query && !filters.systemId && !filters.performanceRank && (
           <Animated.View
             entering={FadeInUp.delay(800).springify()}
-            style={{ 
-              paddingHorizontal: theme.spacing.lg, 
+            style={{
+              paddingHorizontal: theme.spacing.lg,
               marginBottom: theme.spacing.lg,
             }}
           >
@@ -910,10 +993,12 @@ export default function BrowseScreen() {
 
         {/* Enhanced Quick Actions */}
         {!filters.query && !filters.systemId && !filters.performanceRank && (
-          <View style={{ 
-            paddingHorizontal: theme.spacing.lg, 
-            marginBottom: theme.spacing.xl,
-          }}>
+          <View
+            style={{
+              paddingHorizontal: theme.spacing.lg,
+              marginBottom: theme.spacing.xl,
+            }}
+          >
             <Animated.Text
               entering={FadeInUp.delay(900).springify()}
               style={{
@@ -926,11 +1011,13 @@ export default function BrowseScreen() {
               Quick Actions
             </Animated.Text>
             <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={{
-                flexDirection: 'row',
-                gap: theme.spacing.md,
-                paddingRight: theme.spacing.lg,
-              }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  gap: theme.spacing.md,
+                  paddingRight: theme.spacing.lg,
+                }}
+              >
                 <Animated.View entering={SlideInLeft.delay(1000).springify()}>
                   <Pressable
                     onPress={() => router.push('/(tabs)/create')}
@@ -947,38 +1034,45 @@ export default function BrowseScreen() {
                         alignItems: 'center',
                       }}
                     >
-                      <View style={{
-                        width: 50,
-                        height: 50,
-                        borderRadius: 25,
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: theme.spacing.md,
-                      }}>
+                      <View
+                        style={{
+                          width: 50,
+                          height: 50,
+                          borderRadius: 25,
+                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginBottom: theme.spacing.md,
+                        }}
+                      >
                         <Ionicons name="add" size={24} color={theme.colors.textInverse} />
                       </View>
-                      <Text style={{
-                        fontSize: theme.typography.fontSize.md,
-                        fontWeight: theme.typography.fontWeight.semibold,
-                        color: theme.colors.textInverse,
-                        marginBottom: theme.spacing.xs,
-                        textAlign: 'center',
-                      }}>
+                      <Text
+                        style={{
+                          fontSize: theme.typography.fontSize.md,
+                          fontWeight: theme.typography.fontWeight.semibold,
+                          color: theme.colors.textInverse,
+                          marginBottom: theme.spacing.xs,
+                          textAlign: 'center',
+                        }}
+                      >
                         Create Listing
                       </Text>
-                      <Text style={{
-                        fontSize: theme.typography.fontSize.sm,
-                        color: `${theme.colors.textInverse}CC`,
-                        textAlign: 'center',
-                        lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.sm,
-                      }}>
+                      <Text
+                        style={{
+                          fontSize: theme.typography.fontSize.sm,
+                          color: `${theme.colors.textInverse}CC`,
+                          textAlign: 'center',
+                          lineHeight:
+                            theme.typography.lineHeight.relaxed * theme.typography.fontSize.sm,
+                        }}
+                      >
                         Share your emulation experience
                       </Text>
                     </LinearGradient>
                   </Pressable>
                 </Animated.View>
-                
+
                 <Animated.View entering={SlideInRight.delay(1100).springify()}>
                   <Pressable
                     onPress={() => handleFilterChange('performanceRank', 5)}
@@ -995,32 +1089,39 @@ export default function BrowseScreen() {
                         alignItems: 'center',
                       }}
                     >
-                      <View style={{
-                        width: 50,
-                        height: 50,
-                        borderRadius: 25,
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: theme.spacing.md,
-                      }}>
+                      <View
+                        style={{
+                          width: 50,
+                          height: 50,
+                          borderRadius: 25,
+                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginBottom: theme.spacing.md,
+                        }}
+                      >
                         <Ionicons name="star" size={24} color={theme.colors.textInverse} />
                       </View>
-                      <Text style={{
-                        fontSize: theme.typography.fontSize.md,
-                        fontWeight: theme.typography.fontWeight.semibold,
-                        color: theme.colors.textInverse,
-                        marginBottom: theme.spacing.xs,
-                        textAlign: 'center',
-                      }}>
+                      <Text
+                        style={{
+                          fontSize: theme.typography.fontSize.md,
+                          fontWeight: theme.typography.fontWeight.semibold,
+                          color: theme.colors.textInverse,
+                          marginBottom: theme.spacing.xs,
+                          textAlign: 'center',
+                        }}
+                      >
                         Perfect Games
                       </Text>
-                      <Text style={{
-                        fontSize: theme.typography.fontSize.sm,
-                        color: `${theme.colors.textInverse}CC`,
-                        textAlign: 'center',
-                        lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.sm,
-                      }}>
+                      <Text
+                        style={{
+                          fontSize: theme.typography.fontSize.sm,
+                          color: `${theme.colors.textInverse}CC`,
+                          textAlign: 'center',
+                          lineHeight:
+                            theme.typography.lineHeight.relaxed * theme.typography.fontSize.sm,
+                        }}
+                      >
                         Browse flawless performance
                       </Text>
                     </LinearGradient>
@@ -1030,7 +1131,6 @@ export default function BrowseScreen() {
             </Animated.ScrollView>
           </View>
         )}
-
       </Animated.ScrollView>
     </View>
   )

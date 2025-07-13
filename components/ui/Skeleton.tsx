@@ -19,33 +19,26 @@ interface SkeletonProps {
   children?: React.ReactNode
 }
 
-export function Skeleton({ 
-  width = '100%', 
-  height = 20, 
+export function Skeleton({
+  width = '100%',
+  height = 20,
   borderRadius = 8,
   style,
-  children
+  children,
 }: SkeletonProps) {
   const { theme } = useTheme()
   const shimmerValue = useSharedValue(0)
 
   React.useEffect(() => {
     shimmerValue.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 1200 }),
-        withTiming(0, { duration: 1200 })
-      ),
+      withSequence(withTiming(1, { duration: 1200 }), withTiming(0, { duration: 1200 })),
       -1,
-      false
+      false,
     )
   }, [shimmerValue])
 
   const shimmerStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(
-      shimmerValue.value,
-      [0, 1],
-      [-200, 200]
-    )
+    const translateX = interpolate(shimmerValue.value, [0, 1], [-200, 200])
 
     return {
       transform: [{ translateX }],
@@ -56,7 +49,7 @@ export function Skeleton({
   const highlightColor = theme.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.12)'
 
   return (
-    <View 
+    <View
       style={[
         styles.container,
         {
@@ -65,16 +58,12 @@ export function Skeleton({
           borderRadius,
           backgroundColor: baseColor,
         },
-        style
+        style,
       ]}
     >
       <Animated.View style={[StyleSheet.absoluteFillObject, shimmerStyle]}>
         <LinearGradient
-          colors={[
-            'transparent',
-            highlightColor,
-            'transparent',
-          ]}
+          colors={['transparent', highlightColor, 'transparent']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={StyleSheet.absoluteFillObject}
@@ -103,7 +92,7 @@ export function SkeletonText({ lines = 1, style }: { lines?: number; style?: any
 
 export function SkeletonCard({ style }: { style?: any }) {
   const { theme } = useTheme()
-  
+
   return (
     <View style={[styles.cardContainer, { backgroundColor: theme.colors.card }, style]}>
       {/* Header */}
@@ -148,15 +137,15 @@ export function SkeletonCard({ style }: { style?: any }) {
 
 export function SkeletonGameCard({ style }: { style?: any }) {
   const { theme } = useTheme()
-  
+
   return (
     <View style={[styles.gameCardContainer, { backgroundColor: theme.colors.card }, style]}>
       {/* Game Image */}
       <Skeleton height={100} borderRadius={8} style={{ marginBottom: 8 }} />
-      
+
       {/* Game Title */}
       <Skeleton height={16} width="90%" style={{ marginBottom: 4 }} />
-      
+
       {/* System Name */}
       <Skeleton height={12} width="70%" />
     </View>
@@ -165,18 +154,23 @@ export function SkeletonGameCard({ style }: { style?: any }) {
 
 export function SkeletonProfile({ style }: { style?: any }) {
   const { theme } = useTheme()
-  
+
   return (
     <View style={[styles.profileContainer, { backgroundColor: theme.colors.surface }, style]}>
       {/* Avatar */}
-      <Skeleton height={100} width={100} borderRadius={50} style={{ marginBottom: 16, alignSelf: 'center' }} />
-      
+      <Skeleton
+        height={100}
+        width={100}
+        borderRadius={50}
+        style={{ marginBottom: 16, alignSelf: 'center' }}
+      />
+
       {/* Name */}
       <Skeleton height={24} width="60%" style={{ marginBottom: 8, alignSelf: 'center' }} />
-      
+
       {/* Username */}
       <Skeleton height={16} width="40%" style={{ marginBottom: 16, alignSelf: 'center' }} />
-      
+
       {/* Stats */}
       <View style={styles.profileStats}>
         {Array.from({ length: 3 }).map((_, index) => (

@@ -1,11 +1,5 @@
 import React, { useState, memo } from 'react'
-import {
-  View,
-  ActivityIndicator,
-  StyleSheet,
-  type ViewStyle,
-  type ImageStyle,
-} from 'react-native'
+import { View, ActivityIndicator, StyleSheet, type ViewStyle, type ImageStyle } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -62,12 +56,9 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
 
   const handleLoadEnd = () => {
     setIsLoading(false)
-    opacity.value = withSequence(
-      withTiming(0, { duration: 0 }),
-      withTiming(1, { duration: 300 })
-    )
+    opacity.value = withSequence(withTiming(0, { duration: 0 }), withTiming(1, { duration: 300 }))
     scale.value = withTiming(1, { duration: 300 })
-    
+
     if (onLoad) {
       runOnJS(onLoad)()
     }
@@ -76,7 +67,7 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
   const handleError = () => {
     setIsLoading(false)
     setHasError(true)
-    
+
     if (onError) {
       runOnJS(onError)()
     }
@@ -92,11 +83,7 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
 
   const DefaultErrorPlaceholder = () => (
     <View style={[styles.errorPlaceholder, style]}>
-      <Ionicons 
-        name="image-outline" 
-        size={24} 
-        color={theme.colors.textMuted} 
-      />
+      <Ionicons name="image-outline" size={24} color={theme.colors.textMuted} />
     </View>
   )
 
@@ -104,9 +91,7 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
     <View style={[styles.container, containerStyle]}>
       {/* Loading placeholder */}
       {isLoading && (
-        <View style={styles.overlayPlaceholder}>
-          {placeholder || <DefaultPlaceholder />}
-        </View>
+        <View style={styles.overlayPlaceholder}>{placeholder || <DefaultPlaceholder />}</View>
       )}
 
       {/* Error placeholder */}
@@ -137,42 +122,43 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
   )
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
-  container: {
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  imageContainer: {
-    width: '100%',
-    height: '100%',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  overlayPlaceholder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    zIndex: 1,
-  },
-  placeholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-  },
-  errorPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: 8,
-  },
-})
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      position: 'relative',
+      overflow: 'hidden',
+    },
+    imageContainer: {
+      width: '100%',
+      height: '100%',
+    },
+    image: {
+      width: '100%',
+      height: '100%',
+    },
+    overlayPlaceholder: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      zIndex: 1,
+    },
+    placeholder: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+    },
+    errorPlaceholder: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+    },
+  })
 
 export default memo(CachedImageComponent)

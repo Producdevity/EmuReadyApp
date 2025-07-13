@@ -1,11 +1,5 @@
 import React from 'react'
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import Card from './Card'
 
@@ -115,4 +109,4 @@ const styles = StyleSheet.create({
     color: '#374151',
     fontWeight: '500',
   },
-}) 
+})

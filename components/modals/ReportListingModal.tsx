@@ -23,11 +23,27 @@ interface ReportListingModalProps {
 }
 
 const REPORT_REASONS = [
-  { value: 'inappropriate_content', label: 'Inappropriate Content', description: 'Contains offensive or inappropriate material' },
+  {
+    value: 'inappropriate_content',
+    label: 'Inappropriate Content',
+    description: 'Contains offensive or inappropriate material',
+  },
   { value: 'spam', label: 'Spam', description: 'Repetitive or irrelevant content' },
-  { value: 'false_information', label: 'False Information', description: 'Contains misleading or incorrect data' },
-  { value: 'copyright_violation', label: 'Copyright Violation', description: 'Unauthorized use of copyrighted material' },
-  { value: 'harassment', label: 'Harassment', description: 'Content that harasses or targets users' },
+  {
+    value: 'false_information',
+    label: 'False Information',
+    description: 'Contains misleading or incorrect data',
+  },
+  {
+    value: 'copyright_violation',
+    label: 'Copyright Violation',
+    description: 'Unauthorized use of copyrighted material',
+  },
+  {
+    value: 'harassment',
+    label: 'Harassment',
+    description: 'Content that harasses or targets users',
+  },
   { value: 'duplicate', label: 'Duplicate Listing', description: 'This listing already exists' },
   { value: 'other', label: 'Other', description: 'Other reason not listed above' },
 ]
@@ -47,7 +63,7 @@ export default function ReportListingModal({
       Alert.alert(
         'Report Submitted',
         data.message || 'Thank you for your report. Our moderation team will review it.',
-        [{ text: 'OK', onPress: handleClose }]
+        [{ text: 'OK', onPress: handleClose }],
       )
     },
     onError: (error) => {
@@ -123,8 +139,8 @@ export default function ReportListingModal({
                   </Text>
                 </View>
                 <Text style={{ color: theme.colors.textSecondary, lineHeight: 20 }}>
-                  Your report helps keep our community safe and ensures content quality. 
-                  Please select the most appropriate reason below.
+                  Your report helps keep our community safe and ensures content quality. Please
+                  select the most appropriate reason below.
                 </Text>
               </View>
             </Card>
@@ -139,7 +155,10 @@ export default function ReportListingModal({
                 >
                   <Card
                     style={{
-                      borderColor: selectedReason === reason.value ? theme.colors.primary : theme.colors.border,
+                      borderColor:
+                        selectedReason === reason.value
+                          ? theme.colors.primary
+                          : theme.colors.border,
                       borderWidth: selectedReason === reason.value ? 2 : 1,
                     }}
                   >
@@ -158,8 +177,14 @@ export default function ReportListingModal({
                             selectedReason === reason.value ? 'justify-center items-center' : ''
                           }`}
                           style={{
-                            borderColor: selectedReason === reason.value ? theme.colors.primary : theme.colors.border,
-                            backgroundColor: selectedReason === reason.value ? theme.colors.primary : 'transparent',
+                            borderColor:
+                              selectedReason === reason.value
+                                ? theme.colors.primary
+                                : theme.colors.border,
+                            backgroundColor:
+                              selectedReason === reason.value
+                                ? theme.colors.primary
+                                : 'transparent',
                           }}
                         >
                           {selectedReason === reason.value && (
@@ -177,7 +202,10 @@ export default function ReportListingModal({
             <Card style={{ marginTop: theme.spacing.xl }}>
               <View className="p-4">
                 <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
-                  Additional Details {selectedReason === 'other' && <Text style={{ color: theme.colors.error }}>*</Text>}
+                  Additional Details{' '}
+                  {selectedReason === 'other' && (
+                    <Text style={{ color: theme.colors.error }}>*</Text>
+                  )}
                 </Text>
                 <TextInput
                   value={description}
@@ -221,7 +249,7 @@ export default function ReportListingModal({
                   )
                 }
               />
-              
+
               <Button
                 title="Cancel"
                 onPress={handleClose}

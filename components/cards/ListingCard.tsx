@@ -44,7 +44,7 @@ function ListingCardComponent(props: ListingCardProps) {
     scaleValue.value = withSequence(
       withSpring(0.8, { damping: 15, stiffness: 300 }),
       withSpring(1.1, { damping: 10, stiffness: 300 }),
-      withSpring(1, { damping: 15, stiffness: 300 })
+      withSpring(1, { damping: 15, stiffness: 300 }),
     )
   }
 
@@ -97,7 +97,7 @@ function ListingCardComponent(props: ListingCardProps) {
       // Card press animation
       cardScale.value = withSequence(
         withTiming(0.98, { duration: 100 }),
-        withTiming(1, { duration: 100 })
+        withTiming(1, { duration: 100 }),
       )
 
       // Haptic feedback
@@ -113,7 +113,7 @@ function ListingCardComponent(props: ListingCardProps) {
   const handlePerformanceBadgePress = () => {
     performanceBadgeScale.value = withSequence(
       withSpring(0.9, { damping: 15, stiffness: 300 }),
-      withSpring(1, { damping: 15, stiffness: 300 })
+      withSpring(1, { damping: 15, stiffness: 300 }),
     )
     Haptics.selectionAsync()
   }
@@ -141,125 +141,117 @@ function ListingCardComponent(props: ListingCardProps) {
   return (
     <Animated.View style={cardAnimatedStyle}>
       <Card style={containerStyle} padding="md" onPress={handleCardPress}>
-      <View style={styles.header}>
-        <View style={styles.gameInfo}>
-          <Text style={styles.gameTitle} numberOfLines={props.compact ? 1 : 2}>
-            {props.listing.game?.title || 'Unknown Game'}
+        <View style={styles.header}>
+          <View style={styles.gameInfo}>
+            <Text style={styles.gameTitle} numberOfLines={props.compact ? 1 : 2}>
+              {props.listing.game?.title || 'Unknown Game'}
+            </Text>
+            <Text style={styles.systemName}>
+              {props.listing.game?.system?.name || 'Unknown System'}
+            </Text>
+          </View>
+
+          <Animated.View style={performanceBadgeAnimatedStyle}>
+            <Card
+              style={{
+                ...styles.performanceBadge,
+                backgroundColor: getPerformanceColor(props.listing.performance?.rank || 0),
+              }}
+              padding="none"
+              onPress={handlePerformanceBadgePress}
+            >
+              <View style={styles.performanceBadgeContent}>
+                <Text style={styles.performanceText}>
+                  {props.listing.performance?.label || 'Not Rated'}
+                </Text>
+              </View>
+            </Card>
+          </Animated.View>
+        </View>
+
+        <View style={styles.deviceInfo}>
+          <Text style={styles.deviceName}>
+            📱 {props.listing.device?.modelName || 'Unknown Device'}
           </Text>
-          <Text style={styles.systemName}>
-            {props.listing.game?.system?.name || 'Unknown System'}
+          <Text style={styles.emulatorName}>
+            ⚡ {props.listing.emulator?.name || 'Unknown Emulator'}
           </Text>
         </View>
 
-        <Animated.View style={performanceBadgeAnimatedStyle}>
-          <Card
-            style={{
-              ...styles.performanceBadge,
-              backgroundColor: getPerformanceColor(
-                props.listing.performance?.rank || 0,
-              ),
-            }}
-            padding="none"
-            onPress={handlePerformanceBadgePress}
-          >
-            <View style={styles.performanceBadgeContent}>
-              <Text style={styles.performanceText}>
-                {props.listing.performance?.label || 'Not Rated'}
-              </Text>
+        {!props.compact && (
+          <View style={styles.stats}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{props.listing.successRate || 0}%</Text>
+              <Text style={styles.statLabel}>Success Rate</Text>
             </View>
-          </Card>
-        </Animated.View>
-      </View>
 
-      <View style={styles.deviceInfo}>
-        <Text style={styles.deviceName}>
-          📱 {props.listing.device?.modelName || 'Unknown Device'}
-        </Text>
-        <Text style={styles.emulatorName}>
-          ⚡ {props.listing.emulator?.name || 'Unknown Emulator'}
-        </Text>
-      </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{props.listing.upVotes || 0}</Text>
+              <Text style={styles.statLabel}>Upvotes</Text>
+            </View>
 
-      {!props.compact && (
-        <View style={styles.stats}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>
-              {props.listing.successRate || 0}%
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{props.listing._count?.comments || 0}</Text>
+              <Text style={styles.statLabel}>Comments</Text>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.footer}>
+          <View style={styles.authorInfo}>
+            <Text style={styles.authorName}>By {props.listing.author?.name || 'Anonymous'}</Text>
+            <Text style={styles.createdDate}>
+              {new Date(props.listing.createdAt).toLocaleDateString()}
             </Text>
-            <Text style={styles.statLabel}>Success Rate</Text>
           </View>
 
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{props.listing.upVotes || 0}</Text>
-            <Text style={styles.statLabel}>Upvotes</Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>
-              {props.listing._count?.comments || 0}
-            </Text>
-            <Text style={styles.statLabel}>Comments</Text>
-          </View>
-        </View>
-      )}
-
-      <View style={styles.footer}>
-        <View style={styles.authorInfo}>
-          <Text style={styles.authorName}>
-            By {props.listing.author?.name || 'Anonymous'}
-          </Text>
-          <Text style={styles.createdDate}>
-            {new Date(props.listing.createdAt).toLocaleDateString()}
-          </Text>
-        </View>
-
-        <View style={styles.voteButtons}>
-          <Animated.View style={voteUpAnimatedStyle}>
-            <Card
-              style={StyleSheet.flatten([
-                styles.voteButton,
-                props.listing.userVote === true && styles.voteButtonActive,
-                (voteMutation.isPending || isVoting === 'up') && styles.voteButtonDisabled,
-              ])}
-              padding="sm"
-              onPress={() => handleVote('up')}
-            >
-              <Text
-                style={[
-                  styles.voteButtonText,
-                  props.listing.userVote === true && styles.voteButtonTextActive,
-                  (voteMutation.isPending || isVoting === 'up') && styles.voteButtonTextDisabled,
-                ]}
+          <View style={styles.voteButtons}>
+            <Animated.View style={voteUpAnimatedStyle}>
+              <Card
+                style={StyleSheet.flatten([
+                  styles.voteButton,
+                  props.listing.userVote === true && styles.voteButtonActive,
+                  (voteMutation.isPending || isVoting === 'up') && styles.voteButtonDisabled,
+                ])}
+                padding="sm"
+                onPress={() => handleVote('up')}
               >
-                👍 {props.listing.upVotes || 0}
-              </Text>
-            </Card>
-          </Animated.View>
+                <Text
+                  style={[
+                    styles.voteButtonText,
+                    props.listing.userVote === true && styles.voteButtonTextActive,
+                    (voteMutation.isPending || isVoting === 'up') && styles.voteButtonTextDisabled,
+                  ]}
+                >
+                  👍 {props.listing.upVotes || 0}
+                </Text>
+              </Card>
+            </Animated.View>
 
-          <Animated.View style={voteDownAnimatedStyle}>
-            <Card
-              style={StyleSheet.flatten([
-                styles.voteButton,
-                props.listing.userVote === false && styles.voteButtonActive,
-                (voteMutation.isPending || isVoting === 'down') && styles.voteButtonDisabled,
-              ])}
-              padding="sm"
-              onPress={() => handleVote('down')}
-            >
-              <Text
-                style={[
-                  styles.voteButtonText,
-                  props.listing.userVote === false &&
-                    styles.voteButtonTextActive,
-                  (voteMutation.isPending || isVoting === 'down') && styles.voteButtonTextDisabled,
-                ]}
+            <Animated.View style={voteDownAnimatedStyle}>
+              <Card
+                style={StyleSheet.flatten([
+                  styles.voteButton,
+                  props.listing.userVote === false && styles.voteButtonActive,
+                  (voteMutation.isPending || isVoting === 'down') && styles.voteButtonDisabled,
+                ])}
+                padding="sm"
+                onPress={() => handleVote('down')}
               >
-                👎 {props.listing.downVotes || 0}
-              </Text>
-            </Card>
-          </Animated.View>
+                <Text
+                  style={[
+                    styles.voteButtonText,
+                    props.listing.userVote === false && styles.voteButtonTextActive,
+                    (voteMutation.isPending || isVoting === 'down') &&
+                      styles.voteButtonTextDisabled,
+                  ]}
+                >
+                  👎 {props.listing.downVotes || 0}
+                </Text>
+              </Card>
+            </Animated.View>
+          </View>
         </View>
-      </View>
       </Card>
     </Animated.View>
   )

@@ -82,9 +82,7 @@ export interface Api {
   getDeviceBrands: () => Promise<DeviceBrand[]>
   getSocs: () => Promise<Soc[]>
   getPerformanceScales: () => Promise<PerformanceScale[]>
-  getSearchSuggestions: (
-    input: SearchSuggestionsInput,
-  ) => Promise<SearchSuggestion[]>
+  getSearchSuggestions: (input: SearchSuggestionsInput) => Promise<SearchSuggestion[]>
 
   // Comments
   getListingComments: (input: GetListingCommentsInput) => Promise<Comment[]>
@@ -93,9 +91,7 @@ export interface Api {
   deleteComment: (input: DeleteCommentInput) => Promise<Comment>
 
   // Votes
-  voteListing: (
-    input: VoteListingInput,
-  ) => Promise<{ id: string; value: boolean }>
+  voteListing: (input: VoteListingInput) => Promise<{ id: string; value: boolean }>
   getUserVote: (input: GetUserVoteInput) => Promise<boolean | null>
 
   // User
@@ -105,30 +101,18 @@ export interface Api {
   getUserPreferences: () => Promise<UserPreferences>
 
   // User Preferences
-  updateUserPreferences: (
-    input: UpdateUserPreferencesInput,
-  ) => Promise<UserPreferences>
-  addDevicePreference: (
-    input: AddDevicePreferenceInput,
-  ) => Promise<DevicePreference>
-  removeDevicePreference: (
-    input: RemoveDevicePreferenceInput,
-  ) => Promise<{ success: boolean }>
+  updateUserPreferences: (input: UpdateUserPreferencesInput) => Promise<UserPreferences>
+  addDevicePreference: (input: AddDevicePreferenceInput) => Promise<DevicePreference>
+  removeDevicePreference: (input: RemoveDevicePreferenceInput) => Promise<{ success: boolean }>
   bulkUpdateDevicePreferences: (
     input: BulkUpdateDevicePreferencesInput,
   ) => Promise<DevicePreference[]>
-  bulkUpdateSocPreferences: (
-    input: BulkUpdateSocPreferencesInput,
-  ) => Promise<SocPreference[]>
+  bulkUpdateSocPreferences: (input: BulkUpdateSocPreferencesInput) => Promise<SocPreference[]>
 
   // Notifications
-  getNotifications: (
-    input: GetNotificationsInput,
-  ) => Promise<GetNotificationsResponse>
+  getNotifications: (input: GetNotificationsInput) => Promise<GetNotificationsResponse>
   getUnreadNotificationCount: () => Promise<number>
-  markNotificationAsRead: (
-    input: MarkNotificationReadInput,
-  ) => Promise<{ success: boolean }>
+  markNotificationAsRead: (input: MarkNotificationReadInput) => Promise<{ success: boolean }>
   markAllNotificationsAsRead: () => Promise<{ success: boolean }>
 
   // Verified Developers
@@ -137,15 +121,9 @@ export interface Api {
 
   // Listing Verifications
   verifyListing: (input: VerifyListingInput) => Promise<ListingVerification>
-  removeVerification: (
-    input: RemoveVerificationInput,
-  ) => Promise<{ message: string }>
-  getListingVerifications: (
-    input: GetListingVerificationsInput,
-  ) => Promise<ListingVerification[]>
-  getMyVerifications: (
-    input: GetMyVerificationsInput,
-  ) => Promise<GetMyVerificationsResponse>
+  removeVerification: (input: RemoveVerificationInput) => Promise<{ message: string }>
+  getListingVerifications: (input: GetListingVerificationsInput) => Promise<ListingVerification[]>
+  getMyVerifications: (input: GetMyVerificationsInput) => Promise<GetMyVerificationsResponse>
 
   // Trust System
   getTrustLevels: () => Promise<TrustLevel[]>

@@ -4,13 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/contexts/ThemeContext'
-import { 
+import {
   usePcListingById,
-  useGames, 
-  useCpusForMobile, 
-  useGpusForMobile, 
-  usePerformanceScales, 
-  useUpdatePcListing 
+  useGames,
+  useCpusForMobile,
+  useGpusForMobile,
+  usePerformanceScales,
+  useUpdatePcListing,
 } from '@/lib/api/hooks'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
@@ -19,7 +19,7 @@ import { Picker } from '@react-native-picker/picker'
 export default function EditPCListingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const { theme } = useTheme()
-  
+
   // Form state
   const [selectedGame, setSelectedGame] = useState('')
   const [selectedCpu, setSelectedCpu] = useState('')
@@ -32,7 +32,7 @@ export default function EditPCListingScreen() {
 
   // Fetch current listing
   const { data: listing, isLoading: loadingListing } = usePcListingById({ id: id! })
-  
+
   // Fetch data for form options
   const { data: games, isLoading: loadingGames } = useGames({ limit: 1000 })
   const { data: cpus, isLoading: loadingCpus } = useCpusForMobile()
@@ -42,7 +42,7 @@ export default function EditPCListingScreen() {
   const updateMutation = useUpdatePcListing({
     onSuccess: () => {
       Alert.alert('Success', 'PC listing updated successfully!', [
-        { text: 'OK', onPress: () => router.back() }
+        { text: 'OK', onPress: () => router.back() },
       ])
     },
     onError: (error) => {
@@ -89,7 +89,8 @@ export default function EditPCListingScreen() {
     })
   }
 
-  const isLoading = loadingListing || loadingGames || loadingCpus || loadingGpus || loadingPerformance
+  const isLoading =
+    loadingListing || loadingGames || loadingCpus || loadingGpus || loadingPerformance
 
   if (loadingListing) {
     return (
@@ -115,11 +116,7 @@ export default function EditPCListingScreen() {
           <Text className="text-center mb-6" style={{ color: theme.colors.textSecondary }}>
             This listing may have been removed or is no longer available.
           </Text>
-          <Button
-            title="Back to PC Listings"
-            onPress={() => router.back()}
-            variant="outline"
-          />
+          <Button title="Back to PC Listings" onPress={() => router.back()} variant="outline" />
         </View>
       </SafeAreaView>
     )
@@ -174,12 +171,15 @@ export default function EditPCListingScreen() {
                 <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
                   Hardware Configuration *
                 </Text>
-                
+
                 {/* CPU */}
                 <Text className="font-medium mb-2" style={{ color: theme.colors.text }}>
                   CPU *
                 </Text>
-                <View className="border rounded-lg mb-4" style={{ borderColor: theme.colors.border }}>
+                <View
+                  className="border rounded-lg mb-4"
+                  style={{ borderColor: theme.colors.border }}
+                >
                   <Picker
                     selectedValue={selectedCpu}
                     onValueChange={setSelectedCpu}
@@ -238,7 +238,7 @@ export default function EditPCListingScreen() {
                 <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
                   Performance Details
                 </Text>
-                
+
                 {/* FPS */}
                 <Text className="font-medium mb-2" style={{ color: theme.colors.text }}>
                   Average FPS
@@ -339,7 +339,7 @@ export default function EditPCListingScreen() {
                   )
                 }
               />
-              
+
               <Button
                 title="Cancel"
                 onPress={() => router.back()}

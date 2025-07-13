@@ -12,10 +12,10 @@ interface GameMediaSectionProps {
   compact?: boolean
 }
 
-export default function GameMediaSection({ 
-  gameName, 
-  gameId: _gameId, 
-  compact = false 
+export default function GameMediaSection({
+  gameName,
+  gameId: _gameId,
+  compact = false,
 }: GameMediaSectionProps) {
   const { theme } = useTheme()
   const [selectedSource, setSelectedSource] = useState<'rawg' | 'tgdb'>('rawg')
@@ -23,12 +23,12 @@ export default function GameMediaSection({
   // Fetch media from both sources
   const { data: rawgData, isLoading: rawgLoading } = useRawgSearchGameImages(
     { query: gameName, pageSize: compact ? 4 : 8 },
-    { enabled: !!gameName }
+    { enabled: !!gameName },
   )
 
   const { data: tgdbData, isLoading: tgdbLoading } = useTgdbSearchGameImages(
     { name: gameName },
-    { enabled: !!gameName }
+    { enabled: !!gameName },
   )
 
   const isLoading = selectedSource === 'rawg' ? rawgLoading : tgdbLoading
@@ -53,7 +53,7 @@ export default function GameMediaSection({
           <Text className="text-lg font-semibold" style={{ color: theme.colors.text }}>
             Game Media
           </Text>
-          
+
           {!compact && (
             <TouchableOpacity onPress={handleViewAllPress}>
               <Text className="text-sm font-medium" style={{ color: theme.colors.primary }}>
@@ -65,35 +65,38 @@ export default function GameMediaSection({
 
         {/* Source Selector */}
         {!compact && (
-          <View className="flex-row bg-gray-100 rounded-lg p-1 mb-3" style={{ backgroundColor: theme.colors.surface }}>
+          <View
+            className="flex-row bg-gray-100 rounded-lg p-1 mb-3"
+            style={{ backgroundColor: theme.colors.surface }}
+          >
             <TouchableOpacity
               onPress={() => setSelectedSource('rawg')}
               className={`flex-1 py-1 px-2 rounded-md ${selectedSource === 'rawg' ? 'shadow-sm' : ''}`}
-              style={{ 
-                backgroundColor: selectedSource === 'rawg' ? theme.colors.primary : 'transparent' 
+              style={{
+                backgroundColor: selectedSource === 'rawg' ? theme.colors.primary : 'transparent',
               }}
             >
-              <Text 
+              <Text
                 className="text-center text-sm font-medium"
-                style={{ 
-                  color: selectedSource === 'rawg' ? '#fff' : theme.colors.text 
+                style={{
+                  color: selectedSource === 'rawg' ? '#fff' : theme.colors.text,
                 }}
               >
                 RAWG
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               onPress={() => setSelectedSource('tgdb')}
               className={`flex-1 py-1 px-2 rounded-md ${selectedSource === 'tgdb' ? 'shadow-sm' : ''}`}
-              style={{ 
-                backgroundColor: selectedSource === 'tgdb' ? theme.colors.primary : 'transparent' 
+              style={{
+                backgroundColor: selectedSource === 'tgdb' ? theme.colors.primary : 'transparent',
               }}
             >
-              <Text 
+              <Text
                 className="text-center text-sm font-medium"
-                style={{ 
-                  color: selectedSource === 'tgdb' ? '#fff' : theme.colors.text 
+                style={{
+                  color: selectedSource === 'tgdb' ? '#fff' : theme.colors.text,
                 }}
               >
                 TGDB
@@ -105,17 +108,16 @@ export default function GameMediaSection({
         {/* Media Grid */}
         {isLoading ? (
           <View className="flex-row justify-center py-8">
-            <Text style={{ color: theme.colors.textSecondary }}>
-              Loading media...
-            </Text>
+            <Text style={{ color: theme.colors.textSecondary }}>Loading media...</Text>
           </View>
         ) : data && data.length > 0 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="flex-row">
               {data.slice(0, compact ? 3 : 6).map((item: any, index: number) => {
-                const imageUrl = selectedSource === 'rawg' 
-                  ? item.background_image || item.short_screenshots?.[0]?.image
-                  : item.thumb || item.images?.[0]?.thumb
+                const imageUrl =
+                  selectedSource === 'rawg'
+                    ? item.background_image || item.short_screenshots?.[0]?.image
+                    : item.thumb || item.images?.[0]?.thumb
 
                 return (
                   <TouchableOpacity
@@ -124,11 +126,11 @@ export default function GameMediaSection({
                     className="mr-3"
                     activeOpacity={0.8}
                   >
-                    <View 
+                    <View
                       className="rounded-lg overflow-hidden"
-                      style={{ 
-                        width: compact ? 100 : 120, 
-                        height: compact ? 60 : 80 
+                      style={{
+                        width: compact ? 100 : 120,
+                        height: compact ? 60 : 80,
                       }}
                     >
                       {imageUrl ? (
@@ -138,7 +140,7 @@ export default function GameMediaSection({
                           resizeMode="cover"
                         />
                       ) : (
-                        <View 
+                        <View
                           className="w-full h-full items-center justify-center"
                           style={{ backgroundColor: theme.colors.surface }}
                         >
@@ -146,13 +148,13 @@ export default function GameMediaSection({
                         </View>
                       )}
                     </View>
-                    
+
                     {!compact && (
-                      <Text 
+                      <Text
                         className="text-xs mt-1"
-                        style={{ 
+                        style={{
                           color: theme.colors.textSecondary,
-                          width: 120
+                          width: 120,
                         }}
                         numberOfLines={1}
                       >
@@ -168,20 +170,17 @@ export default function GameMediaSection({
                 <TouchableOpacity
                   onPress={handleViewAllPress}
                   className="items-center justify-center"
-                  style={{ 
-                    width: compact ? 100 : 120, 
-                    height: compact ? 60 : 80 
+                  style={{
+                    width: compact ? 100 : 120,
+                    height: compact ? 60 : 80,
                   }}
                 >
-                  <View 
+                  <View
                     className="w-full h-full rounded-lg items-center justify-center border-2 border-dashed"
                     style={{ borderColor: theme.colors.border }}
                   >
                     <Ionicons name="add" size={24} color={theme.colors.primary} />
-                    <Text 
-                      className="text-xs mt-1"
-                      style={{ color: theme.colors.primary }}
-                    >
+                    <Text className="text-xs mt-1" style={{ color: theme.colors.primary }}>
                       View More
                     </Text>
                   </View>
@@ -200,7 +199,10 @@ export default function GameMediaSection({
 
         {/* Media Stats */}
         {data && data.length > 0 && !compact && (
-          <View className="flex-row justify-between mt-3 pt-3 border-t" style={{ borderTopColor: theme.colors.borderLight }}>
+          <View
+            className="flex-row justify-between mt-3 pt-3 border-t"
+            style={{ borderTopColor: theme.colors.borderLight }}
+          >
             <Text className="text-xs" style={{ color: theme.colors.textSecondary }}>
               {data.length} images available
             </Text>

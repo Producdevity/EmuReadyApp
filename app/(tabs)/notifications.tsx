@@ -25,7 +25,12 @@ import { router } from 'expo-router'
 
 import { ThemedView, ThemedText } from '@/components/themed'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useNotifications, useUnreadNotificationCount, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from '@/lib/api/hooks'
+import {
+  useNotifications,
+  useUnreadNotificationCount,
+  useMarkNotificationAsRead,
+  useMarkAllNotificationsAsRead,
+} from '@/lib/api/hooks'
 import { LoadingSpinner, Card, EmptyState } from '@/components/ui'
 import type { Notification as ApiNotification } from '@/types/api/api.response'
 
@@ -75,26 +80,22 @@ export default function NotificationsScreen() {
   }
 
   const handleMarkAllAsRead = () => {
-    Alert.alert(
-      'Mark All as Read',
-      'Are you sure you want to mark all notifications as read?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Mark All Read',
-          onPress: async () => {
-            try {
-              await markAllAsReadMutation.mutateAsync()
-              await notificationsQuery.refetch()
-              await unreadCountQuery.refetch()
-            } catch (err) {
-              console.error(err)
-              Alert.alert('Error', 'Failed to mark all notifications as read')
-            }
-          },
+    Alert.alert('Mark All as Read', 'Are you sure you want to mark all notifications as read?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Mark All Read',
+        onPress: async () => {
+          try {
+            await markAllAsReadMutation.mutateAsync()
+            await notificationsQuery.refetch()
+            await unreadCountQuery.refetch()
+          } catch (err) {
+            console.error(err)
+            Alert.alert('Error', 'Failed to mark all notifications as read')
+          }
         },
-      ]
-    )
+      },
+    ])
   }
 
   const toggleFilter = () => {
@@ -141,9 +142,7 @@ export default function NotificationsScreen() {
   const formatTimeAgo = (date: string) => {
     const now = new Date()
     const notificationDate = new Date(date)
-    const diffInMinutes = Math.floor(
-      (now.getTime() - notificationDate.getTime()) / (1000 * 60)
-    )
+    const diffInMinutes = Math.floor((now.getTime() - notificationDate.getTime()) / (1000 * 60))
 
     if (diffInMinutes < 1) return 'Just now'
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`
@@ -175,7 +174,14 @@ export default function NotificationsScreen() {
       <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
         <SafeAreaView style={{ flex: 1 }}>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: theme.spacing.lg }}>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: theme.spacing.lg,
+            }}
+          >
             <EmptyState
               icon="alert-circle"
               title="Unable to Load Notifications"
@@ -189,7 +195,8 @@ export default function NotificationsScreen() {
     )
   }
 
-  const notifications = (notificationsQuery.data?.notifications || []) as unknown as ApiNotification[]
+  const notifications = (notificationsQuery.data?.notifications ||
+    []) as unknown as ApiNotification[]
   const unreadCount = unreadCountQuery.data ?? notifications.filter((n) => !n.isRead).length
 
   return (
@@ -215,25 +222,33 @@ export default function NotificationsScreen() {
       <SafeAreaView style={{ flex: 1 }}>
         <ThemedView style={{ flex: 1 }}>
           {/* Enhanced Header */}
-          <View style={{
-            paddingHorizontal: theme.spacing.lg,
-            paddingTop: theme.spacing.lg,
-            paddingBottom: theme.spacing.md,
-          }}>
+          <View
+            style={{
+              paddingHorizontal: theme.spacing.lg,
+              paddingTop: theme.spacing.lg,
+              paddingBottom: theme.spacing.md,
+            }}
+          >
             <Animated.View entering={FadeInDown.delay(200).springify()}>
-              <ThemedText style={{
-                fontSize: theme.typography.fontSize.xxxl,
-                fontWeight: theme.typography.fontWeight.extrabold,
-                color: theme.isDark ? theme.colors.textInverse : theme.colors.text,
-                marginBottom: theme.spacing.sm,
-              }}>
+              <ThemedText
+                style={{
+                  fontSize: theme.typography.fontSize.xxxl,
+                  fontWeight: theme.typography.fontWeight.extrabold,
+                  color: theme.isDark ? theme.colors.textInverse : theme.colors.text,
+                  marginBottom: theme.spacing.sm,
+                }}
+              >
                 Notifications
               </ThemedText>
               {unreadCount > 0 && (
-                <ThemedText style={{
-                  fontSize: theme.typography.fontSize.md,
-                  color: theme.isDark ? `${theme.colors.textInverse}CC` : theme.colors.textSecondary,
-                }}>
+                <ThemedText
+                  style={{
+                    fontSize: theme.typography.fontSize.md,
+                    color: theme.isDark
+                      ? `${theme.colors.textInverse}CC`
+                      : theme.colors.textSecondary,
+                  }}
+                >
                   You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
                 </ThemedText>
               )}
@@ -241,7 +256,7 @@ export default function NotificationsScreen() {
           </View>
 
           {/* Filter Bar */}
-          <Animated.View 
+          <Animated.View
             entering={FadeInUp.delay(300).springify()}
             style={{
               paddingHorizontal: theme.spacing.lg,
@@ -258,11 +273,13 @@ export default function NotificationsScreen() {
                 padding: theme.spacing.md,
               }}
             >
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
                 <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
                   <Animated.View style={filterAnimatedStyle}>
                     <Pressable
@@ -274,14 +291,18 @@ export default function NotificationsScreen() {
                         paddingHorizontal: theme.spacing.md,
                         paddingVertical: theme.spacing.sm,
                         borderRadius: theme.borderRadius.md,
-                        backgroundColor: !showUnreadOnly ? theme.colors.primary : theme.colors.surface,
+                        backgroundColor: !showUnreadOnly
+                          ? theme.colors.primary
+                          : theme.colors.surface,
                       }}
                     >
-                      <ThemedText style={{
-                        color: !showUnreadOnly ? theme.colors.textInverse : theme.colors.text,
-                        fontSize: theme.typography.fontSize.sm,
-                        fontWeight: theme.typography.fontWeight.semibold,
-                      }}>
+                      <ThemedText
+                        style={{
+                          color: !showUnreadOnly ? theme.colors.textInverse : theme.colors.text,
+                          fontSize: theme.typography.fontSize.sm,
+                          fontWeight: theme.typography.fontWeight.semibold,
+                        }}
+                      >
                         All
                       </ThemedText>
                     </Pressable>
@@ -297,33 +318,45 @@ export default function NotificationsScreen() {
                         paddingHorizontal: theme.spacing.md,
                         paddingVertical: theme.spacing.sm,
                         borderRadius: theme.borderRadius.md,
-                        backgroundColor: showUnreadOnly ? theme.colors.primary : theme.colors.surface,
+                        backgroundColor: showUnreadOnly
+                          ? theme.colors.primary
+                          : theme.colors.surface,
                         flexDirection: 'row',
                         alignItems: 'center',
                         gap: theme.spacing.xs,
                       }}
                     >
-                      <ThemedText style={{
-                        color: showUnreadOnly ? theme.colors.textInverse : theme.colors.text,
-                        fontSize: theme.typography.fontSize.sm,
-                        fontWeight: theme.typography.fontWeight.semibold,
-                      }}>
+                      <ThemedText
+                        style={{
+                          color: showUnreadOnly ? theme.colors.textInverse : theme.colors.text,
+                          fontSize: theme.typography.fontSize.sm,
+                          fontWeight: theme.typography.fontWeight.semibold,
+                        }}
+                      >
                         Unread
                       </ThemedText>
                       {unreadCount > 0 && (
-                        <View style={{
-                          backgroundColor: showUnreadOnly ? 'rgba(255,255,255,0.3)' : theme.colors.primary,
-                          paddingHorizontal: theme.spacing.sm,
-                          paddingVertical: 2,
-                          borderRadius: theme.borderRadius.sm,
-                          minWidth: 20,
-                          alignItems: 'center',
-                        }}>
-                          <ThemedText style={{
-                            color: showUnreadOnly ? theme.colors.textInverse : theme.colors.textInverse,
-                            fontSize: theme.typography.fontSize.xs,
-                            fontWeight: theme.typography.fontWeight.bold,
-                          }}>
+                        <View
+                          style={{
+                            backgroundColor: showUnreadOnly
+                              ? 'rgba(255,255,255,0.3)'
+                              : theme.colors.primary,
+                            paddingHorizontal: theme.spacing.sm,
+                            paddingVertical: 2,
+                            borderRadius: theme.borderRadius.sm,
+                            minWidth: 20,
+                            alignItems: 'center',
+                          }}
+                        >
+                          <ThemedText
+                            style={{
+                              color: showUnreadOnly
+                                ? theme.colors.textInverse
+                                : theme.colors.textInverse,
+                              fontSize: theme.typography.fontSize.xs,
+                              fontWeight: theme.typography.fontWeight.bold,
+                            }}
+                          >
                             {unreadCount}
                           </ThemedText>
                         </View>
@@ -336,21 +369,25 @@ export default function NotificationsScreen() {
                   <Pressable
                     onPress={handleMarkAllAsRead}
                     disabled={markAllAsReadMutation.isPending}
-                    style={({ pressed }) => [{
-                      paddingHorizontal: theme.spacing.md,
-                      paddingVertical: theme.spacing.sm,
-                      borderRadius: theme.borderRadius.md,
-                      backgroundColor: theme.colors.surface,
-                      borderWidth: 1,
-                      borderColor: theme.colors.border,
-                      opacity: pressed || markAllAsReadMutation.isPending ? 0.7 : 1,
-                    }]}
+                    style={({ pressed }) => [
+                      {
+                        paddingHorizontal: theme.spacing.md,
+                        paddingVertical: theme.spacing.sm,
+                        borderRadius: theme.borderRadius.md,
+                        backgroundColor: theme.colors.surface,
+                        borderWidth: 1,
+                        borderColor: theme.colors.border,
+                        opacity: pressed || markAllAsReadMutation.isPending ? 0.7 : 1,
+                      },
+                    ]}
                   >
-                    <ThemedText style={{
-                      color: theme.colors.primary,
-                      fontSize: theme.typography.fontSize.sm,
-                      fontWeight: theme.typography.fontWeight.medium,
-                    }}>
+                    <ThemedText
+                      style={{
+                        color: theme.colors.primary,
+                        fontSize: theme.typography.fontSize.sm,
+                        fontWeight: theme.typography.fontWeight.medium,
+                      }}
+                    >
                       Mark All Read
                     </ThemedText>
                   </Pressable>
@@ -362,8 +399,8 @@ export default function NotificationsScreen() {
           {/* Notifications List */}
           <ScrollView
             refreshControl={
-              <RefreshControl 
-                refreshing={refreshing} 
+              <RefreshControl
+                refreshing={refreshing}
                 onRefresh={onRefresh}
                 tintColor={theme.colors.primary}
                 colors={[theme.colors.primary]}
@@ -373,7 +410,7 @@ export default function NotificationsScreen() {
             contentContainerStyle={{ paddingBottom: theme.spacing.xxxl }}
           >
             {notifications.length === 0 ? (
-              <Animated.View 
+              <Animated.View
                 entering={ZoomIn.delay(400).springify()}
                 style={{
                   flex: 1,
@@ -391,39 +428,46 @@ export default function NotificationsScreen() {
                       alignItems: 'center',
                     }}
                   >
-                    <View style={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: 40,
-                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: theme.spacing.lg,
-                    }}>
-                      <Ionicons 
-                        name="notifications-off" 
-                        size={40} 
+                    <View
+                      style={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: 40,
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: theme.spacing.lg,
+                      }}
+                    >
+                      <Ionicons
+                        name="notifications-off"
+                        size={40}
                         color={theme.colors.textInverse}
                       />
                     </View>
-                    <ThemedText style={{
-                      fontSize: theme.typography.fontSize.xl,
-                      fontWeight: theme.typography.fontWeight.bold,
-                      color: theme.colors.textInverse,
-                      marginBottom: theme.spacing.sm,
-                      textAlign: 'center',
-                    }}>
+                    <ThemedText
+                      style={{
+                        fontSize: theme.typography.fontSize.xl,
+                        fontWeight: theme.typography.fontWeight.bold,
+                        color: theme.colors.textInverse,
+                        marginBottom: theme.spacing.sm,
+                        textAlign: 'center',
+                      }}
+                    >
                       {showUnreadOnly ? 'No Unread Notifications' : 'No Notifications Yet'}
                     </ThemedText>
-                    <ThemedText style={{
-                      fontSize: theme.typography.fontSize.md,
-                      color: `${theme.colors.textInverse}CC`,
-                      textAlign: 'center',
-                      lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
-                    }}>
-                      {showUnreadOnly 
+                    <ThemedText
+                      style={{
+                        fontSize: theme.typography.fontSize.md,
+                        color: `${theme.colors.textInverse}CC`,
+                        textAlign: 'center',
+                        lineHeight:
+                          theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+                      }}
+                    >
+                      {showUnreadOnly
                         ? 'All caught up! Check back later for new updates.'
-                        : 'When you receive notifications, they\'ll appear here.'}
+                        : "When you receive notifications, they'll appear here."}
                     </ThemedText>
                   </LinearGradient>
                 </Card>
@@ -438,19 +482,23 @@ export default function NotificationsScreen() {
                   >
                     <Pressable
                       onPress={() => handleNotificationPress(notification)}
-                      style={({ pressed }) => [{
-                        transform: [{ scale: pressed ? 0.98 : 1 }],
-                        opacity: pressed ? 0.9 : 1,
-                      }]}
+                      style={({ pressed }) => [
+                        {
+                          transform: [{ scale: pressed ? 0.98 : 1 }],
+                          opacity: pressed ? 0.9 : 1,
+                        },
+                      ]}
                     >
-                      <Card style={{
-                        backgroundColor: notification.isRead 
-                          ? theme.colors.surface
-                          : theme.colors.surfaceElevated,
-                        borderWidth: notification.isRead ? 0 : 2,
-                        borderColor: notification.isRead ? 'transparent' : theme.colors.primary,
-                        overflow: 'hidden',
-                      }}>
+                      <Card
+                        style={{
+                          backgroundColor: notification.isRead
+                            ? theme.colors.surface
+                            : theme.colors.surfaceElevated,
+                          borderWidth: notification.isRead ? 0 : 2,
+                          borderColor: notification.isRead ? 'transparent' : theme.colors.primary,
+                          overflow: 'hidden',
+                        }}
+                      >
                         {!notification.isRead && (
                           <LinearGradient
                             colors={[`${theme.colors.primary}10`, 'transparent']}
@@ -463,22 +511,26 @@ export default function NotificationsScreen() {
                             }}
                           />
                         )}
-                        
-                        <View style={{ 
-                          flexDirection: 'row', 
-                          alignItems: 'flex-start',
-                          padding: theme.spacing.lg,
-                        }}>
+
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'flex-start',
+                            padding: theme.spacing.lg,
+                          }}
+                        >
                           {/* Notification Icon */}
-                          <View style={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 24,
-                            backgroundColor: `${getNotificationColor(notification.type)}20`,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            marginRight: theme.spacing.md,
-                          }}>
+                          <View
+                            style={{
+                              width: 48,
+                              height: 48,
+                              borderRadius: 24,
+                              backgroundColor: `${getNotificationColor(notification.type)}20`,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              marginRight: theme.spacing.md,
+                            }}
+                          >
                             <Ionicons
                               name={getNotificationIcon(notification.type)}
                               size={24}
@@ -488,41 +540,52 @@ export default function NotificationsScreen() {
 
                           {/* Notification Content */}
                           <View style={{ flex: 1 }}>
-                            <ThemedText style={{
-                              fontSize: theme.typography.fontSize.md,
-                              fontWeight: notification.isRead 
-                                ? theme.typography.fontWeight.medium 
-                                : theme.typography.fontWeight.bold,
-                              color: theme.colors.text,
-                              marginBottom: theme.spacing.xs,
-                              lineHeight: theme.typography.lineHeight.tight * theme.typography.fontSize.md,
-                            }}>
+                            <ThemedText
+                              style={{
+                                fontSize: theme.typography.fontSize.md,
+                                fontWeight: notification.isRead
+                                  ? theme.typography.fontWeight.medium
+                                  : theme.typography.fontWeight.bold,
+                                color: theme.colors.text,
+                                marginBottom: theme.spacing.xs,
+                                lineHeight:
+                                  theme.typography.lineHeight.tight * theme.typography.fontSize.md,
+                              }}
+                            >
                               {notification.title}
                             </ThemedText>
 
-                            <ThemedText style={{
-                              fontSize: theme.typography.fontSize.sm,
-                              color: theme.colors.textSecondary,
-                              marginBottom: theme.spacing.sm,
-                              lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.sm,
-                            }}>
+                            <ThemedText
+                              style={{
+                                fontSize: theme.typography.fontSize.sm,
+                                color: theme.colors.textSecondary,
+                                marginBottom: theme.spacing.sm,
+                                lineHeight:
+                                  theme.typography.lineHeight.relaxed *
+                                  theme.typography.fontSize.sm,
+                              }}
+                            >
                               {notification.message}
                             </ThemedText>
 
-                            <View style={{ 
-                              flexDirection: 'row', 
-                              alignItems: 'center',
-                              gap: theme.spacing.sm,
-                            }}>
-                              <Ionicons 
-                                name="time-outline" 
-                                size={14} 
+                            <View
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: theme.spacing.sm,
+                              }}
+                            >
+                              <Ionicons
+                                name="time-outline"
+                                size={14}
                                 color={theme.colors.textMuted}
                               />
-                              <ThemedText style={{
-                                fontSize: theme.typography.fontSize.xs,
-                                color: theme.colors.textMuted,
-                              }}>
+                              <ThemedText
+                                style={{
+                                  fontSize: theme.typography.fontSize.xs,
+                                  color: theme.colors.textMuted,
+                                }}
+                              >
                                 {formatTimeAgo(notification.createdAt)}
                               </ThemedText>
                             </View>
@@ -530,14 +593,16 @@ export default function NotificationsScreen() {
 
                           {/* Unread Indicator */}
                           {!notification.isRead && (
-                            <View style={{
-                              width: 10,
-                              height: 10,
-                              borderRadius: 5,
-                              backgroundColor: theme.colors.primary,
-                              marginLeft: theme.spacing.sm,
-                              marginTop: theme.spacing.xs,
-                            }} />
+                            <View
+                              style={{
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: theme.colors.primary,
+                                marginLeft: theme.spacing.sm,
+                                marginTop: theme.spacing.xs,
+                              }}
+                            />
                           )}
                         </View>
                       </Card>

@@ -54,9 +54,7 @@ export default function SignInScreen() {
       <View style={styles.content}>
         <View style={styles.signInCard}>
           <Text style={styles.cardTitle}>Sign In</Text>
-          <Text style={styles.cardSubtitle}>
-            Enter your credentials to access your account
-          </Text>
+          <Text style={styles.cardSubtitle}>Enter your credentials to access your account</Text>
 
           <View style={styles.formContainer}>
             <View style={styles.inputContainer}>
@@ -98,23 +96,14 @@ export default function SignInScreen() {
 
             <View style={styles.signUpContainer}>
               <Text style={styles.signUpText}>Don&apos;t have an account? </Text>
-              <Button
-                title="Sign Up"
-                variant="ghost"
-                size="sm"
-                onPress={handleSignUp}
-              />
+              <Button title="Sign Up" variant="ghost" size="sm" onPress={handleSignUp} />
             </View>
           </View>
         </View>
       </View>
 
       <View style={styles.footer}>
-        <Button
-          title="Back to Browse"
-          variant="ghost"
-          onPress={() => router.back()}
-        />
+        <Button title="Back to Browse" variant="ghost" onPress={() => router.back()} />
       </View>
     </SafeAreaView>
   )

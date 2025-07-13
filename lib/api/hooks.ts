@@ -99,7 +99,8 @@ export const queryKeys = {
   deviceBrands: () => ['app', 'deviceBrands'] as const,
   socs: () => ['app', 'socs'] as const,
   performanceScales: () => ['app', 'performanceScales'] as const,
-  searchSuggestions: (params: SearchSuggestionsInput) => ['app', 'searchSuggestions', params] as const,
+  searchSuggestions: (params: SearchSuggestionsInput) =>
+    ['app', 'searchSuggestions', params] as const,
 
   // Comments
   listingComments: (params: GetListingCommentsInput) => ['comments', 'listing', params] as const,
@@ -118,8 +119,10 @@ export const queryKeys = {
 
   // Verifications
   myVerifiedEmulators: () => ['verifications', 'myEmulators'] as const,
-  isVerifiedDeveloper: (params: IsVerifiedDeveloperInput) => ['verifications', 'isDeveloper', params] as const,
-  listingVerifications: (params: GetListingVerificationsInput) => ['verifications', 'listing', params] as const,
+  isVerifiedDeveloper: (params: IsVerifiedDeveloperInput) =>
+    ['verifications', 'isDeveloper', params] as const,
+  listingVerifications: (params: GetListingVerificationsInput) =>
+    ['verifications', 'listing', params] as const,
   myVerifications: (params?: GetMyVerificationsInput) => ['verifications', 'my', params] as const,
 
   // Trust
@@ -129,7 +132,7 @@ export const queryKeys = {
 // Listings Hooks
 export const useListings = (
   input?: GetListingsInput,
-  options?: Omit<UseQueryOptions<GetListingsResponse, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<GetListingsResponse, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.listings(input),
@@ -138,7 +141,9 @@ export const useListings = (
   })
 }
 
-export const useFeaturedListings = (options?: Omit<UseQueryOptions<Listing[], Error>, 'queryKey' | 'queryFn'>) => {
+export const useFeaturedListings = (
+  options?: Omit<UseQueryOptions<Listing[], Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: queryKeys.featuredListings(),
     queryFn: listingsService.getFeaturedListings,
@@ -148,7 +153,7 @@ export const useFeaturedListings = (options?: Omit<UseQueryOptions<Listing[], Er
 
 export const useListingsByGame = (
   input: GetListingsByGameInput,
-  options?: Omit<UseQueryOptions<Listing[], Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Listing[], Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.listingsByGame(input),
@@ -159,7 +164,7 @@ export const useListingsByGame = (
 
 export const useListingById = (
   input: GetListingByIdInput,
-  options?: Omit<UseQueryOptions<Listing | null, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Listing | null, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.listingById(input.id),
@@ -169,7 +174,7 @@ export const useListingById = (
 }
 
 export const useCreateListing = (
-  options?: UseMutationOptions<Listing, Error, CreateListingInput>
+  options?: UseMutationOptions<Listing, Error, CreateListingInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -183,7 +188,7 @@ export const useCreateListing = (
 }
 
 export const useUpdateListing = (
-  options?: UseMutationOptions<Listing, Error, UpdateListingInput>
+  options?: UseMutationOptions<Listing, Error, UpdateListingInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -198,7 +203,7 @@ export const useUpdateListing = (
 }
 
 export const useDeleteListing = (
-  options?: UseMutationOptions<Listing, Error, DeleteListingInput>
+  options?: UseMutationOptions<Listing, Error, DeleteListingInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -214,7 +219,7 @@ export const useDeleteListing = (
 // Games Hooks
 export const useGames = (
   input?: GetGamesInput,
-  options?: Omit<UseQueryOptions<Game[], Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Game[], Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.games(input),
@@ -223,7 +228,9 @@ export const useGames = (
   })
 }
 
-export const usePopularGames = (options?: Omit<UseQueryOptions<Game[], Error>, 'queryKey' | 'queryFn'>) => {
+export const usePopularGames = (
+  options?: Omit<UseQueryOptions<Game[], Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: queryKeys.popularGames(),
     queryFn: gamesService.getPopularGames,
@@ -233,7 +240,7 @@ export const usePopularGames = (options?: Omit<UseQueryOptions<Game[], Error>, '
 
 export const useSearchGames = (
   input: SearchGamesInput,
-  options?: Omit<UseQueryOptions<Game[], Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Game[], Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.searchGames(input),
@@ -245,7 +252,7 @@ export const useSearchGames = (
 
 export const useGameById = (
   input: GetGameByIdInput,
-  options?: Omit<UseQueryOptions<Game | null, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Game | null, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.gameById(input.id),
@@ -255,7 +262,9 @@ export const useGameById = (
 }
 
 // General Info Hooks
-export const useAppStats = (options?: Omit<UseQueryOptions<AppStats, Error>, 'queryKey' | 'queryFn'>) => {
+export const useAppStats = (
+  options?: Omit<UseQueryOptions<AppStats, Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: queryKeys.appStats(),
     queryFn: appService.getAppStats,
@@ -263,7 +272,9 @@ export const useAppStats = (options?: Omit<UseQueryOptions<AppStats, Error>, 'qu
   })
 }
 
-export const useSystems = (options?: Omit<UseQueryOptions<System[], Error>, 'queryKey' | 'queryFn'>) => {
+export const useSystems = (
+  options?: Omit<UseQueryOptions<System[], Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: queryKeys.systems(),
     queryFn: appService.getSystems,
@@ -271,7 +282,9 @@ export const useSystems = (options?: Omit<UseQueryOptions<System[], Error>, 'que
   })
 }
 
-export const usePerformanceScales = (options?: Omit<UseQueryOptions<PerformanceScale[], Error>, 'queryKey' | 'queryFn'>) => {
+export const usePerformanceScales = (
+  options?: Omit<UseQueryOptions<PerformanceScale[], Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: queryKeys.performanceScales(),
     queryFn: appService.getPerformanceScales,
@@ -281,7 +294,7 @@ export const usePerformanceScales = (options?: Omit<UseQueryOptions<PerformanceS
 
 export const useSearchSuggestions = (
   input: SearchSuggestionsInput,
-  options?: Omit<UseQueryOptions<SearchSuggestion[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<SearchSuggestion[]>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.searchSuggestions(input),
@@ -291,7 +304,9 @@ export const useSearchSuggestions = (
   })
 }
 
-export const useTrustLevels = (options?: Omit<UseQueryOptions<TrustLevel[], Error>, 'queryKey' | 'queryFn'>) => {
+export const useTrustLevels = (
+  options?: Omit<UseQueryOptions<TrustLevel[], Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: queryKeys.trustLevels(),
     queryFn: appService.getTrustLevels,
@@ -302,7 +317,7 @@ export const useTrustLevels = (options?: Omit<UseQueryOptions<TrustLevel[], Erro
 // Devices Hooks
 export const useDevices = (
   input?: GetDevicesInput,
-  options?: Omit<UseQueryOptions<Device[], Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Device[], Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.devices(input),
@@ -311,7 +326,9 @@ export const useDevices = (
   })
 }
 
-export const useDeviceBrands = (options?: Omit<UseQueryOptions<DeviceBrand[], Error>, 'queryKey' | 'queryFn'>) => {
+export const useDeviceBrands = (
+  options?: Omit<UseQueryOptions<DeviceBrand[], Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: queryKeys.deviceBrands(),
     queryFn: appService.getDeviceBrands,
@@ -330,7 +347,7 @@ export const useSocs = (options?: Omit<UseQueryOptions<Soc[], Error>, 'queryKey'
 // Emulators Hooks
 export const useEmulators = (
   input?: GetEmulatorsInput,
-  options?: Omit<UseQueryOptions<Emulator[], Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Emulator[], Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.emulators(input),
@@ -344,7 +361,7 @@ export const useEmulators = (
 // Comments Hooks
 export const useListingComments = (
   input: GetListingCommentsInput,
-  options?: Omit<UseQueryOptions<Comment[], Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Comment[], Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.listingComments(input),
@@ -354,7 +371,7 @@ export const useListingComments = (
 }
 
 export const useCreateComment = (
-  options?: UseMutationOptions<Comment, Error, CreateCommentInput>
+  options?: UseMutationOptions<Comment, Error, CreateCommentInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -368,7 +385,7 @@ export const useCreateComment = (
 }
 
 export const useUpdateComment = (
-  options?: UseMutationOptions<Comment, Error, UpdateCommentInput>
+  options?: UseMutationOptions<Comment, Error, UpdateCommentInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -382,7 +399,7 @@ export const useUpdateComment = (
 }
 
 export const useDeleteComment = (
-  options?: UseMutationOptions<Comment, Error, DeleteCommentInput>
+  options?: UseMutationOptions<Comment, Error, DeleteCommentInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -397,7 +414,7 @@ export const useDeleteComment = (
 
 // Votes Hooks
 export const useVoteListing = (
-  options?: UseMutationOptions<{ id: string; value: boolean }, Error, VoteListingInput>
+  options?: UseMutationOptions<{ id: string; value: boolean }, Error, VoteListingInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -413,7 +430,7 @@ export const useVoteListing = (
 
 export const useUserVote = (
   input: GetUserVoteInput,
-  options?: Omit<UseQueryOptions<boolean | null, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<boolean | null, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.userVote(input),
@@ -425,7 +442,7 @@ export const useUserVote = (
 // User Hooks
 export const useUserById = (
   input: { id: string },
-  options?: Omit<UseQueryOptions<User | null, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<User | null, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['users', input.id],
@@ -436,7 +453,7 @@ export const useUserById = (
 
 export const useUserProfile = (
   input?: GetUserProfileInput,
-  options?: Omit<UseQueryOptions<UserProfile | null>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<UserProfile | null>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: input ? queryKeys.userProfile(input) : ['user', 'profile', 'current'],
@@ -447,7 +464,7 @@ export const useUserProfile = (
 
 export const useUserListings = (
   input: GetUserListingsInput,
-  options?: Omit<UseQueryOptions<Listing[], Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<Listing[], Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.userListings(input),
@@ -456,9 +473,7 @@ export const useUserListings = (
   })
 }
 
-export const useUpdateProfile = (
-  options?: UseMutationOptions<User, Error, UpdateProfileInput>
-) => {
+export const useUpdateProfile = (options?: UseMutationOptions<User, Error, UpdateProfileInput>) => {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -470,7 +485,9 @@ export const useUpdateProfile = (
   })
 }
 
-export const useUserPreferences = (options?: Omit<UseQueryOptions<UserPreferences, Error>, 'queryKey' | 'queryFn'>) => {
+export const useUserPreferences = (
+  options?: Omit<UseQueryOptions<UserPreferences, Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: queryKeys.userPreferences(),
     queryFn: preferencesService.getUserPreferences,
@@ -480,7 +497,7 @@ export const useUserPreferences = (options?: Omit<UseQueryOptions<UserPreference
 
 // Preferences Hooks
 export const useUpdateUserPreferences = (
-  options?: UseMutationOptions<UserPreferences, Error, UpdateUserPreferencesInput>
+  options?: UseMutationOptions<UserPreferences, Error, UpdateUserPreferencesInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -494,7 +511,7 @@ export const useUpdateUserPreferences = (
 }
 
 export const useAddDevicePreference = (
-  options?: UseMutationOptions<DevicePreference, Error, AddDevicePreferenceInput>
+  options?: UseMutationOptions<DevicePreference, Error, AddDevicePreferenceInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -508,7 +525,7 @@ export const useAddDevicePreference = (
 }
 
 export const useRemoveDevicePreference = (
-  options?: UseMutationOptions<{ success: boolean }, Error, RemoveDevicePreferenceInput>
+  options?: UseMutationOptions<{ success: boolean }, Error, RemoveDevicePreferenceInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -524,7 +541,7 @@ export const useRemoveDevicePreference = (
 // Notifications Hooks
 export const useNotifications = (
   input?: GetNotificationsInput,
-  options?: Omit<UseQueryOptions<GetNotificationsResponse, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<GetNotificationsResponse, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.notifications(input),
@@ -533,7 +550,9 @@ export const useNotifications = (
   })
 }
 
-export const useUnreadNotificationCount = (options?: Omit<UseQueryOptions<number, Error>, 'queryKey' | 'queryFn'>) => {
+export const useUnreadNotificationCount = (
+  options?: Omit<UseQueryOptions<number, Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: queryKeys.unreadNotificationCount(),
     queryFn: notificationsService.getUnreadNotificationCount,
@@ -542,7 +561,7 @@ export const useUnreadNotificationCount = (options?: Omit<UseQueryOptions<number
 }
 
 export const useMarkNotificationAsRead = (
-  options?: UseMutationOptions<{ success: boolean }, Error, MarkNotificationReadInput>
+  options?: UseMutationOptions<{ success: boolean }, Error, MarkNotificationReadInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -556,7 +575,7 @@ export const useMarkNotificationAsRead = (
 }
 
 export const useMarkAllNotificationsAsRead = (
-  options?: UseMutationOptions<{ success: boolean }, Error, void>
+  options?: UseMutationOptions<{ success: boolean }, Error, void>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -570,7 +589,9 @@ export const useMarkAllNotificationsAsRead = (
 }
 
 // Verification Hooks
-export const useMyVerifiedEmulators = (options?: Omit<UseQueryOptions<Emulator[], Error>, 'queryKey' | 'queryFn'>) => {
+export const useMyVerifiedEmulators = (
+  options?: Omit<UseQueryOptions<Emulator[], Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: queryKeys.myVerifiedEmulators(),
     queryFn: developersService.getMyVerifiedEmulators,
@@ -580,7 +601,7 @@ export const useMyVerifiedEmulators = (options?: Omit<UseQueryOptions<Emulator[]
 
 export const useIsVerifiedDeveloper = (
   input: IsVerifiedDeveloperInput,
-  options?: Omit<UseQueryOptions<boolean, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<boolean, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.isVerifiedDeveloper(input),
@@ -590,7 +611,7 @@ export const useIsVerifiedDeveloper = (
 }
 
 export const useVerifyListing = (
-  options?: UseMutationOptions<ListingVerification, Error, VerifyListingInput>
+  options?: UseMutationOptions<ListingVerification, Error, VerifyListingInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -605,7 +626,7 @@ export const useVerifyListing = (
 }
 
 export const useRemoveVerification = (
-  options?: UseMutationOptions<{ message: string }, Error, RemoveVerificationInput>
+  options?: UseMutationOptions<{ message: string }, Error, RemoveVerificationInput>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -621,7 +642,7 @@ export const useRemoveVerification = (
 
 export const useListingVerifications = (
   input: GetListingVerificationsInput,
-  options?: Omit<UseQueryOptions<ListingVerification[], Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<ListingVerification[], Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.listingVerifications(input),
@@ -632,7 +653,7 @@ export const useListingVerifications = (
 
 export const useMyVerifications = (
   input?: GetMyVerificationsInput,
-  options?: Omit<UseQueryOptions<GetMyVerificationsResponse, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<GetMyVerificationsResponse, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: queryKeys.myVerifications(input),
@@ -642,7 +663,9 @@ export const useMyVerifications = (
 }
 
 // Trust Hooks
-export const useMyTrustInfo = (options?: Omit<UseQueryOptions<{ score: number; level: string }, Error>, 'queryKey' | 'queryFn'>) => {
+export const useMyTrustInfo = (
+  options?: Omit<UseQueryOptions<{ score: number; level: string }, Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: ['trust', 'my'],
     queryFn: trustService.getMyTrustInfo,
@@ -652,7 +675,7 @@ export const useMyTrustInfo = (options?: Omit<UseQueryOptions<{ score: number; l
 
 export const useUserTrustInfo = (
   input: { userId: string },
-  options?: Omit<UseQueryOptions<{ score: number; level: string }, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<{ score: number; level: string }, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['trust', 'user', input.userId],
@@ -663,8 +686,24 @@ export const useUserTrustInfo = (
 
 // PC Listings Hooks (New Feature)
 export const usePcListings = (
-  input?: { page?: number; limit?: number; search?: string; gameId?: string; cpuId?: string; gpuId?: string },
-  options?: Omit<UseQueryOptions<{ listings: any[]; pagination: { page: number; limit: number; total: number; totalPages: number } }, Error>, 'queryKey' | 'queryFn'>
+  input?: {
+    page?: number
+    limit?: number
+    search?: string
+    gameId?: string
+    cpuId?: string
+    gpuId?: string
+  },
+  options?: Omit<
+    UseQueryOptions<
+      {
+        listings: any[]
+        pagination: { page: number; limit: number; total: number; totalPages: number }
+      },
+      Error
+    >,
+    'queryKey' | 'queryFn'
+  >,
 ) => {
   return useQuery({
     queryKey: ['pcListings', input],
@@ -675,7 +714,7 @@ export const usePcListings = (
 
 export const usePcListingById = (
   input: { id: string },
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['pcListings', input.id],
@@ -685,7 +724,20 @@ export const usePcListingById = (
 }
 
 export const useCreatePcListing = (
-  options?: UseMutationOptions<any, Error, { gameId: string; cpuId: string; gpuId: string; performanceId: string; notes?: string; fps?: number; resolution?: string; settings?: string }>
+  options?: UseMutationOptions<
+    any,
+    Error,
+    {
+      gameId: string
+      cpuId: string
+      gpuId: string
+      performanceId: string
+      notes?: string
+      fps?: number
+      resolution?: string
+      settings?: string
+    }
+  >,
 ) => {
   const queryClient = useQueryClient()
 
@@ -699,7 +751,21 @@ export const useCreatePcListing = (
 }
 
 export const useUpdatePcListing = (
-  options?: UseMutationOptions<any, Error, { id: string; gameId?: string; cpuId?: string; gpuId?: string; performanceId?: string; notes?: string; fps?: number; resolution?: string; settings?: string }>
+  options?: UseMutationOptions<
+    any,
+    Error,
+    {
+      id: string
+      gameId?: string
+      cpuId?: string
+      gpuId?: string
+      performanceId?: string
+      notes?: string
+      fps?: number
+      resolution?: string
+      settings?: string
+    }
+  >,
 ) => {
   const queryClient = useQueryClient()
 
@@ -714,7 +780,7 @@ export const useUpdatePcListing = (
 }
 
 export const useDeletePcListing = (
-  options?: UseMutationOptions<{ success: boolean }, Error, { id: string }>
+  options?: UseMutationOptions<{ success: boolean }, Error, { id: string }>,
 ) => {
   const queryClient = useQueryClient()
 
@@ -728,7 +794,9 @@ export const useDeletePcListing = (
   })
 }
 
-export const useCpusForMobile = (options?: Omit<UseQueryOptions<any[], Error>, 'queryKey' | 'queryFn'>) => {
+export const useCpusForMobile = (
+  options?: Omit<UseQueryOptions<any[], Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: ['pcListings', 'cpus'],
     queryFn: pcListingsService.getCpusForMobile,
@@ -736,7 +804,9 @@ export const useCpusForMobile = (options?: Omit<UseQueryOptions<any[], Error>, '
   })
 }
 
-export const useGpusForMobile = (options?: Omit<UseQueryOptions<any[], Error>, 'queryKey' | 'queryFn'>) => {
+export const useGpusForMobile = (
+  options?: Omit<UseQueryOptions<any[], Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: ['pcListings', 'gpus'],
     queryFn: pcListingsService.getGpusForMobile,
@@ -747,7 +817,16 @@ export const useGpusForMobile = (options?: Omit<UseQueryOptions<any[], Error>, '
 // Enhanced Hardware Hooks
 export const useCpus = (
   input?: { search?: string; page?: number; limit?: number; manufacturer?: string },
-  options?: Omit<UseQueryOptions<{ cpus: any[]; pagination: { page: number; limit: number; total: number; totalPages: number } }, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<
+      {
+        cpus: any[]
+        pagination: { page: number; limit: number; total: number; totalPages: number }
+      },
+      Error
+    >,
+    'queryKey' | 'queryFn'
+  >,
 ) => {
   return useQuery({
     queryKey: ['cpus', input],
@@ -758,7 +837,7 @@ export const useCpus = (
 
 export const useCpuById = (
   input: { id: string },
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['cpus', input.id],
@@ -769,7 +848,16 @@ export const useCpuById = (
 
 export const useGpus = (
   input?: { search?: string; page?: number; limit?: number; manufacturer?: string },
-  options?: Omit<UseQueryOptions<{ gpus: any[]; pagination: { page: number; limit: number; total: number; totalPages: number } }, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<
+    UseQueryOptions<
+      {
+        gpus: any[]
+        pagination: { page: number; limit: number; total: number; totalPages: number }
+      },
+      Error
+    >,
+    'queryKey' | 'queryFn'
+  >,
 ) => {
   return useQuery({
     queryKey: ['gpus', input],
@@ -780,7 +868,7 @@ export const useGpus = (
 
 export const useGpuById = (
   input: { id: string },
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['gpus', input.id],
@@ -791,7 +879,11 @@ export const useGpuById = (
 
 // Content Safety Hooks
 export const useCreateListingReport = (
-  options?: UseMutationOptions<{ success: boolean; message: string }, Error, { listingId: string; reason: string; description?: string }>
+  options?: UseMutationOptions<
+    { success: boolean; message: string },
+    Error,
+    { listingId: string; reason: string; description?: string }
+  >,
 ) => {
   const queryClient = useQueryClient()
 
@@ -804,7 +896,12 @@ export const useCreateListingReport = (
   })
 }
 
-export const useCheckUserHasReports = (options?: Omit<UseQueryOptions<{ hasReports: boolean; reportCount: number }, Error>, 'queryKey' | 'queryFn'>) => {
+export const useCheckUserHasReports = (
+  options?: Omit<
+    UseQueryOptions<{ hasReports: boolean; reportCount: number }, Error>,
+    'queryKey' | 'queryFn'
+  >,
+) => {
   return useQuery({
     queryKey: ['listingReports', 'userCheck'],
     queryFn: listingReportsService.checkUserHasReports,
@@ -815,7 +912,7 @@ export const useCheckUserHasReports = (options?: Omit<UseQueryOptions<{ hasRepor
 // RAWG Game Database Hooks
 export const useRawgSearchGames = (
   input: { query: string; page?: number; pageSize?: number },
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['rawg', 'searchGames', input],
@@ -827,7 +924,7 @@ export const useRawgSearchGames = (
 
 export const useRawgSearchGameImages = (
   input: { query: string; page?: number; pageSize?: number },
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['rawg', 'searchGameImages', input],
@@ -839,7 +936,7 @@ export const useRawgSearchGameImages = (
 
 export const useRawgGameImages = (
   input: { gameId: string },
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['rawg', 'gameImages', input.gameId],
@@ -852,7 +949,7 @@ export const useRawgGameImages = (
 // TGDB Hooks
 export const useTgdbSearchGames = (
   input: { name: string; platform?: string },
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['tgdb', 'searchGames', input],
@@ -864,7 +961,7 @@ export const useTgdbSearchGames = (
 
 export const useTgdbSearchGameImages = (
   input: { name: string; platform?: string },
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['tgdb', 'searchGameImages', input],
@@ -876,7 +973,7 @@ export const useTgdbSearchGameImages = (
 
 export const useTgdbGameImages = (
   input: { gameId: string },
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['tgdb', 'gameImages', input.gameId],
@@ -888,7 +985,7 @@ export const useTgdbGameImages = (
 
 export const useTgdbGameImageUrls = (
   input: { gameId: string },
-  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
 ) => {
   return useQuery({
     queryKey: ['tgdb', 'gameImageUrls', input.gameId],
@@ -898,7 +995,9 @@ export const useTgdbGameImageUrls = (
   })
 }
 
-export const useTgdbPlatforms = (options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>) => {
+export const useTgdbPlatforms = (
+  options?: Omit<UseQueryOptions<any, Error>, 'queryKey' | 'queryFn'>,
+) => {
   return useQuery({
     queryKey: ['tgdb', 'platforms'],
     queryFn: tgdbService.getPlatforms,

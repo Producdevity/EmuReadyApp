@@ -1,11 +1,5 @@
 import React, { useEffect } from 'react'
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-} from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -58,7 +52,7 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
       case 'profile':
         return <User color={color} size={size} strokeWidth={2.5} />
       case 'test':
-        return <FlaskConical  color={color} size={size} strokeWidth={2.5} />
+        return <FlaskConical color={color} size={size} strokeWidth={2.5} />
       case 'config':
         return <FileText color={color} size={size} strokeWidth={2.5} />
       default:
@@ -99,10 +93,7 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
   }, [isFocused, scale, iconScale, translateY, opacity])
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { translateY: translateY.value },
-    ] as any,
+    transform: [{ scale: scale.value }, { translateY: translateY.value }] as any,
   }))
 
   const iconAnimatedStyle = useAnimatedStyle(() => ({
@@ -110,11 +101,7 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
   }))
 
   const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      scale.value,
-      [1, 1.05],
-      [0, 1]
-    ),
+    opacity: interpolate(scale.value, [1, 1.05], [0, 1]),
   }))
 
   const labelAnimatedStyle = useAnimatedStyle(() => ({
@@ -127,11 +114,12 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
   }
 
   const { options } = descriptors[route.key]
-  const label = options.tabBarLabel !== undefined
-    ? options.tabBarLabel
-    : options.title !== undefined
-    ? options.title
-    : route.name
+  const label =
+    options.tabBarLabel !== undefined
+      ? options.tabBarLabel
+      : options.title !== undefined
+        ? options.title
+        : route.name
 
   return (
     <TouchableOpacity
@@ -144,9 +132,10 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
         {/* Animated background for focused state */}
         <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
           <LinearGradient
-            colors={route.name === 'create'
-              ? [theme.colors.accent, `${theme.colors.accent}dd`]
-              : [theme.colors.primary, theme.colors.primaryDark]
+            colors={
+              route.name === 'create'
+                ? [theme.colors.accent, `${theme.colors.accent}dd`]
+                : [theme.colors.primary, theme.colors.primaryDark]
             }
             style={styles.gradientBackground}
             start={{ x: 0, y: 0 }}
@@ -161,10 +150,9 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
 
         {/* Label with fade animation */}
         <Animated.View style={[labelAnimatedStyle]}>
-          <Text style={[
-            styles.tabLabel,
-            { color: isFocused ? '#ffffff' : theme.colors.textMuted }
-          ]}>
+          <Text
+            style={[styles.tabLabel, { color: isFocused ? '#ffffff' : theme.colors.textMuted }]}
+          >
             {label}
           </Text>
         </Animated.View>
@@ -195,9 +183,10 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: TabBa
 
       {/* Gradient overlay */}
       <LinearGradient
-        colors={theme.isDark
-          ? ['rgba(15, 23, 42, 0.97)', 'rgba(30, 41, 59, 0.99)']
-          : ['rgba(255, 255, 255, 0.97)', 'rgba(248, 250, 252, 0.99)']
+        colors={
+          theme.isDark
+            ? ['rgba(15, 23, 42, 0.97)', 'rgba(30, 41, 59, 0.99)']
+            : ['rgba(255, 255, 255, 0.97)', 'rgba(248, 250, 252, 0.99)']
         }
         style={StyleSheet.absoluteFillObject}
       />

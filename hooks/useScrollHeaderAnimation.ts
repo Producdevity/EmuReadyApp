@@ -1,4 +1,10 @@
-import { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated'
+import {
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated'
 
 interface ScrollHeaderAnimationConfig {
   headerHeight: number
@@ -30,14 +36,14 @@ export const useScrollHeaderAnimation = (config: ScrollHeaderAnimationConfig) =>
       scrollY.value,
       [0, headerHeight / 2, headerHeight],
       [startOpacity, midOpacity, endOpacity],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
-    
+
     const translateY = interpolate(
       scrollY.value,
       [0, headerHeight],
       [0, -headerHeight * parallaxFactor],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
 
     return {
@@ -51,14 +57,14 @@ export const useScrollHeaderAnimation = (config: ScrollHeaderAnimationConfig) =>
       scrollY.value,
       [headerHeight - 100, headerHeight],
       [0, 1],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
-    
+
     const translateY = interpolate(
       scrollY.value,
       [headerHeight - 100, headerHeight],
       [20, 0],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
 
     return {
@@ -68,12 +74,7 @@ export const useScrollHeaderAnimation = (config: ScrollHeaderAnimationConfig) =>
   })
 
   const backgroundAnimatedStyle = useAnimatedStyle(() => {
-    const scale = interpolate(
-      scrollY.value,
-      [0, headerHeight],
-      [1, 1.2],
-      Extrapolation.CLAMP
-    )
+    const scale = interpolate(scrollY.value, [0, headerHeight], [1, 1.2], Extrapolation.CLAMP)
 
     return {
       transform: [{ scale }],

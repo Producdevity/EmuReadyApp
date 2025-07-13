@@ -48,8 +48,7 @@ export const useAppStore = create<AppStore>()(
 
       login: (user) => set({ user, isAuthenticated: true, isLoading: false }),
 
-      logout: () =>
-        set({ user: null, isAuthenticated: false, isLoading: false }),
+      logout: () => set({ user: null, isAuthenticated: false, isLoading: false }),
 
       updateUser: (updates) =>
         set((state) => ({
@@ -77,8 +76,7 @@ export const useAppStore = create<AppStore>()(
 
 // Selectors
 export const useUser = () => useAppStore((state) => state.user)
-export const useIsAuthenticated = () =>
-  useAppStore((state) => state.isAuthenticated)
+export const useIsAuthenticated = () => useAppStore((state) => state.isAuthenticated)
 export const useIsLoading = () => useAppStore((state) => state.isLoading)
 export const usePreferences = () => useAppStore((state) => state.preferences)
 export const useTheme = () => useAppStore((state) => state.preferences.theme)

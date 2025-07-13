@@ -1,13 +1,6 @@
 import React from 'react'
-import {
-  Pressable,
-  View,
-  StyleSheet,
-  Platform,
-  type ViewStyle,
-} from 'react-native'
-import Animated,
-{
+import { Pressable, View, StyleSheet, Platform, type ViewStyle } from 'react-native'
+import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -103,7 +96,16 @@ export default function GamepadCard({
       focusBorder.value = withTiming(0, { duration: 200 })
       focusGlow.value = withTiming(0, { duration: 300 })
     }
-  }, [gamepadNav.isFocused, disabled, isLandscape, variant, scale, elevation, focusBorder, focusGlow])
+  }, [
+    gamepadNav.isFocused,
+    disabled,
+    isLandscape,
+    variant,
+    scale,
+    elevation,
+    focusBorder,
+    focusGlow,
+  ])
 
   React.useEffect(() => {
     opacity.value = withTiming(disabled ? 0.5 : 1, { duration: 200 })
@@ -119,7 +121,8 @@ export default function GamepadCard({
     borderColor: theme.colors.primary,
     shadowOpacity: Platform.OS === 'ios' ? elevation.value / 10 : 0,
     shadowRadius: Platform.OS === 'ios' ? elevation.value : 0,
-    shadowOffset: Platform.OS === 'ios' ? { width: 0, height: elevation.value / 2 } : { width: 0, height: 0 },
+    shadowOffset:
+      Platform.OS === 'ios' ? { width: 0, height: elevation.value / 2 } : { width: 0, height: 0 },
     elevation: Platform.OS === 'android' ? elevation.value : 0,
   }))
 
@@ -208,9 +211,7 @@ export default function GamepadCard({
             />
           )}
 
-          <View style={styles.content}>
-            {children}
-          </View>
+          <View style={styles.content}>{children}</View>
         </View>
       </Animated.View>
     </CardWrapper>

@@ -1,4 +1,4 @@
-import React, {Component,  type ComponentType, type PropsWithChildren, type ErrorInfo } from 'react'
+import React, { Component, type ComponentType, type PropsWithChildren, type ErrorInfo } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { Button } from './ui'
 
@@ -16,9 +16,7 @@ function DefaultErrorFallback(props: { error: Error; resetError: () => void }) {
     <View style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>🚫 Something went wrong</Text>
-        <Text style={styles.message}>
-          We encountered an unexpected error. Please try again.
-        </Text>
+        <Text style={styles.message}>We encountered an unexpected error. Please try again.</Text>
         {__DEV__ && (
           <View style={styles.debugContainer}>
             <Text style={styles.debugTitle}>Debug Info:</Text>
@@ -58,7 +56,7 @@ class ErrorBoundary extends Component<Props, State> {
         componentStack: errorInfo.componentStack,
         timestamp: new Date().toISOString(),
       })
-      
+
       // In a real app, you would send this to a crash reporting service like:
       // - Sentry: Sentry.captureException(error, { contexts: { react: errorInfo } })
       // - Bugsnag: Bugsnag.notify(error, { metadata: { react: errorInfo } })
@@ -73,12 +71,7 @@ class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError && this.state.error) {
       const FallbackComponent = this.props.fallback || DefaultErrorFallback
-      return (
-        <FallbackComponent
-          error={this.state.error}
-          resetError={this.resetError}
-        />
-      )
+      return <FallbackComponent error={this.state.error} resetError={this.resetError} />
     }
 
     return this.props.children

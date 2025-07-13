@@ -71,44 +71,34 @@ export default function ProfileScreen() {
 
   const handleSignIn = () => {
     // Navigate to sign in screen or show sign in modal
-    Alert.alert(
-      'Sign In Required',
-      'Please sign in to access your profile and create listings.',
-      [
-        { text: 'Cancel' },
-        {
-          text: 'Sign In',
-          onPress: () => {
-            router.push('/(auth)/sign-in')
-          },
+    Alert.alert('Sign In Required', 'Please sign in to access your profile and create listings.', [
+      { text: 'Cancel' },
+      {
+        text: 'Sign In',
+        onPress: () => {
+          router.push('/(auth)/sign-in')
         },
-      ],
-    )
+      },
+    ])
   }
 
   const handleSignUp = () => {
     // Navigate to sign up screen or show sign up modal
-    Alert.alert(
-      'Create Account',
-      'Join EmuReady to share your emulation experiences.',
-      [
-        { text: 'Cancel' },
-        {
-          text: 'Sign Up',
-          onPress: () => {
-            router.push('/(auth)/sign-up')
-          },
+    Alert.alert('Create Account', 'Join EmuReady to share your emulation experiences.', [
+      { text: 'Cancel' },
+      {
+        text: 'Sign Up',
+        onPress: () => {
+          router.push('/(auth)/sign-up')
         },
-      ],
-    )
+      },
+    ])
   }
 
   const handleEditProfile = () => {
-    Alert.alert(
-      'Edit Profile',
-      'Profile editing will be available in a future update.',
-      [{ text: 'OK' }],
-    )
+    Alert.alert('Edit Profile', 'Profile editing will be available in a future update.', [
+      { text: 'OK' },
+    ])
   }
 
   const handleListingPress = (listingId: string) => {
@@ -116,9 +106,7 @@ export default function ProfileScreen() {
   }
 
   const handleSettingsPress = (setting: string) => {
-    Alert.alert(setting, 'This setting will be available in a future update.', [
-      { text: 'OK' },
-    ])
+    Alert.alert(setting, 'This setting will be available in a future update.', [{ text: 'OK' }])
   }
 
   // Show sign in/up screen when not authenticated
@@ -135,8 +123,8 @@ export default function ProfileScreen() {
             />
             <Text style={styles.authTitle}>Welcome to EmuReady</Text>
             <Text style={styles.authDescription}>
-              Sign in to access your profile, create listings, and connect with
-              the emulation community.
+              Sign in to access your profile, create listings, and connect with the emulation
+              community.
             </Text>
 
             <View style={styles.authButtons}>
@@ -178,22 +166,12 @@ export default function ProfileScreen() {
                   </View>
                 </View>
                 <Button
-                  title={
-                    themeMode === 'system'
-                      ? 'Auto'
-                      : themeMode === 'dark'
-                        ? 'Dark'
-                        : 'Light'
-                  }
+                  title={themeMode === 'system' ? 'Auto' : themeMode === 'dark' ? 'Dark' : 'Light'}
                   variant="outline"
                   size="sm"
                   onPress={() => {
                     const nextMode =
-                      themeMode === 'light'
-                        ? 'dark'
-                        : themeMode === 'dark'
-                          ? 'system'
-                          : 'light'
+                      themeMode === 'light' ? 'dark' : themeMode === 'dark' ? 'system' : 'light'
                     setThemeMode(nextMode)
                   }}
                 />
@@ -224,17 +202,12 @@ export default function ProfileScreen() {
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={64} color={theme.colors.error} />
           <Text style={styles.errorTitle}>Failed to Load Profile</Text>
-          <Text style={styles.errorDescription}>
-            There was an error loading your profile data.
-          </Text>
+          <Text style={styles.errorDescription}>There was an error loading your profile data.</Text>
           <Button
             title="Try Again"
             variant="primary"
             onPress={async () => {
-              await Promise.all([
-                currentUserQuery.refetch(),
-                userListingsQuery.refetch(),
-              ])
+              await Promise.all([currentUserQuery.refetch(), userListingsQuery.refetch()])
             }}
             style={styles.retryButton}
           />
@@ -348,24 +321,15 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.profileInfo}>
             <View style={styles.profileImageContainer}>
-              <Ionicons
-                name="person-circle"
-                size={80}
-                color={theme.colors.textSecondary}
-              />
+              <Ionicons name="person-circle" size={80} color={theme.colors.textSecondary} />
             </View>
             <View style={styles.profileDetails}>
-              <Text style={styles.profileName}>
-                {currentUserQuery.data?.name || 'User'}
-              </Text>
+              <Text style={styles.profileName}>{currentUserQuery.data?.name || 'User'}</Text>
               <Text style={styles.profileEmail}>
                 {currentUserQuery.data?.email || 'user@example.com'}
               </Text>
@@ -380,9 +344,7 @@ export default function ProfileScreen() {
             variant="outline"
             size="sm"
             onPress={handleEditProfile}
-            rightIcon={
-              <Ionicons name="pencil" size={14} color={theme.colors.text} />
-            }
+            rightIcon={<Ionicons name="pencil" size={14} color={theme.colors.text} />}
           />
         </View>
 
@@ -396,21 +358,14 @@ export default function ProfileScreen() {
             ].map((tab) => (
               <Card
                 key={tab.key}
-                style={StyleSheet.flatten([
-                  styles.tab,
-                  activeTab === tab.key && styles.activeTab,
-                ])}
+                style={StyleSheet.flatten([styles.tab, activeTab === tab.key && styles.activeTab])}
                 padding="sm"
                 onPress={() => setActiveTab(tab.key as ProfileTab)}
               >
                 <Ionicons
                   name={tab.icon as any}
                   size={16}
-                  color={
-                    activeTab === tab.key
-                      ? theme.colors.primary
-                      : theme.colors.textSecondary
-                  }
+                  color={activeTab === tab.key ? theme.colors.primary : theme.colors.textSecondary}
                   style={styles.tabIcon}
                 />
                 <Text
@@ -457,11 +412,7 @@ export default function ProfileScreen() {
                   false: theme.colors.border,
                   true: theme.colors.primary,
                 }}
-                thumbColor={
-                  notificationsEnabled
-                    ? theme.colors.card
-                    : theme.colors.background
-                }
+                thumbColor={notificationsEnabled ? theme.colors.card : theme.colors.background}
               />
             </View>
           </Card>
@@ -488,22 +439,12 @@ export default function ProfileScreen() {
                 </View>
               </View>
               <Button
-                title={
-                  themeMode === 'system'
-                    ? 'Auto'
-                    : themeMode === 'dark'
-                      ? 'Dark'
-                      : 'Light'
-                }
+                title={themeMode === 'system' ? 'Auto' : themeMode === 'dark' ? 'Dark' : 'Light'}
                 variant="outline"
                 size="sm"
                 onPress={() => {
                   const nextMode =
-                    themeMode === 'light'
-                      ? 'dark'
-                      : themeMode === 'dark'
-                        ? 'system'
-                        : 'light'
+                    themeMode === 'light' ? 'dark' : themeMode === 'dark' ? 'system' : 'light'
                   setThemeMode(nextMode)
                 }}
               />
@@ -544,16 +485,10 @@ export default function ProfileScreen() {
                   />
                   <View>
                     <Text style={styles.settingTitle}>{setting.title}</Text>
-                    <Text style={styles.settingDescription}>
-                      {setting.description}
-                    </Text>
+                    <Text style={styles.settingDescription}>{setting.description}</Text>
                   </View>
                 </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color={theme.colors.textMuted}
-                />
+                <Ionicons name="chevron-forward" size={16} color={theme.colors.textMuted} />
               </View>
             </Card>
           ))}

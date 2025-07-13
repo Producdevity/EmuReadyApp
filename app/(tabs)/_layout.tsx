@@ -14,7 +14,7 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 export default function TabLayout() {
   const { theme } = useTheme()
   const { isLandscape } = useOrientationOptimized()
-  
+
   // Initialize gamepad event handling
   useGamepadEventHandler()
 
@@ -45,7 +45,8 @@ export default function TabLayout() {
             },
             default: {},
           }),
-        }}>
+        }}
+      >
         <Tabs.Screen
           name="index"
           options={{
@@ -57,21 +58,27 @@ export default function TabLayout() {
           name="browse"
           options={{
             title: 'Browse',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="magnifyingglass" color={color} />,
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={28} name="magnifyingglass" color={color} />
+            ),
           }}
         />
         <Tabs.Screen
           name="create"
           options={{
             title: 'Add',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="plus.circle.fill" color={color} />,
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={28} name="plus.circle.fill" color={color} />
+            ),
           }}
         />
         <Tabs.Screen
           name="pc"
           options={{
             title: 'PC Gaming',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="desktopcomputer" color={color} />,
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={28} name="desktopcomputer" color={color} />
+            ),
           }}
         />
         <Tabs.Screen
@@ -92,7 +99,9 @@ export default function TabLayout() {
           name="test"
           options={{
             title: 'Test',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="gamecontroller.fill" color={color} />,
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={28} name="gamecontroller.fill" color={color} />
+            ),
           }}
         />
         <Tabs.Screen

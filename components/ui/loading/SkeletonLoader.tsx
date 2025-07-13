@@ -1,10 +1,5 @@
 import React from 'react'
-import {
-  StyleSheet,
-  View,
-  type DimensionValue,
-  type ViewStyle,
-} from 'react-native'
+import { StyleSheet, View, type DimensionValue, type ViewStyle } from 'react-native'
 import { Skeleton } from 'moti/skeleton'
 import { useTheme } from '@/contexts/ThemeContext'
 
@@ -49,7 +44,7 @@ export function SkeletonText(props: { lines?: number; style?: ViewStyle }) {
 
 export function SkeletonCard(props: { style?: ViewStyle }) {
   const { theme } = useTheme()
-  
+
   return (
     <View style={[styles.card, { backgroundColor: theme.colors.card }, props.style]}>
       <View style={styles.cardHeader}>
@@ -72,7 +67,7 @@ export function SkeletonCard(props: { style?: ViewStyle }) {
 
 export function SkeletonListingCard(props: { style?: ViewStyle }) {
   const { theme } = useTheme()
-  
+
   return (
     <View style={[styles.listingCard, { backgroundColor: theme.colors.card }, props.style]}>
       <View style={styles.listingHeader}>

@@ -1,11 +1,5 @@
 import React, { type ReactNode } from 'react'
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-  type ViewStyle,
-} from 'react-native'
+import { View, TouchableOpacity, StyleSheet, Platform, type ViewStyle } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -113,13 +107,9 @@ export default function Card({
       case 'glass':
         return {
           ...baseStyles,
-          backgroundColor: theme.isDark
-            ? 'rgba(31, 41, 55, 0.6)'
-            : 'rgba(255, 255, 255, 0.6)',
+          backgroundColor: theme.isDark ? 'rgba(31, 41, 55, 0.6)' : 'rgba(255, 255, 255, 0.6)',
           borderWidth: 1,
-          borderColor: theme.isDark
-            ? 'rgba(75, 85, 99, 0.3)'
-            : 'rgba(209, 213, 219, 0.3)',
+          borderColor: theme.isDark ? 'rgba(75, 85, 99, 0.3)' : 'rgba(209, 213, 219, 0.3)',
         }
       case 'gradient':
         return {

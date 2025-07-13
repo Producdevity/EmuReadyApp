@@ -4,12 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/contexts/ThemeContext'
-import { 
-  useGames, 
-  useCpusForMobile, 
-  useGpusForMobile, 
-  usePerformanceScales, 
-  useCreatePcListing 
+import {
+  useGames,
+  useCpusForMobile,
+  useGpusForMobile,
+  usePerformanceScales,
+  useCreatePcListing,
 } from '@/lib/api/hooks'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
@@ -17,7 +17,7 @@ import { Picker } from '@react-native-picker/picker'
 
 export default function CreatePCListingScreen() {
   const { theme } = useTheme()
-  
+
   // Form state
   const [selectedGame, setSelectedGame] = useState('')
   const [selectedCpu, setSelectedCpu] = useState('')
@@ -37,7 +37,7 @@ export default function CreatePCListingScreen() {
   const createMutation = useCreatePcListing({
     onSuccess: () => {
       Alert.alert('Success', 'PC listing created successfully!', [
-        { text: 'OK', onPress: () => router.back() }
+        { text: 'OK', onPress: () => router.back() },
       ])
     },
     onError: (error) => {
@@ -120,12 +120,15 @@ export default function CreatePCListingScreen() {
                 <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
                   Hardware Configuration *
                 </Text>
-                
+
                 {/* CPU */}
                 <Text className="font-medium mb-2" style={{ color: theme.colors.text }}>
                   CPU *
                 </Text>
-                <View className="border rounded-lg mb-4" style={{ borderColor: theme.colors.border }}>
+                <View
+                  className="border rounded-lg mb-4"
+                  style={{ borderColor: theme.colors.border }}
+                >
                   <Picker
                     selectedValue={selectedCpu}
                     onValueChange={setSelectedCpu}
@@ -184,7 +187,7 @@ export default function CreatePCListingScreen() {
                 <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
                   Performance Details
                 </Text>
-                
+
                 {/* FPS */}
                 <Text className="font-medium mb-2" style={{ color: theme.colors.text }}>
                   Average FPS
@@ -285,7 +288,7 @@ export default function CreatePCListingScreen() {
                   )
                 }
               />
-              
+
               <Button
                 title="Cancel"
                 onPress={() => router.back()}

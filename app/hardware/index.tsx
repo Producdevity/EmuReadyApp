@@ -61,7 +61,7 @@ export default function HardwareScreen() {
               <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
                 Database Overview
               </Text>
-              
+
               <View className="flex-row justify-around">
                 <View className="items-center">
                   <Text className="text-2xl font-bold" style={{ color: theme.colors.primary }}>
@@ -71,7 +71,7 @@ export default function HardwareScreen() {
                     Total Components
                   </Text>
                 </View>
-                
+
                 <View className="items-center">
                   <Text className="text-2xl font-bold" style={{ color: theme.colors.secondary }}>
                     {cpusData?.pagination?.total || 0}
@@ -80,7 +80,7 @@ export default function HardwareScreen() {
                     CPUs
                   </Text>
                 </View>
-                
+
                 <View className="items-center">
                   <Text className="text-2xl font-bold" style={{ color: theme.colors.accent }}>
                     {gpusData?.pagination?.total || 0}
@@ -108,34 +108,39 @@ export default function HardwareScreen() {
                         className="w-12 h-12 rounded-full mr-4 items-center justify-center"
                         style={{ backgroundColor: `${category.color}20` }}
                       >
-                        <Ionicons 
-                          name={category.icon as any} 
-                          size={24} 
-                          color={category.color} 
-                        />
+                        <Ionicons name={category.icon as any} size={24} color={category.color} />
                       </View>
-                      
+
                       <View className="flex-1">
                         <View className="flex-row justify-between items-start mb-2">
-                          <Text className="text-xl font-semibold" style={{ color: theme.colors.text }}>
+                          <Text
+                            className="text-xl font-semibold"
+                            style={{ color: theme.colors.text }}
+                          >
                             {category.title}
                           </Text>
                           <View className="flex-row items-center">
-                            <Text className="text-sm font-medium mr-2" style={{ color: theme.colors.textSecondary }}>
+                            <Text
+                              className="text-sm font-medium mr-2"
+                              style={{ color: theme.colors.textSecondary }}
+                            >
                               {category.count.toLocaleString()} items
                             </Text>
-                            <Ionicons 
-                              name="chevron-forward" 
-                              size={16} 
-                              color={theme.colors.textMuted} 
+                            <Ionicons
+                              name="chevron-forward"
+                              size={16}
+                              color={theme.colors.textMuted}
                             />
                           </View>
                         </View>
-                        
-                        <Text className="text-sm font-medium mb-2" style={{ color: category.color }}>
+
+                        <Text
+                          className="text-sm font-medium mb-2"
+                          style={{ color: category.color }}
+                        >
                           {category.subtitle}
                         </Text>
-                        
+
                         <Text className="text-sm" style={{ color: theme.colors.textSecondary }}>
                           {category.description}
                         </Text>
@@ -156,9 +161,10 @@ export default function HardwareScreen() {
                   About Hardware Database
                 </Text>
               </View>
-              
+
               <Text className="mb-3" style={{ color: theme.colors.textSecondary, lineHeight: 20 }}>
-                Our comprehensive hardware database provides detailed specifications for processors and graphics cards to help you make informed decisions about PC gaming performance.
+                Our comprehensive hardware database provides detailed specifications for processors
+                and graphics cards to help you make informed decisions about PC gaming performance.
               </Text>
 
               <View className="space-y-2">

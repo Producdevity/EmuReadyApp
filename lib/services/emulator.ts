@@ -219,9 +219,7 @@ export class EmulatorService {
     }
 
     if (!this.validateTitleId(titleId)) {
-      throw new Error(
-        'Invalid title ID format. Must be 16-digit hexadecimal string.',
-      )
+      throw new Error('Invalid title ID format. Must be 16-digit hexadecimal string.')
     }
 
     // Note: We'll attempt to launch regardless of installation check
@@ -260,15 +258,15 @@ export class EmulatorService {
         console.log('IntentLauncher approach successful!')
       } catch (intentError) {
         console.log('IntentLauncher failed, trying Linking approach...', intentError)
-        
+
         // Fallback to Linking with proper intent URI
         const intentUri = `intent://#Intent;package=${packageName};action=${launchAction};component=${packageName}/${EMULATION_ACTIVITY};S.title_id=${titleId};S.custom_settings=${encodeURIComponent(customSettings)};i.flags=268435456;end`
-        
+
         const canOpen = await Linking.canOpenURL(intentUri)
         if (!canOpen) {
           throw new Error(`Cannot open intent URI for ${packageName}`)
         }
-        
+
         await Linking.openURL(intentUri)
         console.log('Linking approach successful!')
       }
@@ -282,7 +280,10 @@ export class EmulatorService {
         stack: (error as any)?.stack,
       })
 
-      const actionUsed = packageName === EDEN_PACKAGE ? EDEN_LAUNCH_ACTION : `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`
+      const actionUsed =
+        packageName === EDEN_PACKAGE
+          ? EDEN_LAUNCH_ACTION
+          : `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`
 
       throw new Error(
         `Failed to launch emulator (${packageName}). Please ensure the emulator is installed on your device.

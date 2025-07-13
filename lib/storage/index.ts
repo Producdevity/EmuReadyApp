@@ -47,15 +47,15 @@ class AsyncStorageWrapper {
 
   async clearAll(): Promise<void> {
     const keys = await AsyncStorage.getAllKeys()
-    const prefixedKeys = keys.filter(key => key.startsWith(this.prefix))
+    const prefixedKeys = keys.filter((key) => key.startsWith(this.prefix))
     await AsyncStorage.multiRemove(prefixedKeys)
   }
 
   async getAllKeys(): Promise<string[]> {
     const keys = await AsyncStorage.getAllKeys()
     return keys
-      .filter(key => key.startsWith(this.prefix))
-      .map(key => key.substring(this.prefix.length))
+      .filter((key) => key.startsWith(this.prefix))
+      .map((key) => key.substring(this.prefix.length))
   }
 }
 
@@ -133,7 +133,9 @@ export interface Storage {
   getAllKeys: () => Promise<string[]>
 }
 
-const createStorageWrapper = (storageInstance: AsyncStorageWrapper | SecureStorageWrapper): Storage => ({
+const createStorageWrapper = (
+  storageInstance: AsyncStorageWrapper | SecureStorageWrapper,
+): Storage => ({
   set: async (key: string, value: any) => {
     await storageInstance.set(key, value)
   },
@@ -179,8 +181,7 @@ export const appStorage = createStorageWrapper(storage)
 export const secureAppStorage = createStorageWrapper(secureStorage)
 
 export const authStorage = {
-  setToken: async (token: string) =>
-    await secureAppStorage.set(STORAGE_KEYS.AUTH_TOKEN, token),
+  setToken: async (token: string) => await secureAppStorage.set(STORAGE_KEYS.AUTH_TOKEN, token),
   getToken: async () => await secureAppStorage.get<string>(STORAGE_KEYS.AUTH_TOKEN),
   removeToken: async () => await secureAppStorage.delete(STORAGE_KEYS.AUTH_TOKEN),
 }
@@ -214,14 +215,11 @@ export const cacheStorage = {
     return cacheData.data
   },
 
-  removeCache: async (key: string) =>
-    await appStorage.delete(`${STORAGE_KEYS.CACHED_DATA}_${key}`),
+  removeCache: async (key: string) => await appStorage.delete(`${STORAGE_KEYS.CACHED_DATA}_${key}`),
 
   clearExpiredCache: async () => {
     const keys = await appStorage.getAllKeys()
-    const cacheKeys = keys.filter((key) =>
-      key.startsWith(STORAGE_KEYS.CACHED_DATA),
-    )
+    const cacheKeys = keys.filter((key) => key.startsWith(STORAGE_KEYS.CACHED_DATA))
 
     for (const key of cacheKeys) {
       const cacheData = await appStorage.get(key)

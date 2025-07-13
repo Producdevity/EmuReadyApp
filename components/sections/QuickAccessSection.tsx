@@ -63,7 +63,7 @@ export default function QuickAccessSection() {
         <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
           Quick Access
         </Text>
-        
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View className="flex-row">
             {quickAccessItems.map((item, _index) => (
@@ -73,9 +73,9 @@ export default function QuickAccessSection() {
                 className="mr-3"
                 activeOpacity={0.7}
               >
-                <View 
+                <View
                   className="items-center p-4 rounded-lg"
-                  style={{ 
+                  style={{
                     backgroundColor: theme.colors.surface,
                     minWidth: 100,
                   }}
@@ -84,35 +84,29 @@ export default function QuickAccessSection() {
                     className="w-12 h-12 rounded-full mb-2 items-center justify-center"
                     style={{ backgroundColor: `${item.color}20` }}
                   >
-                    <Ionicons 
-                      name={item.icon as any} 
-                      size={24} 
-                      color={item.color} 
-                    />
+                    <Ionicons name={item.icon as any} size={24} color={item.color} />
                   </View>
-                  
-                  <Text 
+
+                  <Text
                     className="font-semibold text-sm text-center"
                     style={{ color: theme.colors.text }}
                   >
                     {item.title}
                   </Text>
-                  
-                  <Text 
+
+                  <Text
                     className="text-xs text-center mt-1"
                     style={{ color: theme.colors.textSecondary }}
                   >
                     {item.subtitle}
                   </Text>
-                  
+
                   {item.badge && (
-                    <View 
+                    <View
                       className="absolute -top-1 -right-1 w-5 h-5 rounded-full items-center justify-center"
                       style={{ backgroundColor: theme.colors.error }}
                     >
-                      <Text className="text-xs font-bold text-white">
-                        {item.badge}
-                      </Text>
+                      <Text className="text-xs font-bold text-white">{item.badge}</Text>
                     </View>
                   )}
                 </View>

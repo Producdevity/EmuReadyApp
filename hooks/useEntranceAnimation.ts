@@ -1,9 +1,4 @@
-import { 
-  FadeInUp, 
-  FadeInDown, 
-  SlideInRight, 
-  SlideInLeft,
-} from 'react-native-reanimated'
+import { FadeInUp, FadeInDown, SlideInRight, SlideInLeft } from 'react-native-reanimated'
 import { ANIMATION_CONFIG, getStaggerDelay, getBaseDelay } from '@/lib/animation/config'
 
 type AnimationType = 'fadeUp' | 'fadeDown' | 'slideRight' | 'slideLeft'
@@ -21,13 +16,9 @@ interface UseEntranceAnimationReturn {
 }
 
 export const useEntranceAnimation = (
-  config: EntranceAnimationConfig = {}
+  config: EntranceAnimationConfig = {},
 ): UseEntranceAnimationReturn => {
-  const {
-    type = 'fadeUp',
-    baseDelay = 'fast',
-    stagger = 'normal',
-  } = config
+  const { type = 'fadeUp', baseDelay = 'fast', stagger = 'normal' } = config
 
   const getAnimationBuilder = (animationType: AnimationType) => {
     switch (animationType) {
@@ -45,9 +36,7 @@ export const useEntranceAnimation = (
 
   const getItemAnimation = (index: number) => {
     const delay = getStaggerDelay(index, baseDelay, stagger)
-    return getAnimationBuilder(type)
-      .delay(delay)
-      .duration(ANIMATION_CONFIG.timing.fast)
+    return getAnimationBuilder(type).delay(delay).duration(ANIMATION_CONFIG.timing.fast)
   }
 
   const getContainerAnimation = () => {
@@ -57,9 +46,7 @@ export const useEntranceAnimation = (
   }
 
   const getHeaderAnimation = () => {
-    return FadeInDown
-      .delay(getBaseDelay('instant'))
-      .duration(ANIMATION_CONFIG.timing.fast)
+    return FadeInDown.delay(getBaseDelay('instant')).duration(ANIMATION_CONFIG.timing.fast)
   }
 
   return {
@@ -107,25 +94,25 @@ export const createStaggeredAnimation = (
   count: number,
   animationType: AnimationType = 'fadeUp',
   stagger: keyof typeof ANIMATION_CONFIG.stagger = 'normal',
-  baseDelay: keyof typeof ANIMATION_CONFIG.baseDelay = 'fast'
+  baseDelay: keyof typeof ANIMATION_CONFIG.baseDelay = 'fast',
 ) => {
   const getBuilder = (type: AnimationType) => {
     switch (type) {
-      case 'fadeDown': return FadeInDown
-      case 'slideRight': return SlideInRight
-      case 'slideLeft': return SlideInLeft
-      default: return FadeInUp
+      case 'fadeDown':
+        return FadeInDown
+      case 'slideRight':
+        return SlideInRight
+      case 'slideLeft':
+        return SlideInLeft
+      default:
+        return FadeInUp
     }
   }
 
   const animations = []
   for (let i = 0; i < count; i++) {
     const delay = getStaggerDelay(i, baseDelay, stagger)
-    animations.push(
-      getBuilder(animationType)
-        .delay(delay)
-        .duration(ANIMATION_CONFIG.timing.fast)
-    )
+    animations.push(getBuilder(animationType).delay(delay).duration(ANIMATION_CONFIG.timing.fast))
   }
   return animations
 }

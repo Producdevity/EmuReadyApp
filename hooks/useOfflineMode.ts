@@ -18,7 +18,7 @@ const storage = {
     } catch {
       // Handle error
     }
-  }
+  },
 }
 
 interface OfflineState {
@@ -68,13 +68,13 @@ const useOfflineMode = () => {
         // Here you would call your actual API endpoints
         // For now, we'll simulate processing
         console.log(`Processing offline item: ${item.endpoint}`)
-        
+
         // Simulate API call success/failure
         const success = Math.random() > 0.1 // 90% success rate
-        
+
         if (success) {
           processedItems.push(item.id)
-          
+
           // Invalidate related queries to refetch fresh data
           await queryClient.invalidateQueries()
         } else {
@@ -82,7 +82,7 @@ const useOfflineMode = () => {
         }
       } catch (error) {
         console.error(`Failed to process offline item ${item.id}:`, error)
-        
+
         // Retry logic
         if (item.retryCount < MAX_RETRY_COUNT) {
           failedItems.push({
@@ -115,7 +115,7 @@ const useOfflineMode = () => {
     }))
 
     console.log(
-      `Offline queue processed: ${processedItems.length} successful, ${failedItems.length} failed`
+      `Offline queue processed: ${processedItems.length} successful, ${failedItems.length} failed`,
     )
   }
 
@@ -123,7 +123,7 @@ const useOfflineMode = () => {
     // Check network status periodically
     const checkNetworkStatus = async () => {
       const isOnline = await networkUtils.isOnline()
-      
+
       setState((prev) => ({
         ...prev,
         isOnline,
@@ -182,11 +182,7 @@ const useOfflineMode = () => {
     }
   }
 
-  const addToOfflineQueue = async (
-    endpoint: string,
-    data: any,
-    type: 'mutation' = 'mutation'
-  ) => {
+  const addToOfflineQueue = async (endpoint: string, data: any, type: 'mutation' = 'mutation') => {
     const queueItem: OfflineQueue = {
       id: `${Date.now()}_${Math.random()}`,
       type,

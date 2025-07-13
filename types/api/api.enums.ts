@@ -21,8 +21,7 @@ export const CustomFieldType = {
   RANGE: 'RANGE',
 } as const
 
-export type CustomFieldType =
-  (typeof CustomFieldType)[keyof typeof CustomFieldType]
+export type CustomFieldType = (typeof CustomFieldType)[keyof typeof CustomFieldType]
 
 export const ApprovalStatus = {
   PENDING: 'PENDING',
@@ -30,8 +29,7 @@ export const ApprovalStatus = {
   REJECTED: 'REJECTED',
 } as const
 
-export type ApprovalStatus =
-  (typeof ApprovalStatus)[keyof typeof ApprovalStatus]
+export type ApprovalStatus = (typeof ApprovalStatus)[keyof typeof ApprovalStatus]
 
 export const NotificationType = {
   LISTING_COMMENT: 'LISTING_COMMENT',
@@ -53,8 +51,7 @@ export const NotificationType = {
   ROLE_CHANGED: 'ROLE_CHANGED',
 } as const
 
-export type NotificationType =
-  (typeof NotificationType)[keyof typeof NotificationType]
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
 
 export const NotificationCategory = {
   ENGAGEMENT: 'ENGAGEMENT',
@@ -63,8 +60,7 @@ export const NotificationCategory = {
   MODERATION: 'MODERATION',
 } as const
 
-export type NotificationCategory =
-  (typeof NotificationCategory)[keyof typeof NotificationCategory]
+export type NotificationCategory = (typeof NotificationCategory)[keyof typeof NotificationCategory]
 
 export const DeliveryChannel = {
   IN_APP: 'IN_APP',
@@ -72,8 +68,7 @@ export const DeliveryChannel = {
   BOTH: 'BOTH',
 } as const
 
-export type DeliveryChannel =
-  (typeof DeliveryChannel)[keyof typeof DeliveryChannel]
+export type DeliveryChannel = (typeof DeliveryChannel)[keyof typeof DeliveryChannel]
 
 export const NotificationDeliveryStatus = {
   PENDING: 'PENDING',

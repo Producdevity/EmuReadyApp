@@ -1,8 +1,4 @@
-import axios, {
-  type AxiosInstance,
-  type AxiosRequestConfig,
-  type AxiosResponse,
-} from 'axios'
+import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { Platform } from 'react-native'
 import { deserialize, type SuperJSONResult } from 'superjson'
 import { CONFIG } from '@/lib/constants/config'
@@ -30,10 +26,7 @@ const isSuperJSONResult = (data: unknown): data is SuperJSONResult => {
   // If it has 'meta', it must be undefined or an object
   if (Reflect.has(data, 'meta')) {
     const metaValue = Reflect.get(data, 'meta')
-    if (
-      metaValue !== undefined &&
-      (typeof metaValue !== 'object' || metaValue === null)
-    ) {
+    if (metaValue !== undefined && (typeof metaValue !== 'object' || metaValue === null)) {
       return false
     }
   }
@@ -50,10 +43,7 @@ const deserializeIfNeeded = (data: unknown): unknown => {
     return data
   } catch (error) {
     if (CONFIG.IS_DEV) {
-      console.warn(
-        '⚠️ Superjson deserialization failed, using raw data:',
-        error,
-      )
+      console.warn('⚠️ Superjson deserialization failed, using raw data:', error)
     }
     return data
   }
@@ -87,11 +77,7 @@ const unwrapTrpcResponse = (response: AxiosResponse): UnwrapResult => {
       const extractedData = strategy.extract()
 
       if (CONFIG.IS_DEV) {
-        console.log(
-          `📥 API Response (${strategy.name}):`,
-          config?.url,
-          `→ Unwrapped`,
-        )
+        console.log(`📥 API Response (${strategy.name}):`, config?.url, `→ Unwrapped`)
       }
 
       // Apply superjson deserialization for tRPC data handling
@@ -140,9 +126,7 @@ const createAxiosInstance = (): AxiosInstance => {
     (response: AxiosResponse) => {
       const unwrappedData = unwrapTrpcResponse(response)
 
-      return unwrappedData !== null
-        ? { ...response, data: unwrappedData.data }
-        : response
+      return unwrappedData !== null ? { ...response, data: unwrappedData.data } : response
     },
     (error) => {
       // Handle common errors
@@ -177,25 +161,13 @@ export const api = {
   get: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> =>
     httpClient.get<T>(url, config).then((response) => response.data),
 
-  post: <T = unknown>(
-    url: string,
-    data?: unknown,
-    config?: AxiosRequestConfig,
-  ): Promise<T> =>
+  post: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> =>
     httpClient.post<T>(url, data, config).then((response) => response.data),
 
-  put: <T = unknown>(
-    url: string,
-    data?: unknown,
-    config?: AxiosRequestConfig,
-  ): Promise<T> =>
+  put: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> =>
     httpClient.put<T>(url, data, config).then((response) => response.data),
 
-  patch: <T = unknown>(
-    url: string,
-    data?: unknown,
-    config?: AxiosRequestConfig,
-  ): Promise<T> =>
+  patch: <T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> =>
     httpClient.patch<T>(url, data, config).then((response) => response.data),
 
   delete: <T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> =>

@@ -17,7 +17,7 @@ name: Build Signed Android APK (DISABLED - For Future Use)
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -64,7 +64,7 @@ jobs:
         run: |
           # Create keystore from base64 encoded secret
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
-          
+
           # Create gradle.properties with signing config
           cat >> android/gradle.properties << EOF
           MYAPP_RELEASE_STORE_FILE=release.keystore
@@ -77,7 +77,7 @@ jobs:
         if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != null }}
         run: |
           cat >> android/app/build.gradle << 'EOF'
-          
+
           android {
               signingConfigs {
                   release {

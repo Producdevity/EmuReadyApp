@@ -36,7 +36,10 @@ export default function SignUpScreen() {
       setPendingVerification(true)
     } catch (error: any) {
       console.error('Sign up error:', error)
-      Alert.alert('Error', error.errors?.[0]?.message || 'Failed to create account. Please try again.')
+      Alert.alert(
+        'Error',
+        error.errors?.[0]?.message || 'Failed to create account. Please try again.',
+      )
     } finally {
       setIsLoading(false)
     }
@@ -74,9 +77,7 @@ export default function SignUpScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Verify Your Email</Text>
-          <Text style={styles.subtitle}>
-            We&apos;ve sent a verification code to {email}
-          </Text>
+          <Text style={styles.subtitle}>We&apos;ve sent a verification code to {email}</Text>
         </View>
 
         <View style={styles.content}>
@@ -135,9 +136,7 @@ export default function SignUpScreen() {
       <View style={styles.content}>
         <View style={styles.signUpCard}>
           <Text style={styles.cardTitle}>Create Account</Text>
-          <Text style={styles.cardSubtitle}>
-            Fill in your details to get started
-          </Text>
+          <Text style={styles.cardSubtitle}>Fill in your details to get started</Text>
 
           <View style={styles.formContainer}>
             <View style={styles.inputRow}>
@@ -216,11 +215,7 @@ export default function SignUpScreen() {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Already have an account?</Text>
-        <Button
-          title="Sign In"
-          variant="ghost"
-          onPress={handleSignIn}
-        />
+        <Button title="Sign In" variant="ghost" onPress={handleSignIn} />
       </View>
     </SafeAreaView>
   )

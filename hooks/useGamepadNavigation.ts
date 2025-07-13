@@ -129,4 +129,4 @@ export function useOrientationOptimized() {
       return isLandscape ? { ...portraitStyles, ...landscapeStyles } : portraitStyles
     },
   }
-} 
+}

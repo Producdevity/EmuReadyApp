@@ -15,17 +15,14 @@ export class EmulatorAltService {
     }
 
     try {
-      await IntentLauncher.startActivityAsync(
-        `${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`,
-        {
-          packageName: packageName,
-          className: 'org.yuzu.yuzu_emu.activities.EmulationActivity',
-          extra: {
-            title_id: titleId,
-            custom_settings: customSettings,
-          },
+      await IntentLauncher.startActivityAsync(`${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`, {
+        packageName: packageName,
+        className: 'org.yuzu.yuzu_emu.activities.EmulationActivity',
+        extra: {
+          title_id: titleId,
+          custom_settings: customSettings,
         },
-      )
+      })
     } catch (error) {
       console.log('Direct intent method failed:', error)
       throw new Error(`Direct intent failed: ${getErrorMessage(error)}`)
@@ -33,9 +30,7 @@ export class EmulatorAltService {
   }
 
   // Method 2: Check if installed using multiple approaches
-  static async checkIfInstalled(
-    packageName: string = 'dev.eden.eden_emulator',
-  ): Promise<boolean> {
+  static async checkIfInstalled(packageName: string = 'dev.eden.eden_emulator'): Promise<boolean> {
     if (Platform.OS !== 'android') {
       return false
     }
@@ -46,7 +41,7 @@ export class EmulatorAltService {
     const intentUris = [
       // Custom action intent
       `intent://launch#Intent;package=${packageName};action=${packageName}.LAUNCH_WITH_CUSTOM_CONFIG;end`,
-      // Simple package intent  
+      // Simple package intent
       `intent:#Intent;package=${packageName};end`,
       // Market intent (will return false if package is installed)
       `market://details?id=${packageName}`,
@@ -57,7 +52,7 @@ export class EmulatorAltService {
         console.log(`Trying intent URI: ${uri}`)
         const canOpen = await Linking.canOpenURL(uri)
         console.log(`Can open ${uri}: ${canOpen}`)
-        
+
         // For market:// URI, if it can open, the app is NOT installed
         // For intent:// URIs, if it can open, the app IS installed
         if (uri.startsWith('market://')) {
@@ -122,9 +117,7 @@ export class EmulatorAltService {
   }
 
   // Method 4: Just launch the app normally (without custom data)
-  static async launchAppOnly(
-    packageName: string = 'dev.eden.eden_emulator',
-  ): Promise<void> {
+  static async launchAppOnly(packageName: string = 'dev.eden.eden_emulator'): Promise<void> {
     if (Platform.OS !== 'android') {
       throw new Error('Only available on Android')
     }
@@ -136,17 +129,12 @@ export class EmulatorAltService {
       })
     } catch (error) {
       console.log('Simple app launch failed:', error)
-      throw new Error(
-        `Could not launch ${packageName}: ${getErrorMessage(error)}`,
-      )
+      throw new Error(`Could not launch ${packageName}: ${getErrorMessage(error)}`)
     }
   }
 
   // Method 5: Try with different package names
-  static async tryDifferentPackageNames(
-    titleId: string,
-    customSettings: string,
-  ): Promise<void> {
+  static async tryDifferentPackageNames(titleId: string, customSettings: string): Promise<void> {
     const possiblePackages = [
       'dev.eden.eden_emulator',
       'com.eden.eden_emulator',
@@ -174,13 +162,9 @@ export class EmulatorAltService {
   // Method 6: Log available methods
   static logAvailableMethods(): void {
     console.log('=== Available Launch Methods ===')
-    console.log(
-      '1. launchWithDirectIntent - Direct intent with expo-intent-launcher',
-    )
+    console.log('1. launchWithDirectIntent - Direct intent with expo-intent-launcher')
     console.log('2. checkIfInstalled - Check if package is installed')
-    console.log(
-      '3. launchWithLinking - Launch using Linking API with intent URIs',
-    )
+    console.log('3. launchWithLinking - Launch using Linking API with intent URIs')
     console.log('4. launchAppOnly - Launch app without custom data')
     console.log('5. tryDifferentPackageNames - Try multiple package names')
   }

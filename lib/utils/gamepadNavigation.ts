@@ -79,9 +79,7 @@ class GamepadNavigationManager {
   }
 
   setFocus(nodeId: string) {
-    const prevNode = this.currentFocus
-      ? this.nodes.get(this.currentFocus)
-      : null
+    const prevNode = this.currentFocus ? this.nodes.get(this.currentFocus) : null
     const nextNode = this.nodes.get(nodeId)
 
     if (!nextNode || nextNode.disabled) return
@@ -96,9 +94,7 @@ class GamepadNavigationManager {
     nextNode.onFocus?.()
   }
 
-  private findNextFocus(
-    direction: 'up' | 'down' | 'left' | 'right',
-  ): string | null {
+  private findNextFocus(direction: 'up' | 'down' | 'left' | 'right'): string | null {
     if (!this.currentFocus) return null
 
     const currentNode = this.nodes.get(this.currentFocus)
@@ -121,9 +117,7 @@ class GamepadNavigationManager {
     return this.findClosestNode(direction)
   }
 
-  private findClosestNode(
-    direction: 'up' | 'down' | 'left' | 'right',
-  ): string | null {
+  private findClosestNode(direction: 'up' | 'down' | 'left' | 'right'): string | null {
     // Simplified spatial navigation algorithm
     // In a real implementation, this would calculate actual positions
     const availableNodes = Array.from(this.nodes.entries())
@@ -177,9 +171,7 @@ class GamepadNavigationManager {
       }
       case this.KEYCODE_DPAD_CENTER:
       case this.KEYCODE_BUTTON_A: {
-        const currentNode = this.currentFocus
-          ? this.nodes.get(this.currentFocus)
-          : null
+        const currentNode = this.currentFocus ? this.nodes.get(this.currentFocus) : null
         if (currentNode?.onSelect) {
           currentNode.onSelect()
           return true

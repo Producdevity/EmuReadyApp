@@ -1,5 +1,14 @@
 import React, { useState } from 'react'
-import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity, Modal, Dimensions } from 'react-native'
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  Image,
+  TouchableOpacity,
+  Modal,
+  Dimensions,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -10,10 +19,10 @@ import Card from '@/components/ui/Card'
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
 
 export default function GameMediaDetailScreen() {
-  const { source, id, name } = useLocalSearchParams<{ 
-    source: 'rawg' | 'tgdb'; 
-    id: string; 
-    name?: string;
+  const { source, id, name } = useLocalSearchParams<{
+    source: 'rawg' | 'tgdb'
+    id: string
+    name?: string
   }>()
   const { theme } = useTheme()
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -22,17 +31,17 @@ export default function GameMediaDetailScreen() {
   // Fetch images based on source
   const { data: rawgImages, isLoading: rawgLoading } = useRawgGameImages(
     { gameId: id! },
-    { enabled: source === 'rawg' }
+    { enabled: source === 'rawg' },
   )
 
   const { data: tgdbImages, isLoading: tgdbLoading } = useTgdbGameImages(
     { gameId: id! },
-    { enabled: source === 'tgdb' }
+    { enabled: source === 'tgdb' },
   )
 
   const { data: tgdbImageUrls } = useTgdbGameImageUrls(
     { gameId: id! },
-    { enabled: source === 'tgdb' }
+    { enabled: source === 'tgdb' },
   )
 
   const isLoading = source === 'rawg' ? rawgLoading : tgdbLoading
@@ -57,12 +66,13 @@ export default function GameMediaDetailScreen() {
           <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
             {title}
           </Text>
-          
+
           <View className="flex-row flex-wrap -mx-1">
             {imageList.map((image: any, index: number) => {
-              const imageUrl = source === 'rawg' 
-                ? image.image || image 
-                : image.original || image.large || image.medium || image.small
+              const imageUrl =
+                source === 'rawg'
+                  ? image.image || image
+                  : image.original || image.large || image.medium || image.small
 
               return (
                 <TouchableOpacity
@@ -147,7 +157,10 @@ export default function GameMediaDetailScreen() {
             <Card>
               <View className="p-8 items-center">
                 <Ionicons name="images-outline" size={64} color={theme.colors.textSecondary} />
-                <Text className="text-xl font-semibold mt-4 mb-2" style={{ color: theme.colors.text }}>
+                <Text
+                  className="text-xl font-semibold mt-4 mb-2"
+                  style={{ color: theme.colors.text }}
+                >
                   No Media Found
                 </Text>
                 <Text className="text-center" style={{ color: theme.colors.textSecondary }}>
@@ -164,11 +177,15 @@ export default function GameMediaDetailScreen() {
                 <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
                   Available Image Types
                 </Text>
-                
+
                 {Object.entries(tgdbImageUrls).map(([type, urls]: [string, any]) => (
                   <View key={type} className="mb-2">
-                    <Text className="font-medium capitalize" style={{ color: theme.colors.textSecondary }}>
-                      {type.replace(/([A-Z])/g, ' $1').trim()}: {Array.isArray(urls) ? urls.length : Object.keys(urls).length} images
+                    <Text
+                      className="font-medium capitalize"
+                      style={{ color: theme.colors.textSecondary }}
+                    >
+                      {type.replace(/([A-Z])/g, ' $1').trim()}:{' '}
+                      {Array.isArray(urls) ? urls.length : Object.keys(urls).length} images
                     </Text>
                   </View>
                 ))}
@@ -185,7 +202,7 @@ export default function GameMediaDetailScreen() {
         animationType="fade"
         onRequestClose={closeImageModal}
       >
-        <View 
+        <View
           className="flex-1 justify-center items-center"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)' }}
         >
@@ -194,7 +211,7 @@ export default function GameMediaDetailScreen() {
             className="absolute top-12 right-4 z-10"
             style={{ paddingTop: 20 }}
           >
-            <View 
+            <View
               className="w-10 h-10 rounded-full items-center justify-center"
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
             >

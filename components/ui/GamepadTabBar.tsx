@@ -1,11 +1,5 @@
 import React, { useEffect } from 'react'
-import {
-  View,
-  Text,
-  StyleSheet,
-  Platform,
-  Pressable,
-} from 'react-native'
+import { View, Text, StyleSheet, Platform, Pressable } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -45,7 +39,7 @@ const GamepadTabButton = ({
   onLongPress,
   descriptors,
   index,
-  totalTabs
+  totalTabs,
 }: GamepadTabButtonProps) => {
   const { theme } = useTheme()
   const { isLandscape } = useOrientationOptimized()
@@ -73,9 +67,7 @@ const GamepadTabButton = ({
   const focusScale = useSharedValue(gamepadNav.isFocused ? 1.1 : 1)
 
   const getIcon = (routeName: string, focused: boolean, gamepadFocused: boolean) => {
-    const color = focused || gamepadFocused
-      ? '#ffffff'
-      : theme.colors.textMuted
+    const color = focused || gamepadFocused ? '#ffffff' : theme.colors.textMuted
     const size = isLandscape ? 20 : 22
 
     switch (routeName) {
@@ -139,13 +131,19 @@ const GamepadTabButton = ({
         stiffness: 400,
       })
     }
-  }, [isFocused, gamepadNav.isFocused, isLandscape, scale, iconScale, translateY, opacity, focusScale])
+  }, [
+    isFocused,
+    gamepadNav.isFocused,
+    isLandscape,
+    scale,
+    iconScale,
+    translateY,
+    opacity,
+    focusScale,
+  ])
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { translateY: translateY.value },
-    ] as any,
+    transform: [{ scale: scale.value }, { translateY: translateY.value }] as any,
   }))
 
   const iconAnimatedStyle = useAnimatedStyle(() => ({
@@ -153,11 +151,7 @@ const GamepadTabButton = ({
   }))
 
   const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      scale.value,
-      [1, isLandscape ? 1.02 : 1.05],
-      [0, 1]
-    ),
+    opacity: interpolate(scale.value, [1, isLandscape ? 1.02 : 1.05], [0, 1]),
   }))
 
   const gamepadFocusStyle = useAnimatedStyle(() => ({
@@ -176,11 +170,12 @@ const GamepadTabButton = ({
   }
 
   const { options } = descriptors[route.key]
-  const label = options.tabBarLabel !== undefined
-    ? options.tabBarLabel
-    : options.title !== undefined
-    ? options.title
-    : route.name
+  const label =
+    options.tabBarLabel !== undefined
+      ? options.tabBarLabel
+      : options.title !== undefined
+        ? options.title
+        : route.name
 
   const styles = createTabButtonStyles(theme, isLandscape)
 
@@ -195,9 +190,10 @@ const GamepadTabButton = ({
         {/* Animated background for focused state */}
         <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
           <LinearGradient
-            colors={route.name === 'create'
-              ? [theme.colors.accent, `${theme.colors.accent}dd`]
-              : [theme.colors.primary, theme.colors.primaryDark]
+            colors={
+              route.name === 'create'
+                ? [theme.colors.accent, `${theme.colors.accent}dd`]
+                : [theme.colors.primary, theme.colors.primaryDark]
             }
             style={styles.gradientBackground}
             start={{ x: 0, y: 0 }}
@@ -213,14 +209,14 @@ const GamepadTabButton = ({
         {/* Label with fade animation - only show in landscape for space efficiency */}
         {!isLandscape && (
           <Animated.View style={labelAnimatedStyle}>
-            <Text style={[
-              styles.tabLabel,
-              {
-                color: isFocused || gamepadNav.isFocused
-                  ? '#ffffff'
-                  : theme.colors.textMuted
-              }
-            ]}>
+            <Text
+              style={[
+                styles.tabLabel,
+                {
+                  color: isFocused || gamepadNav.isFocused ? '#ffffff' : theme.colors.textMuted,
+                },
+              ]}
+            >
               {label}
             </Text>
           </Animated.View>
@@ -255,9 +251,10 @@ export default function GamepadTabBar({ state, descriptors, navigation }: Gamepa
 
       {/* Gradient overlay */}
       <LinearGradient
-        colors={theme.isDark
-          ? ['rgba(15, 23, 42, 0.97)', 'rgba(30, 41, 59, 0.99)']
-          : ['rgba(255, 255, 255, 0.97)', 'rgba(248, 250, 252, 0.99)']
+        colors={
+          theme.isDark
+            ? ['rgba(15, 23, 42, 0.97)', 'rgba(30, 41, 59, 0.99)']
+            : ['rgba(255, 255, 255, 0.97)', 'rgba(248, 250, 252, 0.99)']
         }
         style={StyleSheet.absoluteFillObject}
       />
@@ -304,97 +301,97 @@ export default function GamepadTabBar({ state, descriptors, navigation }: Gamepa
       {/* Gamepad navigation hint for landscape */}
       {isLandscape && Platform.OS === 'android' && (
         <View style={styles.gamepadHint}>
-          <Text style={styles.gamepadHintText}>
-            Use D-Pad ← → to navigate tabs
-          </Text>
+          <Text style={styles.gamepadHintText}>Use D-Pad ← → to navigate tabs</Text>
         </View>
       )}
     </View>
   )
 }
 
-const createTabButtonStyles = (theme: any, isLandscape: boolean) => StyleSheet.create({
-  tabButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: isLandscape ? 50 : 60,
-    paddingHorizontal: isLandscape ? 8 : 12,
-    paddingVertical: isLandscape ? 6 : 8,
-  },
-  tabContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: isLandscape ? 8 : 12,
-    paddingHorizontal: isLandscape ? 8 : 12,
-    paddingVertical: isLandscape ? 6 : 8,
-    minWidth: isLandscape ? 45 : 50,
-    position: 'relative',
-  },
-  focusBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: isLandscape ? 8 : 12,
-    overflow: 'hidden',
-  },
-  gradientBackground: {
-    flex: 1,
-    borderRadius: isLandscape ? 8 : 12,
-  },
-  iconContainer: {
-    marginBottom: isLandscape ? 0 : 4,
-  },
-  tabLabel: {
-    fontSize: isLandscape ? 10 : 11,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginTop: 2,
-  },
-  activeIndicator: {
-    position: 'absolute',
-    bottom: isLandscape ? -2 : -4,
-    alignSelf: 'center',
-  },
-  indicatorDot: {
-    width: isLandscape ? 4 : 6,
-    height: isLandscape ? 4 : 6,
-    borderRadius: isLandscape ? 2 : 3,
-    backgroundColor: '#ffffff',
-  },
-})
+const createTabButtonStyles = (theme: any, isLandscape: boolean) =>
+  StyleSheet.create({
+    tabButton: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: isLandscape ? 50 : 60,
+      paddingHorizontal: isLandscape ? 8 : 12,
+      paddingVertical: isLandscape ? 6 : 8,
+    },
+    tabContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: isLandscape ? 8 : 12,
+      paddingHorizontal: isLandscape ? 8 : 12,
+      paddingVertical: isLandscape ? 6 : 8,
+      minWidth: isLandscape ? 45 : 50,
+      position: 'relative',
+    },
+    focusBackground: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderRadius: isLandscape ? 8 : 12,
+      overflow: 'hidden',
+    },
+    gradientBackground: {
+      flex: 1,
+      borderRadius: isLandscape ? 8 : 12,
+    },
+    iconContainer: {
+      marginBottom: isLandscape ? 0 : 4,
+    },
+    tabLabel: {
+      fontSize: isLandscape ? 10 : 11,
+      fontWeight: '500',
+      textAlign: 'center',
+      marginTop: 2,
+    },
+    activeIndicator: {
+      position: 'absolute',
+      bottom: isLandscape ? -2 : -4,
+      alignSelf: 'center',
+    },
+    indicatorDot: {
+      width: isLandscape ? 4 : 6,
+      height: isLandscape ? 4 : 6,
+      borderRadius: isLandscape ? 2 : 3,
+      backgroundColor: '#ffffff',
+    },
+  })
 
-const createStyles = (theme: any, isLandscape: boolean, insets: any) => StyleSheet.create({
-  container: {
-    backgroundColor: 'transparent',
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-    paddingBottom: Math.max(insets.bottom, isLandscape ? 4 : 8),
-    paddingHorizontal: isLandscape ? 8 : 0,
-    height: isLandscape ? 60 : 85,
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: isLandscape ? 16 : 8,
-    paddingTop: isLandscape ? 8 : 12,
-    flex: 1,
-  },
-  gamepadHint: {
-    position: 'absolute',
-    top: 2,
-    right: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    backgroundColor: `${theme.colors.primary}20`,
-    borderRadius: 8,
-  },
-  gamepadHintText: {
-    fontSize: 9,
-    color: theme.colors.primary,
-    fontWeight: '500',
-  },
-})
+const createStyles = (theme: any, isLandscape: boolean, insets: any) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: 'transparent',
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.border,
+      paddingBottom: Math.max(insets.bottom, isLandscape ? 4 : 8),
+      paddingHorizontal: isLandscape ? 8 : 0,
+      height: isLandscape ? 60 : 85,
+    },
+    tabsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-around',
+      paddingHorizontal: isLandscape ? 16 : 8,
+      paddingTop: isLandscape ? 8 : 12,
+      flex: 1,
+    },
+    gamepadHint: {
+      position: 'absolute',
+      top: 2,
+      right: 8,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      backgroundColor: `${theme.colors.primary}20`,
+      borderRadius: 8,
+    },
+    gamepadHintText: {
+      fontSize: 9,
+      color: theme.colors.primary,
+      fontWeight: '500',
+    },
+  })

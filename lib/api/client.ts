@@ -26,8 +26,6 @@ export const queryClient = new QueryClient({
   },
 })
 
-
-
 // Network status utilities for mobile
 export const networkUtils = {
   isOnline: async (): Promise<boolean> => {

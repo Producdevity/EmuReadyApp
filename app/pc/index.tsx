@@ -13,7 +13,11 @@ export default function PCListingsScreen() {
   const { theme } = useTheme()
   const [search, setSearch] = useState('')
 
-  const { data: pcListingsData, isLoading: loadingListings, error: listingsError } = usePcListings({
+  const {
+    data: pcListingsData,
+    isLoading: loadingListings,
+    error: listingsError,
+  } = usePcListings({
     search: search || undefined,
     page: 1,
     limit: 20,
@@ -91,11 +95,7 @@ export default function PCListingsScreen() {
       <Text className="text-center mb-6" style={{ color: theme.colors.textSecondary }}>
         {listingsError?.message || 'Something went wrong. Please try again.'}
       </Text>
-      <Button
-        title="Try Again"
-        onPress={() => window.location.reload()}
-        variant="outline"
-      />
+      <Button title="Try Again" onPress={() => window.location.reload()} variant="outline" />
     </View>
   )
 

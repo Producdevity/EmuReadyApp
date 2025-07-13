@@ -1,6 +1,6 @@
 export { default as useScrollHeaderAnimation } from './useScrollHeaderAnimation'
 export { default as useRefreshableQuery, useRefreshableState } from './useRefreshableQuery'
-export { 
+export {
   default as useEntranceAnimation,
   useListAnimation,
   useCardGridAnimation,

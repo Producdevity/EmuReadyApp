@@ -18,33 +18,15 @@
         "foregroundImage": "./assets/images/adaptive-icon/foreground.png",
         "backgroundColor": "#023c69"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.emuready.emuready",
       "softwareKeyboardLayoutMode": "pan",
       "intentFilters": [
         {
           "action": "VIEW",
-          "data": [
-            {
-              "scheme": "emuready"
-            }
-          ],
-          "category": [
-            "DEFAULT",
-            "BROWSABLE"
-          ]
+          "data": [{ "scheme": "emuready" }],
+          "category": ["DEFAULT", "BROWSABLE"]
         }
-      ],
-      "queries": {
-        "package": [
-          "dev.eden.eden_emulator"
-        ],
-        "intent": [
-          {
-            "action": "dev.eden.eden_emulator.LAUNCH_WITH_CUSTOM_CONFIG"
-          }
-        ]
-      }
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -52,6 +34,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "./plugins/android-manifest-queries",
       "expo-router",
       [
         "expo-splash-screen",
@@ -63,14 +46,10 @@
         }
       ]
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
+    "experiments": { "typedRoutes": true },
     "extra": {
       "router": {},
-      "eas": {
-        "projectId": "59a19d7c-ad8e-4779-8689-fa4c6a6d9827"
-      }
+      "eas": { "projectId": "59a19d7c-ad8e-4779-8689-fa4c6a6d9827" }
     }
   }
 }

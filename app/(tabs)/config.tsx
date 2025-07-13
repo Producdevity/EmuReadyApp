@@ -92,18 +92,12 @@ export default function ConfigScreen() {
 
   const handleTestWithConfig = async () => {
     if (Platform.OS !== 'android') {
-      Alert.alert(
-        'Platform Error',
-        'Eden emulator testing is only available on Android devices.',
-      )
+      Alert.alert('Platform Error', 'Eden emulator testing is only available on Android devices.')
       return
     }
 
     if (!configFile) {
-      Alert.alert(
-        'No Configuration',
-        'Please select a configuration file first.',
-      )
+      Alert.alert('No Configuration', 'Please select a configuration file first.')
       return
     }
 
@@ -175,9 +169,7 @@ export default function ConfigScreen() {
           style={{ flex: 1 }}
           contentContainerStyle={{
             padding: isLandscape ? theme.spacing.md : theme.spacing.lg,
-            paddingHorizontal: isLandscape
-              ? theme.spacing.xl
-              : theme.spacing.lg,
+            paddingHorizontal: isLandscape ? theme.spacing.xl : theme.spacing.lg,
           }}
           keyboardShouldPersistTaps="handled"
         >
@@ -205,11 +197,7 @@ export default function ConfigScreen() {
                   marginRight: theme.spacing.md,
                 }}
               >
-                <Ionicons
-                  name="document-text"
-                  size={24}
-                  color={theme.colors.textInverse}
-                />
+                <Ionicons name="document-text" size={24} color={theme.colors.textInverse} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text
@@ -236,9 +224,7 @@ export default function ConfigScreen() {
 
           {/* Information Card */}
           <Animated.View
-            entering={FadeInUp.delay(getBaseDelay('fast')).duration(
-              ANIMATION_CONFIG.timing.fast,
-            )}
+            entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
           >
             <Card style={{ marginBottom: theme.spacing.lg }}>
               <View style={{ padding: theme.spacing.lg }}>
@@ -269,14 +255,11 @@ export default function ConfigScreen() {
                   style={{
                     fontSize: theme.typography.fontSize.md,
                     color: theme.colors.textMuted,
-                    lineHeight:
-                      theme.typography.lineHeight.relaxed *
-                      theme.typography.fontSize.md,
+                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
                   }}
                 >
-                  Upload an INI configuration file (e.g., 0100000000010000.ini)
-                  to test custom game settings. The app will try to detect the
-                  Title ID from the filename.
+                  Upload an INI configuration file (e.g., 0100000000010000.ini) to test custom game
+                  settings. The app will try to detect the Title ID from the filename.
                 </Text>
               </View>
             </Card>
@@ -284,9 +267,7 @@ export default function ConfigScreen() {
 
           {/* File Upload Section */}
           <Animated.View
-            entering={FadeInUp.delay(getBaseDelay('normal')).duration(
-              ANIMATION_CONFIG.timing.fast,
-            )}
+            entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
           >
             <Card style={{ marginBottom: theme.spacing.lg }}>
               <View style={{ padding: theme.spacing.lg }}>
@@ -307,9 +288,7 @@ export default function ConfigScreen() {
                   style={{
                     backgroundColor: theme.colors.surface,
                     borderWidth: 2,
-                    borderColor: configFile
-                      ? theme.colors.success
-                      : theme.colors.border,
+                    borderColor: configFile ? theme.colors.success : theme.colors.border,
                     borderRadius: theme.borderRadius.md,
                     borderStyle: 'dashed',
                     padding: theme.spacing.xl,
@@ -320,18 +299,14 @@ export default function ConfigScreen() {
                   <Ionicons
                     name={configFile ? 'document-text' : 'cloud-upload'}
                     size={48}
-                    color={
-                      configFile ? theme.colors.success : theme.colors.textMuted
-                    }
+                    color={configFile ? theme.colors.success : theme.colors.textMuted}
                     style={{ marginBottom: theme.spacing.md }}
                   />
                   <Text
                     style={{
                       fontSize: theme.typography.fontSize.md,
                       fontWeight: theme.typography.fontWeight.semibold,
-                      color: configFile
-                        ? theme.colors.success
-                        : theme.colors.text,
+                      color: configFile ? theme.colors.success : theme.colors.text,
                       marginBottom: theme.spacing.xs,
                     }}
                   >
@@ -344,9 +319,7 @@ export default function ConfigScreen() {
                       textAlign: 'center',
                     }}
                   >
-                    {configFile
-                      ? 'Tap to change file'
-                      : 'Tap to browse for configuration files'}
+                    {configFile ? 'Tap to change file' : 'Tap to browse for configuration files'}
                   </Text>
                 </Pressable>
 
@@ -457,13 +430,7 @@ export default function ConfigScreen() {
                         variant="secondary"
                         size="lg"
                         style={{ flex: isLandscape ? 1 : undefined }}
-                        leftIcon={
-                          <Ionicons
-                            name="trash"
-                            size={20}
-                            color={theme.colors.text}
-                          />
-                        }
+                        leftIcon={<Ionicons name="trash" size={20} color={theme.colors.text} />}
                       />
                       <Button
                         title="Test Config"
@@ -474,11 +441,7 @@ export default function ConfigScreen() {
                         size="lg"
                         style={{ flex: isLandscape ? 1 : undefined }}
                         leftIcon={
-                          <Ionicons
-                            name="play"
-                            size={20}
-                            color={theme.colors.textInverse}
-                          />
+                          <Ionicons name="play" size={20} color={theme.colors.textInverse} />
                         }
                       />
                     </View>
@@ -505,9 +468,7 @@ export default function ConfigScreen() {
           {/* Config Content Preview */}
           {configFile && showContent && (
             <Animated.View
-              entering={FadeInUp.delay(getBaseDelay('fast')).duration(
-                ANIMATION_CONFIG.timing.fast,
-              )}
+              entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
             >
               <Card>
                 <View style={{ padding: theme.spacing.lg }}>
@@ -519,9 +480,7 @@ export default function ConfigScreen() {
                       justifyContent: 'space-between',
                     }}
                   >
-                    <View
-                      style={{ flexDirection: 'row', alignItems: 'center' }}
-                    >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Ionicons
                         name="code"
                         size={20}
@@ -564,8 +523,7 @@ export default function ConfigScreen() {
                         color: theme.colors.text,
                         fontFamily: 'monospace',
                         lineHeight:
-                          theme.typography.lineHeight.relaxed *
-                          theme.typography.fontSize.xs,
+                          theme.typography.lineHeight.relaxed * theme.typography.fontSize.xs,
                       }}
                     >
                       {configFile.content}

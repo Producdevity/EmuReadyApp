@@ -1,14 +1,8 @@
 import React, { memo, useRef, useEffect } from 'react'
-import {
-  TextInput,
-  StyleSheet,
-  type TextInputProps,
-  type ViewStyle,
-  Pressable,
-} from 'react-native'
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
+import { TextInput, StyleSheet, type TextInputProps, type ViewStyle, Pressable } from 'react-native'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
   withSpring,
   interpolateColor,
 } from 'react-native-reanimated'
@@ -38,7 +32,7 @@ const SearchBar: React.FC<SearchBarProps> = memo(function SearchBar({
   const { theme } = useTheme()
   const inputRef = useRef<TextInput>(null)
   const focusValue = useSharedValue(0)
-  
+
   const styles = createStyles(theme)
 
   useEffect(() => {
@@ -64,7 +58,7 @@ const SearchBar: React.FC<SearchBarProps> = memo(function SearchBar({
     const borderColor = interpolateColor(
       focusValue.value,
       [0, 1],
-      [theme.colors.border, theme.colors.primary]
+      [theme.colors.border, theme.colors.primary],
     )
 
     return {
@@ -73,24 +67,20 @@ const SearchBar: React.FC<SearchBarProps> = memo(function SearchBar({
     }
   })
 
-  const containerVariantStyle = variant === 'prominent' ? styles.prominentContainer : styles.defaultContainer
+  const containerVariantStyle =
+    variant === 'prominent' ? styles.prominentContainer : styles.defaultContainer
 
   return (
-    <Animated.View 
-      style={[
-        styles.container,
-        containerVariantStyle,
-        animatedContainerStyle,
-        containerStyle,
-      ]}
+    <Animated.View
+      style={[styles.container, containerVariantStyle, animatedContainerStyle, containerStyle]}
     >
-      <Ionicons 
-        name="search" 
-        size={20} 
+      <Ionicons
+        name="search"
+        size={20}
         color={theme.colors.textSecondary}
         style={styles.searchIcon}
       />
-      
+
       <TextInput
         ref={inputRef}
         style={styles.input}
@@ -104,57 +94,54 @@ const SearchBar: React.FC<SearchBarProps> = memo(function SearchBar({
         clearButtonMode="never"
         {...textInputProps}
       />
-      
+
       {showClearButton && value.length > 0 && (
         <Pressable onPress={handleClear} style={styles.clearButton}>
-          <Ionicons 
-            name="close-circle" 
-            size={18} 
-            color={theme.colors.textMuted}
-          />
+          <Ionicons name="close-circle" size={18} color={theme.colors.textMuted} />
         </Pressable>
       )}
     </Animated.View>
   )
 })
 
-const createStyles = (theme: any) => StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 12,
-    backgroundColor: theme.colors.surface,
-  },
-  defaultContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 16,
-  },
-  prominentContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    marginBottom: 20,
-    borderRadius: 16,
-    shadowColor: theme.colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: theme.colors.text,
-    paddingVertical: 0,
-  },
-  clearButton: {
-    marginLeft: 8,
-    padding: 4,
-  },
-})
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderRadius: 12,
+      backgroundColor: theme.colors.surface,
+    },
+    defaultContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginBottom: 16,
+    },
+    prominentContainer: {
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      marginBottom: 20,
+      borderRadius: 16,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    searchIcon: {
+      marginRight: 12,
+    },
+    input: {
+      flex: 1,
+      fontSize: 16,
+      color: theme.colors.text,
+      paddingVertical: 0,
+    },
+    clearButton: {
+      marginLeft: 8,
+      padding: 4,
+    },
+  })
 
 export default SearchBar

@@ -35,7 +35,10 @@ export default function ReportsScreen() {
             <Card>
               <View className="p-4 items-center">
                 <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error} />
-                <Text className="text-lg font-semibold mt-2 mb-1" style={{ color: theme.colors.error }}>
+                <Text
+                  className="text-lg font-semibold mt-2 mb-1"
+                  style={{ color: theme.colors.error }}
+                >
                   Error Loading Reports
                 </Text>
                 <Text className="text-center" style={{ color: theme.colors.textSecondary }}>
@@ -50,11 +53,14 @@ export default function ReportsScreen() {
                 <View className="p-4">
                   <View className="flex-row items-center mb-3">
                     <Ionicons name="shield-checkmark" size={20} color={theme.colors.primary} />
-                    <Text className="text-lg font-semibold ml-2" style={{ color: theme.colors.text }}>
+                    <Text
+                      className="text-lg font-semibold ml-2"
+                      style={{ color: theme.colors.text }}
+                    >
                       Report Status
                     </Text>
                   </View>
-                  
+
                   <View className="flex-row justify-between items-center mb-2">
                     <Text style={{ color: theme.colors.textSecondary }}>Reports Submitted</Text>
                     <Text className="font-semibold" style={{ color: theme.colors.text }}>
@@ -65,15 +71,22 @@ export default function ReportsScreen() {
                   <View className="flex-row justify-between items-center">
                     <Text style={{ color: theme.colors.textSecondary }}>Account Status</Text>
                     <View className="flex-row items-center">
-                      <Ionicons 
-                        name={reportStatus?.hasReports ? "checkmark-circle" : "shield"} 
-                        size={16} 
-                        color={reportStatus?.hasReports ? theme.colors.success : theme.colors.primary} 
+                      <Ionicons
+                        name={reportStatus?.hasReports ? 'checkmark-circle' : 'shield'}
+                        size={16}
+                        color={
+                          reportStatus?.hasReports ? theme.colors.success : theme.colors.primary
+                        }
                       />
-                      <Text className="font-semibold ml-1" style={{ 
-                        color: reportStatus?.hasReports ? theme.colors.success : theme.colors.primary 
-                      }}>
-                        {reportStatus?.hasReports ? "Active Reporter" : "Good Standing"}
+                      <Text
+                        className="font-semibold ml-1"
+                        style={{
+                          color: reportStatus?.hasReports
+                            ? theme.colors.success
+                            : theme.colors.primary,
+                        }}
+                      >
+                        {reportStatus?.hasReports ? 'Active Reporter' : 'Good Standing'}
                       </Text>
                     </View>
                   </View>
@@ -85,13 +98,20 @@ export default function ReportsScreen() {
                 <View className="p-4">
                   <View className="flex-row items-center mb-3">
                     <Ionicons name="information-circle" size={20} color={theme.colors.primary} />
-                    <Text className="text-lg font-semibold ml-2" style={{ color: theme.colors.text }}>
+                    <Text
+                      className="text-lg font-semibold ml-2"
+                      style={{ color: theme.colors.text }}
+                    >
                       Reporting Guidelines
                     </Text>
                   </View>
-                  
-                  <Text className="mb-3" style={{ color: theme.colors.textSecondary, lineHeight: 20 }}>
-                    Help us maintain a safe and quality community by reporting content that violates our guidelines:
+
+                  <Text
+                    className="mb-3"
+                    style={{ color: theme.colors.textSecondary, lineHeight: 20 }}
+                  >
+                    Help us maintain a safe and quality community by reporting content that violates
+                    our guidelines:
                   </Text>
 
                   <View className="space-y-2">
@@ -128,18 +148,24 @@ export default function ReportsScreen() {
                 <View className="p-4">
                   <View className="flex-row items-center mb-3">
                     <Ionicons name="flag" size={20} color={theme.colors.primary} />
-                    <Text className="text-lg font-semibold ml-2" style={{ color: theme.colors.text }}>
+                    <Text
+                      className="text-lg font-semibold ml-2"
+                      style={{ color: theme.colors.text }}
+                    >
                       How to Report
                     </Text>
                   </View>
-                  
-                  <Text className="mb-3" style={{ color: theme.colors.textSecondary, lineHeight: 20 }}>
+
+                  <Text
+                    className="mb-3"
+                    style={{ color: theme.colors.textSecondary, lineHeight: 20 }}
+                  >
                     You can report any listing or content by:
                   </Text>
 
                   <View className="space-y-3">
                     <View className="flex-row items-start">
-                      <View 
+                      <View
                         className="w-6 h-6 rounded-full mr-3 items-center justify-center"
                         style={{ backgroundColor: theme.colors.primary }}
                       >
@@ -150,7 +176,7 @@ export default function ReportsScreen() {
                       </Text>
                     </View>
                     <View className="flex-row items-start">
-                      <View 
+                      <View
                         className="w-6 h-6 rounded-full mr-3 items-center justify-center"
                         style={{ backgroundColor: theme.colors.primary }}
                       >
@@ -161,7 +187,7 @@ export default function ReportsScreen() {
                       </Text>
                     </View>
                     <View className="flex-row items-start">
-                      <View 
+                      <View
                         className="w-6 h-6 rounded-full mr-3 items-center justify-center"
                         style={{ backgroundColor: theme.colors.primary }}
                       >

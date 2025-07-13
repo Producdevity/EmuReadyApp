@@ -1,10 +1,5 @@
 import React, { memo } from 'react'
-import {
-  Pressable,
-  StyleSheet,
-  type ViewStyle,
-  type TextStyle,
-} from 'react-native'
+import { Pressable, StyleSheet, type ViewStyle, type TextStyle } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -42,7 +37,7 @@ const FilterChip: React.FC<FilterChipProps> = memo(function FilterChip({
   const { theme } = useTheme()
   const scale = useSharedValue(1)
   const animationValue = useSharedValue(isSelected ? 1 : 0)
-  
+
   const styles = createStyles(theme, variant, size)
 
   React.useEffect(() => {
@@ -74,16 +69,13 @@ const FilterChip: React.FC<FilterChipProps> = memo(function FilterChip({
     const backgroundColor = interpolateColor(
       animationValue.value,
       [0, 1],
-      [
-        variant === 'outline' ? 'transparent' : theme.colors.surface,
-        theme.colors.primary
-      ]
+      [variant === 'outline' ? 'transparent' : theme.colors.surface, theme.colors.primary],
     )
 
     const borderColor = interpolateColor(
       animationValue.value,
       [0, 1],
-      [theme.colors.border, theme.colors.primary]
+      [theme.colors.border, theme.colors.primary],
     )
 
     return {
@@ -95,11 +87,7 @@ const FilterChip: React.FC<FilterChipProps> = memo(function FilterChip({
   })
 
   const animatedTextStyle = useAnimatedStyle(() => {
-    const color = interpolateColor(
-      animationValue.value,
-      [0, 1],
-      [theme.colors.text, '#ffffff']
-    )
+    const color = interpolateColor(animationValue.value, [0, 1], [theme.colors.text, '#ffffff'])
 
     return {
       color,
@@ -116,16 +104,14 @@ const FilterChip: React.FC<FilterChipProps> = memo(function FilterChip({
       <Animated.View style={[styles.container, animatedStyle, style]}>
         {icon && (
           <Animated.View style={styles.iconContainer}>
-            <Ionicons 
-              name={icon} 
-              size={16} 
+            <Ionicons
+              name={icon}
+              size={16}
               color={isSelected ? '#ffffff' : theme.colors.textSecondary}
             />
           </Animated.View>
         )}
-        <Animated.Text style={[styles.text, animatedTextStyle]}>
-          {label}
-        </Animated.Text>
+        <Animated.Text style={[styles.text, animatedTextStyle]}>{label}</Animated.Text>
       </Animated.View>
     </Pressable>
   )

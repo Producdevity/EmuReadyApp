@@ -24,12 +24,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons'
 import * as Sharing from 'expo-sharing'
 // TODO: Update to use new hooks when implementing device details
-import {
-  Button,
-  Card,
-  SkeletonLoader,
-  SkeletonListingCard,
-} from '@/components/ui'
+import { Button, Card, SkeletonLoader, SkeletonListingCard } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
@@ -40,21 +35,29 @@ export default function DeviceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const { theme } = useTheme()
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'listings'>(
-    'overview',
-  )
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'listings'>('overview')
   const [refreshing, setRefreshing] = useState(false)
   const scrollY = useSharedValue(0)
 
   // TODO: Replace with proper API hooks
-  const deviceQuery = { data: [], isLoading: false, error: null, refetch: () => Promise.resolve({ data: [] }) }
-  const device = null as { 
-    modelName: string; 
-    brand: { name: string }; 
-    soc: { manufacturer: string; name: string } 
+  const deviceQuery = {
+    data: [],
+    isLoading: false,
+    error: null,
+    refetch: () => Promise.resolve({ data: [] }),
+  }
+  const device = null as {
+    modelName: string
+    brand: { name: string }
+    soc: { manufacturer: string; name: string }
   } | null
 
-  const listingsQuery = { data: { listings: [] }, isLoading: false, error: null, refetch: () => Promise.resolve({ data: { listings: [] } }) }
+  const listingsQuery = {
+    data: { listings: [] },
+    isLoading: false,
+    error: null,
+    refetch: () => Promise.resolve({ data: { listings: [] } }),
+  }
 
   const styles = createStyles(theme)
 
@@ -94,9 +97,7 @@ export default function DeviceDetailScreen() {
   // Guard against missing id parameter
   if (!id) {
     return (
-      <View
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-      >
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <StatusBar
           barStyle={theme.isDark ? 'light-content' : 'dark-content'}
           backgroundColor="transparent"
@@ -105,16 +106,12 @@ export default function DeviceDetailScreen() {
 
         <LinearGradient
           colors={
-            theme.isDark
-              ? ['#1e293b', '#0f172a', '#0f172a']
-              : ['#f8fafc', '#ffffff', '#ffffff']
+            theme.isDark ? ['#1e293b', '#0f172a', '#0f172a'] : ['#f8fafc', '#ffffff', '#ffffff']
           }
           style={styles.gradientBackground}
         />
 
-        <SafeAreaView
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-        >
+        <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ color: theme.colors.text }}>Invalid device ID</Text>
           <Button title="Go Back" onPress={() => router.back()} />
         </SafeAreaView>
@@ -150,9 +147,7 @@ export default function DeviceDetailScreen() {
 
   if (deviceQuery.isLoading) {
     return (
-      <View
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-      >
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <StatusBar
           barStyle={theme.isDark ? 'light-content' : 'dark-content'}
           backgroundColor="transparent"
@@ -161,42 +156,24 @@ export default function DeviceDetailScreen() {
 
         <LinearGradient
           colors={
-            theme.isDark
-              ? ['#1e293b', '#0f172a', '#0f172a']
-              : ['#f8fafc', '#ffffff', '#ffffff']
+            theme.isDark ? ['#1e293b', '#0f172a', '#0f172a'] : ['#f8fafc', '#ffffff', '#ffffff']
           }
           style={styles.gradientBackground}
         />
 
         <SafeAreaView style={{ flex: 1 }}>
-          <Animated.View
-            entering={FadeInDown.delay(100).springify()}
-            style={styles.header}
-          >
+          <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.header}>
             <Pressable onPress={() => router.back()} style={styles.backButton}>
               <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
             </Pressable>
-            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
-              Loading...
-            </Text>
+            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Loading...</Text>
           </Animated.View>
 
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 20 }}
-          >
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
             <Animated.View entering={FadeInUp.delay(200).springify()}>
               <Card variant="glass" padding="lg" style={{ marginBottom: 24 }}>
-                <SkeletonLoader
-                  width="80%"
-                  height={32}
-                  style={{ marginBottom: 12 }}
-                />
-                <SkeletonLoader
-                  width="60%"
-                  height={16}
-                  style={{ marginBottom: 24 }}
-                />
+                <SkeletonLoader width="80%" height={32} style={{ marginBottom: 12 }} />
+                <SkeletonLoader width="60%" height={16} style={{ marginBottom: 24 }} />
                 <SkeletonLoader width="100%" height={120} borderRadius={12} />
               </Card>
             </Animated.View>
@@ -214,9 +191,7 @@ export default function DeviceDetailScreen() {
 
   if (deviceQuery.error || !device) {
     return (
-      <View
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-      >
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <StatusBar
           barStyle={theme.isDark ? 'light-content' : 'dark-content'}
           backgroundColor="transparent"
@@ -225,33 +200,22 @@ export default function DeviceDetailScreen() {
 
         <LinearGradient
           colors={
-            theme.isDark
-              ? ['#1e293b', '#0f172a', '#0f172a']
-              : ['#f8fafc', '#ffffff', '#ffffff']
+            theme.isDark ? ['#1e293b', '#0f172a', '#0f172a'] : ['#f8fafc', '#ffffff', '#ffffff']
           }
           style={styles.gradientBackground}
         />
 
         <SafeAreaView style={{ flex: 1 }}>
-          <Animated.View
-            entering={FadeInDown.delay(100).springify()}
-            style={styles.header}
-          >
+          <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.header}>
             <Pressable onPress={() => router.back()} style={styles.backButton}>
               <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
             </Pressable>
-            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
-              Error
-            </Text>
+            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Error</Text>
           </Animated.View>
 
           <View style={styles.errorContainer}>
             <Animated.View entering={FadeInUp.delay(200).springify()}>
-              <Card
-                variant="glass"
-                padding="lg"
-                style={{ alignItems: 'center' }}
-              >
+              <Card variant="glass" padding="lg" style={{ alignItems: 'center' }}>
                 <Ionicons
                   name="hardware-chip-outline"
                   size={64}
@@ -261,19 +225,14 @@ export default function DeviceDetailScreen() {
                 <Text style={[styles.errorTitle, { color: theme.colors.text }]}>
                   Device Not Found
                 </Text>
-                <Text
-                  style={[styles.errorText, { color: theme.colors.textMuted }]}
-                >
-                  This device may have been removed or you may not have
-                  permission to view it.
+                <Text style={[styles.errorText, { color: theme.colors.textMuted }]}>
+                  This device may have been removed or you may not have permission to view it.
                 </Text>
                 <Button
                   title="Go Back"
                   variant="gradient"
                   onPress={() => router.back()}
-                  leftIcon={
-                    <Ionicons name="arrow-back" size={16} color="#ffffff" />
-                  }
+                  leftIcon={<Ionicons name="arrow-back" size={16} color="#ffffff" />}
                 />
               </Card>
             </Animated.View>
@@ -286,9 +245,7 @@ export default function DeviceDetailScreen() {
   const listings = listingsQuery.data?.listings || []
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-    >
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar
         barStyle={theme.isDark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
@@ -298,34 +255,22 @@ export default function DeviceDetailScreen() {
       {/* Gradient Background */}
       <LinearGradient
         colors={
-          theme.isDark
-            ? ['#1e293b', '#0f172a', '#0f172a']
-            : ['#f8fafc', '#ffffff', '#ffffff']
+          theme.isDark ? ['#1e293b', '#0f172a', '#0f172a'] : ['#f8fafc', '#ffffff', '#ffffff']
         }
         style={styles.gradientBackground}
       />
 
       {/* Fixed Header */}
       <SafeAreaView>
-        <Animated.View
-          entering={FadeInDown.delay(100).springify()}
-          style={styles.header}
-        >
+        <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
           </Pressable>
-          <Text
-            style={[styles.headerTitle, { color: theme.colors.text }]}
-            numberOfLines={1}
-          >
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]} numberOfLines={1}>
             {device?.modelName || 'Device'}
           </Text>
           <Pressable onPress={handleShare} style={styles.shareButton}>
-            <Ionicons
-              name="share-outline"
-              size={24}
-              color={theme.colors.text}
-            />
+            <Ionicons name="share-outline" size={24} color={theme.colors.text} />
           </Pressable>
         </Animated.View>
       </SafeAreaView>
@@ -353,11 +298,7 @@ export default function DeviceDetailScreen() {
           <Card variant="glass" padding="lg" style={styles.heroCard}>
             <View style={styles.heroContent}>
               <View style={styles.deviceIcon}>
-                <Ionicons
-                  name="hardware-chip"
-                  size={48}
-                  color={theme.colors.primary}
-                />
+                <Ionicons name="hardware-chip" size={48} color={theme.colors.primary} />
               </View>
 
               <View style={styles.deviceInfo}>
@@ -368,10 +309,7 @@ export default function DeviceDetailScreen() {
                   {device?.modelName || 'Device'}
                 </Animated.Text>
                 <Animated.Text
-                  style={[
-                    styles.brandName,
-                    { color: theme.colors.textSecondary },
-                  ]}
+                  style={[styles.brandName, { color: theme.colors.textSecondary }]}
                   entering={FadeInUp.delay(500).springify()}
                 >
                   {device?.brand?.name}
@@ -381,66 +319,26 @@ export default function DeviceDetailScreen() {
                   style={styles.deviceStats}
                   entering={FadeInUp.delay(600).springify()}
                 >
-                  <View
-                    style={[
-                      styles.statItem,
-                      { backgroundColor: theme.colors.primaryLight },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statValue,
-                        { color: theme.colors.primary },
-                      ]}
-                    >
+                  <View style={[styles.statItem, { backgroundColor: theme.colors.primaryLight }]}>
+                    <Text style={[styles.statValue, { color: theme.colors.primary }]}>
                       {listings.length}
                     </Text>
-                    <Text
-                      style={[styles.statLabel, { color: theme.colors.text }]}
-                    >
-                      Listings
-                    </Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.text }]}>Listings</Text>
                   </View>
-                  <View
-                    style={[
-                      styles.statItem,
-                      { backgroundColor: theme.colors.surface },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.statValue,
-                        { color: theme.colors.success },
-                      ]}
-                    >
+                  <View style={[styles.statItem, { backgroundColor: theme.colors.surface }]}>
+                    <Text style={[styles.statValue, { color: theme.colors.success }]}>
                       {listings.reduce(
-                        (sum: number, listing: Listing) =>
-                          sum + (listing.upVotes || 0),
+                        (sum: number, listing: Listing) => sum + (listing.upVotes || 0),
                         0,
                       )}
                     </Text>
-                    <Text
-                      style={[styles.statLabel, { color: theme.colors.text }]}
-                    >
-                      Upvotes
-                    </Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.text }]}>Upvotes</Text>
                   </View>
-                  <View
-                    style={[
-                      styles.statItem,
-                      { backgroundColor: theme.colors.surface },
-                    ]}
-                  >
-                    <Text
-                      style={[styles.statValue, { color: theme.colors.info }]}
-                    >
+                  <View style={[styles.statItem, { backgroundColor: theme.colors.surface }]}>
+                    <Text style={[styles.statValue, { color: theme.colors.info }]}>
                       {device?.soc ? '1' : '0'}
                     </Text>
-                    <Text
-                      style={[styles.statLabel, { color: theme.colors.text }]}
-                    >
-                      SoC
-                    </Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.text }]}>SoC</Text>
                   </View>
                 </Animated.View>
               </View>
@@ -449,10 +347,7 @@ export default function DeviceDetailScreen() {
         </Animated.View>
 
         {/* Tab Navigation */}
-        <Animated.View
-          style={styles.tabContainer}
-          entering={FadeInUp.delay(700).springify()}
-        >
+        <Animated.View style={styles.tabContainer} entering={FadeInUp.delay(700).springify()}>
           <Card variant="glass" padding="sm">
             <View style={styles.tabButtons}>
               <Pressable
@@ -460,9 +355,7 @@ export default function DeviceDetailScreen() {
                   styles.tab,
                   {
                     backgroundColor:
-                      selectedTab === 'overview'
-                        ? theme.colors.primary
-                        : 'transparent',
+                      selectedTab === 'overview' ? theme.colors.primary : 'transparent',
                   },
                 ]}
                 onPress={() => setSelectedTab('overview')}
@@ -471,10 +364,7 @@ export default function DeviceDetailScreen() {
                   style={[
                     styles.tabText,
                     {
-                      color:
-                        selectedTab === 'overview'
-                          ? '#ffffff'
-                          : theme.colors.text,
+                      color: selectedTab === 'overview' ? '#ffffff' : theme.colors.text,
                       fontWeight: selectedTab === 'overview' ? '600' : '500',
                     },
                   ]}
@@ -487,9 +377,7 @@ export default function DeviceDetailScreen() {
                   styles.tab,
                   {
                     backgroundColor:
-                      selectedTab === 'listings'
-                        ? theme.colors.primary
-                        : 'transparent',
+                      selectedTab === 'listings' ? theme.colors.primary : 'transparent',
                   },
                 ]}
                 onPress={() => setSelectedTab('listings')}
@@ -498,10 +386,7 @@ export default function DeviceDetailScreen() {
                   style={[
                     styles.tabText,
                     {
-                      color:
-                        selectedTab === 'listings'
-                          ? '#ffffff'
-                          : theme.colors.text,
+                      color: selectedTab === 'listings' ? '#ffffff' : theme.colors.text,
                       fontWeight: selectedTab === 'listings' ? '600' : '500',
                     },
                   ]}
@@ -519,57 +404,29 @@ export default function DeviceDetailScreen() {
             {/* Device Information */}
             <Animated.View entering={FadeInUp.delay(800).springify()}>
               <Card variant="glass" style={styles.infoCard} padding="lg">
-                <Text
-                  style={[styles.sectionTitle, { color: theme.colors.text }]}
-                >
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
                   Device Information
                 </Text>
                 <View style={styles.infoRow}>
-                  <Text
-                    style={[
-                      styles.infoLabel,
-                      { color: theme.colors.textMuted },
-                    ]}
-                  >
-                    Brand:
-                  </Text>
-                  <Text
-                    style={[styles.infoValue, { color: theme.colors.text }]}
-                  >
+                  <Text style={[styles.infoLabel, { color: theme.colors.textMuted }]}>Brand:</Text>
+                  <Text style={[styles.infoValue, { color: theme.colors.text }]}>
                     {device?.brand?.name}
                   </Text>
                 </View>
                 <View style={styles.infoRow}>
-                  <Text
-                    style={[
-                      styles.infoLabel,
-                      { color: theme.colors.textMuted },
-                    ]}
-                  >
-                    Model:
-                  </Text>
-                  <Text
-                    style={[styles.infoValue, { color: theme.colors.text }]}
-                  >
+                  <Text style={[styles.infoLabel, { color: theme.colors.textMuted }]}>Model:</Text>
+                  <Text style={[styles.infoValue, { color: theme.colors.text }]}>
                     {device?.modelName || 'Device'}
                   </Text>
                 </View>
                 {device?.soc && (
                   <>
                     <View style={styles.infoRow}>
-                      <Text
-                        style={[
-                          styles.infoLabel,
-                          { color: theme.colors.textMuted },
-                        ]}
-                      >
+                      <Text style={[styles.infoLabel, { color: theme.colors.textMuted }]}>
                         SoC:
                       </Text>
-                      <Text
-                        style={[styles.infoValue, { color: theme.colors.text }]}
-                      >
-                        {device?.soc.manufacturer}{' '}
-                        {device?.soc.name}
+                      <Text style={[styles.infoValue, { color: theme.colors.text }]}>
+                        {device?.soc.manufacturer} {device?.soc.name}
                       </Text>
                     </View>
                   </>
@@ -580,39 +437,18 @@ export default function DeviceDetailScreen() {
             {/* Performance Overview */}
             {listings.length > 0 && (
               <Animated.View entering={FadeInUp.delay(900).springify()}>
-                <Card
-                  variant="glass"
-                  style={styles.performanceCard}
-                  padding="lg"
-                >
-                  <Text
-                    style={[styles.sectionTitle, { color: theme.colors.text }]}
-                  >
+                <Card variant="glass" style={styles.performanceCard} padding="lg">
+                  <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
                     Performance Overview
                   </Text>
                   <View style={styles.performanceGrid}>
                     {getPerformanceStats(listings).map((stat, index) => (
                       <View key={index} style={styles.performanceItem}>
-                        <View
-                          style={[
-                            styles.performanceDot,
-                            { backgroundColor: stat.color },
-                          ]}
-                        />
-                        <Text
-                          style={[
-                            styles.performanceLabel,
-                            { color: theme.colors.text },
-                          ]}
-                        >
+                        <View style={[styles.performanceDot, { backgroundColor: stat.color }]} />
+                        <Text style={[styles.performanceLabel, { color: theme.colors.text }]}>
                           {stat.label}
                         </Text>
-                        <Text
-                          style={[
-                            styles.performanceCount,
-                            { color: theme.colors.textMuted },
-                          ]}
-                        >
+                        <Text style={[styles.performanceCount, { color: theme.colors.textMuted }]}>
                           {stat.count}
                         </Text>
                       </View>
@@ -625,9 +461,7 @@ export default function DeviceDetailScreen() {
             {/* Quick Actions */}
             <Animated.View entering={FadeInUp.delay(1000).springify()}>
               <Card variant="glass" style={styles.actionsCard} padding="lg">
-                <Text
-                  style={[styles.sectionTitle, { color: theme.colors.text }]}
-                >
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
                   Quick Actions
                 </Text>
                 <View style={styles.actionButtons}>
@@ -643,13 +477,7 @@ export default function DeviceDetailScreen() {
                     variant="outline"
                     onPress={() => router.push('/(tabs)/browse')}
                     style={styles.actionButton}
-                    leftIcon={
-                      <Ionicons
-                        name="grid"
-                        size={16}
-                        color={theme.colors.primary}
-                      />
-                    }
+                    leftIcon={<Ionicons name="grid" size={16} color={theme.colors.primary} />}
                   />
                 </View>
               </Card>
@@ -664,10 +492,7 @@ export default function DeviceDetailScreen() {
                 style={styles.loadingSection}
               >
                 {Array.from({ length: 3 }).map((_, index) => (
-                  <SkeletonListingCard
-                    key={index}
-                    style={{ marginBottom: 16 }}
-                  />
+                  <SkeletonListingCard key={index} style={{ marginBottom: 16 }} />
                 ))}
               </Animated.View>
             ) : listings.length > 0 ? (
@@ -694,17 +519,10 @@ export default function DeviceDetailScreen() {
                     color={theme.colors.textMuted}
                     style={styles.emptyIcon}
                   />
-                  <Text
-                    style={[styles.emptyTitle, { color: theme.colors.text }]}
-                  >
+                  <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
                     No Listings Yet
                   </Text>
-                  <Text
-                    style={[
-                      styles.emptyText,
-                      { color: theme.colors.textMuted },
-                    ]}
-                  >
+                  <Text style={[styles.emptyText, { color: theme.colors.textMuted }]}>
                     Be the first to share your experience with this device!
                   </Text>
                   <Button

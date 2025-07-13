@@ -1,9 +1,5 @@
 import React, { memo } from 'react'
-import {
-  Text,
-  StyleSheet,
-  Pressable,
-} from 'react-native'
+import { Text, StyleSheet, Pressable } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -25,14 +21,8 @@ const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
   showWhenOnline = false,
 }) => {
   const { theme } = useTheme()
-  const {
-    isOnline,
-    isConnected,
-    connectionType,
-    hasOfflineData,
-    offlineQueue,
-    forceSync,
-  } = useOfflineMode()
+  const { isOnline, isConnected, connectionType, hasOfflineData, offlineQueue, forceSync } =
+    useOfflineMode()
 
   const styles = createStyles(theme)
   const scale = useSharedValue(1)
@@ -69,9 +59,7 @@ const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
     if (!isOnline) {
       return {
         icon: 'cloud-offline-outline' as const,
-        text: hasOfflineData 
-          ? `Offline Mode (${offlineQueue.length} pending)` 
-          : 'Offline Mode',
+        text: hasOfflineData ? `Offline Mode (${offlineQueue.length} pending)` : 'Offline Mode',
         color: theme.colors.warning,
         backgroundColor: `${theme.colors.warning}20`,
       }
@@ -112,15 +100,9 @@ const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
         disabled={!isOnline || !hasOfflineData}
       >
         <Animated.View style={[styles.indicator, animatedStyle]}>
-          <Ionicons
-            name={statusInfo.icon}
-            size={16}
-            color={statusInfo.color}
-          />
-          <Text style={[styles.text, { color: statusInfo.color }]}>
-            {statusInfo.text}
-          </Text>
-          
+          <Ionicons name={statusInfo.icon} size={16} color={statusInfo.color} />
+          <Text style={[styles.text, { color: statusInfo.color }]}>{statusInfo.text}</Text>
+
           {isOnline && hasOfflineData && (
             <Ionicons
               name="chevron-forward"
@@ -135,40 +117,41 @@ const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
   )
 }
 
-const createStyles = (_theme: any) => StyleSheet.create({
-  container: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  positionTop: {
-    top: 0,
-    paddingTop: 50, // Account for status bar
-  },
-  positionBottom: {
-    bottom: 100, // Account for tab bar
-  },
-  content: {
-    borderRadius: 8,
-  },
-  indicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  text: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  actionIcon: {
-    marginLeft: 4,
-  },
-})
+const createStyles = (_theme: any) =>
+  StyleSheet.create({
+    container: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      zIndex: 1000,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+    },
+    positionTop: {
+      top: 0,
+      paddingTop: 50, // Account for status bar
+    },
+    positionBottom: {
+      bottom: 100, // Account for tab bar
+    },
+    content: {
+      borderRadius: 8,
+    },
+    indicator: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+    },
+    text: {
+      fontSize: 12,
+      fontWeight: '500',
+      marginLeft: 6,
+    },
+    actionIcon: {
+      marginLeft: 4,
+    },
+  })
 
 export default memo(NetworkStatusIndicator)

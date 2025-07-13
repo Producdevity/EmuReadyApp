@@ -5,7 +5,7 @@ export { default as CachedImage } from './CachedImage'
 export { default as SearchBar } from './SearchBar'
 export { default as FilterChip, FilterChipGroup } from './FilterChip'
 export { LoadingSpinner } from './LoadingSpinner'
-export { 
+export {
   default as EmptyState,
   EmptySearchResults,
   EmptyListings,

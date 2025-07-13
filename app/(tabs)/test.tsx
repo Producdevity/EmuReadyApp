@@ -32,10 +32,7 @@ export default function TestScreen() {
   const [showDebugOptions, setShowDebugOptions] = useState(false)
   const [debugMessages, _setDebugMessages] = useState<string[]>([])
 
-  const getFullDriverPath = (
-    filename: string,
-    targetPackage: string = packageName,
-  ) => {
+  const getFullDriverPath = (filename: string, targetPackage: string = packageName) => {
     // Use the actual package name in the path
     const basePath = `/storage/emulated/0/Android/data/${targetPackage}/files/gpu_drivers/`
     return basePath + filename
@@ -79,10 +76,7 @@ driver_path=${fullPath}`
 
   const handleTestEden = async () => {
     if (Platform.OS !== 'android') {
-      Alert.alert(
-        'Platform Error',
-        'Eden emulator testing is only available on Android devices.',
-      )
+      Alert.alert('Platform Error', 'Eden emulator testing is only available on Android devices.')
       return
     }
 
@@ -116,13 +110,13 @@ driver_path=${fullPath}`
       console.log('Title ID:', titleId.trim())
       console.log('Driver Path:', driverPath)
       console.log('Package Name:', packageName.trim())
-      
+
       // Use the "Known Working Config" preset with Linking approach
       console.log('Using "Known Working Config" preset with Linking approach')
       await EmulatorService.launchGameWithPreset(
         titleId.trim(),
         'Known Working Config',
-        packageName.trim()
+        packageName.trim(),
       )
 
       console.log('EmulatorService call completed successfully')
@@ -158,9 +152,7 @@ driver_path=${fullPath}`
   const handleCheckInstallation = async () => {
     try {
       const isInstalled = await EmulatorAltService.checkIfInstalled(packageName)
-      console.log(
-        `Package ${packageName} is ${isInstalled ? 'installed' : 'NOT installed'}`,
-      )
+      console.log(`Package ${packageName} is ${isInstalled ? 'installed' : 'NOT installed'}`)
       Alert.alert(
         'Installation Check',
         `Package ${packageName} is ${isInstalled ? 'installed' : 'NOT installed'}`,
@@ -178,10 +170,7 @@ driver_path=${fullPath}`
     }
 
     if (!titleId.trim() || !EmulatorService.validateTitleId(titleId)) {
-      Alert.alert(
-        'Invalid Title ID',
-        'Please enter a valid 16-digit hex Title ID',
-      )
+      Alert.alert('Invalid Title ID', 'Please enter a valid 16-digit hex Title ID')
       return
     }
 
@@ -208,10 +197,7 @@ driver_path=${fullPath}`
           await EmulatorAltService.launchAppOnly(packageName.trim())
           break
         case 'allPackages':
-          await EmulatorAltService.tryDifferentPackageNames(
-            titleId.trim(),
-            customSettings,
-          )
+          await EmulatorAltService.tryDifferentPackageNames(titleId.trim(), customSettings)
           break
         default:
           throw new Error('Unknown method')
@@ -220,10 +206,7 @@ driver_path=${fullPath}`
       Alert.alert('Success', `Alternative method "${method}" worked!`)
     } catch (error) {
       console.error(`Alternative method ${method} failed:`, error)
-      Alert.alert(
-        'Method Failed',
-        `"${method}" method failed: ${getErrorMessage(error)}`,
-      )
+      Alert.alert('Method Failed', `"${method}" method failed: ${getErrorMessage(error)}`)
     } finally {
       setIsLoading(false)
     }
@@ -239,9 +222,7 @@ driver_path=${fullPath}`
           style={{ flex: 1 }}
           contentContainerStyle={{
             padding: isLandscape ? theme.spacing.md : theme.spacing.lg,
-            paddingHorizontal: isLandscape
-              ? theme.spacing.xl
-              : theme.spacing.lg,
+            paddingHorizontal: isLandscape ? theme.spacing.xl : theme.spacing.lg,
           }}
           keyboardShouldPersistTaps="handled"
         >
@@ -269,11 +250,7 @@ driver_path=${fullPath}`
                   marginRight: theme.spacing.md,
                 }}
               >
-                <Ionicons
-                  name="game-controller"
-                  size={24}
-                  color={theme.colors.textInverse}
-                />
+                <Ionicons name="game-controller" size={24} color={theme.colors.textInverse} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text
@@ -300,9 +277,7 @@ driver_path=${fullPath}`
 
           {/* Information Card */}
           <Animated.View
-            entering={FadeInUp.delay(getBaseDelay('fast')).duration(
-              ANIMATION_CONFIG.timing.fast,
-            )}
+            entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
           >
             <Card style={{ marginBottom: theme.spacing.lg }}>
               <View style={{ padding: theme.spacing.lg }}>
@@ -333,14 +308,11 @@ driver_path=${fullPath}`
                   style={{
                     fontSize: theme.typography.fontSize.md,
                     color: theme.colors.textMuted,
-                    lineHeight:
-                      theme.typography.lineHeight.relaxed *
-                      theme.typography.fontSize.md,
+                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
                   }}
                 >
-                  Enter a valid Nintendo Switch Title ID and GPU driver path to
-                  test launching games with custom settings in the Eden
-                  emulator.
+                  Enter a valid Nintendo Switch Title ID and GPU driver path to test launching games
+                  with custom settings in the Eden emulator.
                 </Text>
               </View>
             </Card>
@@ -348,9 +320,7 @@ driver_path=${fullPath}`
 
           {/* Form Fields */}
           <Animated.View
-            entering={FadeInUp.delay(getBaseDelay('normal')).duration(
-              ANIMATION_CONFIG.timing.fast,
-            )}
+            entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
           >
             <Card style={{ marginBottom: theme.spacing.lg }}>
               <View style={{ padding: theme.spacing.lg }}>
@@ -540,34 +510,18 @@ driver_path=${fullPath}`
                     variant="primary"
                     size="lg"
                     style={{ flex: isLandscape ? 1 : undefined }}
-                    leftIcon={
-                      <Ionicons
-                        name="play"
-                        size={20}
-                        color={theme.colors.textInverse}
-                      />
-                    }
+                    leftIcon={<Ionicons name="play" size={20} color={theme.colors.textInverse} />}
                   />
                 </View>
 
                 {/* Debug Options Toggle */}
                 <View style={{ marginTop: theme.spacing.md }}>
                   <Button
-                    title={
-                      showDebugOptions
-                        ? 'Hide Debug Options'
-                        : 'Show Debug Options'
-                    }
+                    title={showDebugOptions ? 'Hide Debug Options' : 'Show Debug Options'}
                     onPress={() => setShowDebugOptions(!showDebugOptions)}
                     variant="ghost"
                     size="md"
-                    leftIcon={
-                      <Ionicons
-                        name="bug"
-                        size={18}
-                        color={theme.colors.primary}
-                      />
-                    }
+                    leftIcon={<Ionicons name="bug" size={18} color={theme.colors.primary} />}
                   />
                 </View>
 
@@ -591,9 +545,7 @@ driver_path=${fullPath}`
           {/* Debug Options */}
           {showDebugOptions && (
             <Animated.View
-              entering={FadeInUp.delay(getBaseDelay('fast')).duration(
-                ANIMATION_CONFIG.timing.fast,
-              )}
+              entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
             >
               <Card style={{ marginBottom: theme.spacing.lg }}>
                 <View style={{ padding: theme.spacing.lg }}>
@@ -638,11 +590,7 @@ driver_path=${fullPath}`
                       variant="outline"
                       size="md"
                       leftIcon={
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={18}
-                          color={theme.colors.primary}
-                        />
+                        <Ionicons name="checkmark-circle" size={18} color={theme.colors.primary} />
                       }
                     />
 
@@ -651,13 +599,7 @@ driver_path=${fullPath}`
                       onPress={handleDebugMethods}
                       variant="outline"
                       size="md"
-                      leftIcon={
-                        <Ionicons
-                          name="terminal"
-                          size={18}
-                          color={theme.colors.primary}
-                        />
-                      }
+                      leftIcon={<Ionicons name="terminal" size={18} color={theme.colors.primary} />}
                     />
 
                     <Text
@@ -728,18 +670,18 @@ driver_path=${fullPath}`
           {/* Debug Messages */}
           {debugMessages.length > 0 && (
             <Animated.View
-              entering={FadeInUp.delay(getBaseDelay('fast')).duration(
-                ANIMATION_CONFIG.timing.fast,
-              )}
+              entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
             >
               <Card style={{ marginBottom: theme.spacing.lg }}>
                 <View style={{ padding: theme.spacing.lg }}>
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.lg,
-                    fontWeight: theme.typography.fontWeight.semibold,
-                    color: theme.colors.text,
-                    marginBottom: theme.spacing.md,
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.lg,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                      color: theme.colors.text,
+                      marginBottom: theme.spacing.md,
+                    }}
+                  >
                     Debug Output
                   </Text>
                   <ScrollView
@@ -775,9 +717,7 @@ driver_path=${fullPath}`
           {/* Settings Preview */}
           {showPreview && (
             <Animated.View
-              entering={FadeInUp.delay(getBaseDelay('fast')).duration(
-                ANIMATION_CONFIG.timing.fast,
-              )}
+              entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
             >
               <Card>
                 <View style={{ padding: theme.spacing.lg }}>
@@ -830,8 +770,7 @@ driver_path=${fullPath}`
                         color: theme.colors.text,
                         fontFamily: 'monospace',
                         lineHeight:
-                          theme.typography.lineHeight.relaxed *
-                          theme.typography.fontSize.xs,
+                          theme.typography.lineHeight.relaxed * theme.typography.fontSize.xs,
                       }}
                     >
                       {generateCustomSettings(driverPath)}
@@ -853,8 +792,7 @@ driver_path=${fullPath}`
                         marginBottom: theme.spacing.xs,
                       }}
                     >
-                      Full Driver Path:{' '}
-                      {getFullDriverPath(driverPath, packageName)}
+                      Full Driver Path: {getFullDriverPath(driverPath, packageName)}
                     </Text>
                     <Text
                       style={{

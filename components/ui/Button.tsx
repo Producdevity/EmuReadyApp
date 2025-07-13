@@ -8,14 +8,15 @@ import {
   type TextStyle,
   View,
 } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-} from 'react-native-reanimated'
+import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { useTheme } from '@/contexts/ThemeContext'
-import { createSpringAnimation, createTimingAnimation, ANIMATION_CONFIG } from '@/lib/animation/config'
+import {
+  createSpringAnimation,
+  createTimingAnimation,
+  ANIMATION_CONFIG,
+} from '@/lib/animation/config'
 
 interface ButtonProps {
   title: string
@@ -36,8 +37,7 @@ interface ButtonProps {
   accessibilityHint?: string
 }
 
-const AnimatedTouchableOpacity =
-  Animated.createAnimatedComponent(TouchableOpacity)
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity)
 
 export default function Button({
   title,
@@ -123,11 +123,20 @@ export default function Button({
   const getTextSize = () => {
     switch (size) {
       case 'sm':
-        return { fontSize: theme.typography.fontSize.sm, fontWeight: theme.typography.fontWeight.semibold }
+        return {
+          fontSize: theme.typography.fontSize.sm,
+          fontWeight: theme.typography.fontWeight.semibold,
+        }
       case 'lg':
-        return { fontSize: theme.typography.fontSize.lg, fontWeight: theme.typography.fontWeight.bold }
+        return {
+          fontSize: theme.typography.fontSize.lg,
+          fontWeight: theme.typography.fontWeight.bold,
+        }
       default:
-        return { fontSize: theme.typography.fontSize.md, fontWeight: theme.typography.fontWeight.semibold }
+        return {
+          fontSize: theme.typography.fontSize.md,
+          fontWeight: theme.typography.fontWeight.semibold,
+        }
     }
   }
 
@@ -198,15 +207,9 @@ export default function Button({
   const renderContent = () => (
     <View style={styles.contentContainer}>
       {loading && (
-        <ActivityIndicator
-          size="small"
-          color={getTextColor()}
-          style={styles.loadingIcon}
-        />
+        <ActivityIndicator size="small" color={getTextColor()} style={styles.loadingIcon} />
       )}
-      {leftIcon && !loading && (
-        <View style={styles.leftIcon}>{leftIcon}</View>
-      )}
+      {leftIcon && !loading && <View style={styles.leftIcon}>{leftIcon}</View>}
       {icon && !loading && (
         <View style={styles.leftIcon}>
           <Text style={{ color: getTextColor(), fontSize: 16 }}>{icon}</Text>
@@ -220,9 +223,7 @@ export default function Button({
           </Text>
         )}
       </View>
-      {rightIcon && (
-        <View style={styles.rightIcon}>{rightIcon}</View>
-      )}
+      {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
     </View>
   )
 
@@ -255,12 +256,7 @@ export default function Button({
 
   return (
     <AnimatedTouchableOpacity
-      style={[
-        buttonStyles,
-        style,
-        animatedStyle,
-        disabled && styles.disabled,
-      ]}
+      style={[buttonStyles, style, animatedStyle, disabled && styles.disabled]}
       onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}

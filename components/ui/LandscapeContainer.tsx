@@ -75,7 +75,8 @@ export default function LandscapeContainer({
         showsVerticalScrollIndicator: false,
         showsHorizontalScrollIndicator: false,
         contentContainerStyle: styles.scrollContent,
-        decelerationRate: Platform.OS === 'android' && isLandscape ? 'fast' as const : 'normal' as const,
+        decelerationRate:
+          Platform.OS === 'android' && isLandscape ? ('fast' as const) : ('normal' as const),
         scrollEventThrottle: 16,
       }
     : {}
@@ -88,9 +89,7 @@ export default function LandscapeContainer({
 
       {/* Gaming handheld specific optimizations */}
       {Platform.OS === 'android' && isLandscape && enableGamepadHints && (
-        <View style={styles.gamepadHints}>
-          {/* Add gamepad navigation hints here if needed */}
-        </View>
+        <View style={styles.gamepadHints}>{/* Add gamepad navigation hints here if needed */}</View>
       )}
     </ContainerWrapper>
   )
@@ -111,7 +110,8 @@ const createStyles = (theme: any, isLandscape: boolean, padding: any) =>
       paddingHorizontal: padding.horizontal,
       paddingVertical: padding.vertical,
       // Add extra bottom padding for gamepad navigation
-      paddingBottom: Platform.OS === 'android' && isLandscape ? padding.vertical + 20 : padding.vertical,
+      paddingBottom:
+        Platform.OS === 'android' && isLandscape ? padding.vertical + 20 : padding.vertical,
     },
     gamepadHints: {
       position: 'absolute',

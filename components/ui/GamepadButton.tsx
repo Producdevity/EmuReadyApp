@@ -1,14 +1,6 @@
 import React from 'react'
-import {
-  Pressable,
-  Text,
-  StyleSheet,
-  Platform,
-  type ViewStyle,
-  type TextStyle,
-} from 'react-native'
-import Animated,
-{
+import { Pressable, Text, StyleSheet, Platform, type ViewStyle, type TextStyle } from 'react-native'
+import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -191,9 +183,7 @@ export default function GamepadButton({
           end={{ x: 1, y: 1 }}
         >
           {icon && <Text style={styles.icon}>{icon}</Text>}
-          <Text style={[styles.text, { color: textColor }, textStyle]}>
-            {title}
-          </Text>
+          <Text style={[styles.text, { color: textColor }, textStyle]}>{title}</Text>
         </LinearGradient>
       </Animated.View>
     </Pressable>

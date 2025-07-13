@@ -41,7 +41,7 @@ export default function PCListingDetailScreen() {
           style: 'destructive',
           onPress: () => deleteMutation.mutate({ id: id! }),
         },
-      ]
+      ],
     )
   }
 
@@ -69,11 +69,7 @@ export default function PCListingDetailScreen() {
           <Text className="text-center mb-6" style={{ color: theme.colors.textSecondary }}>
             This listing may have been removed or is no longer available.
           </Text>
-          <Button
-            title="Back to PC Listings"
-            onPress={() => router.back()}
-            variant="outline"
-          />
+          <Button title="Back to PC Listings" onPress={() => router.back()} variant="outline" />
         </View>
       </SafeAreaView>
     )
@@ -134,7 +130,7 @@ export default function PCListingDetailScreen() {
               <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
                 Performance Overview
               </Text>
-              
+
               <View className="flex-row justify-between items-center mb-2">
                 <Text style={{ color: theme.colors.textSecondary }}>Performance Rating</Text>
                 <Text className="font-semibold" style={{ color: theme.colors.text }}>
@@ -168,7 +164,7 @@ export default function PCListingDetailScreen() {
               <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
                 Hardware Specifications
               </Text>
-              
+
               <View className="flex-row items-center mb-3">
                 <Ionicons name="hardware-chip" size={20} color={theme.colors.primary} />
                 <View className="ml-3 flex-1">
@@ -229,7 +225,7 @@ export default function PCListingDetailScreen() {
               <Text className="text-lg font-semibold mb-3" style={{ color: theme.colors.text }}>
                 Listing Information
               </Text>
-              
+
               <View className="flex-row justify-between items-center mb-2">
                 <Text style={{ color: theme.colors.textSecondary }}>Created by</Text>
                 <Text className="font-medium" style={{ color: theme.colors.text }}>

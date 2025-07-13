@@ -191,8 +191,7 @@ export const NETWORK = {
 // Error Messages
 export const ERROR_MESSAGES = {
   NETWORK: {
-    CONNECTION_ERROR:
-      'Unable to connect to the server. Please check your internet connection.',
+    CONNECTION_ERROR: 'Unable to connect to the server. Please check your internet connection.',
     TIMEOUT: 'Request timed out. Please try again.',
     SERVER_ERROR: 'Server error occurred. Please try again later.',
     NOT_FOUND: 'The requested resource was not found.',
@@ -208,8 +207,7 @@ export const ERROR_MESSAGES = {
   GENERAL: {
     UNKNOWN_ERROR: 'An unexpected error occurred. Please try again.',
     OFFLINE: 'You are currently offline. Please check your connection.',
-    MAINTENANCE:
-      'The app is currently under maintenance. Please try again later.',
+    MAINTENANCE: 'The app is currently under maintenance. Please try again later.',
   },
 } as const
 

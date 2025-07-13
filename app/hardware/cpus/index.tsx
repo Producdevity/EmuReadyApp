@@ -16,7 +16,11 @@ export default function CPUsScreen() {
   const [page, _setPage] = useState(1)
 
   // Fetch CPUs
-  const { data: cpusData, isLoading, error } = useCpus({
+  const {
+    data: cpusData,
+    isLoading,
+    error,
+  } = useCpus({
     search: search || undefined,
     manufacturer: selectedManufacturer || undefined,
     page,
@@ -54,14 +58,14 @@ export default function CPUsScreen() {
               {item.cores || 'N/A'} cores
             </Text>
           </View>
-          
+
           <View className="flex-row items-center">
             <Ionicons name="flash" size={16} color={theme.colors.primary} />
             <Text className="text-sm ml-1" style={{ color: theme.colors.textSecondary }}>
               {item.baseFrequency ? `${item.baseFrequency} GHz` : 'N/A'}
             </Text>
           </View>
-          
+
           <View className="flex-row items-center">
             <Ionicons name="calendar" size={16} color={theme.colors.primary} />
             <Text className="text-sm ml-1" style={{ color: theme.colors.textSecondary }}>
@@ -94,11 +98,7 @@ export default function CPUsScreen() {
       <Text className="text-center mb-6" style={{ color: theme.colors.textSecondary }}>
         Unable to load CPU information. Please try again.
       </Text>
-      <Button
-        title="Retry"
-        onPress={() => window.location.reload()}
-        variant="outline"
-      />
+      <Button title="Retry" onPress={() => window.location.reload()} variant="outline" />
     </View>
   )
 

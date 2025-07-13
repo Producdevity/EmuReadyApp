@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, type PropsWithChildren } from 'react'
-import AsyncStorage                                                                 from '@react-native-async-storage/async-storage'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type PropsWithChildren,
+} from 'react'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useColorScheme as useSystemColorScheme } from 'react-native'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -368,11 +374,7 @@ export function ThemeProvider(props: PropsWithChildren) {
     toggleTheme,
   }
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {props.children}
-    </ThemeContext.Provider>
-  )
+  return <ThemeContext.Provider value={value}>{props.children}</ThemeContext.Provider>
 }
 
 export function useTheme(): ThemeContextType {

@@ -29,12 +29,12 @@ import { Ionicons } from '@expo/vector-icons'
 
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/lib/auth/clerk'
-import { 
-  useListingById, 
-  useListingComments, 
-  useVoteListing, 
+import {
+  useListingById,
+  useListingComments,
+  useVoteListing,
   useCreateComment,
-  useUserVote 
+  useUserVote,
 } from '@/lib/api/hooks'
 import { CachedImage, Button, Card, EmptyState, SkeletonLoader } from '@/components/ui'
 import ReportButton from '@/components/ui/ReportButton'
@@ -48,11 +48,11 @@ export default function ListingDetailScreen() {
   const router = useRouter()
   const { theme } = useTheme()
   const { isSignedIn } = useAuth()
-  
+
   const [refreshing, setRefreshing] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [showCommentForm, setShowCommentForm] = useState(false)
-  
+
   const scrollY = useSharedValue(0)
 
   // API hooks
@@ -73,15 +73,10 @@ export default function ListingDetailScreen() {
       scrollY.value,
       [0, HEADER_HEIGHT],
       [0, -HEADER_HEIGHT * 0.2],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
-    
-    const scale = interpolate(
-      scrollY.value,
-      [0, HEADER_HEIGHT],
-      [1, 1.1],
-      Extrapolation.CLAMP
-    )
+
+    const scale = interpolate(scrollY.value, [0, HEADER_HEIGHT], [1, 1.1], Extrapolation.CLAMP)
 
     return {
       transform: [{ translateY }, { scale }],
@@ -93,20 +88,16 @@ export default function ListingDetailScreen() {
       scrollY.value,
       [0, HEADER_HEIGHT * 0.3, HEADER_HEIGHT * 0.7],
       [0, 0.3, 0.8],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
-    
+
     return { opacity }
   })
 
   const onRefresh = async () => {
     setRefreshing(true)
     try {
-      await Promise.all([
-        listingQuery.refetch(),
-        commentsQuery.refetch(),
-        userVoteQuery.refetch(),
-      ])
+      await Promise.all([listingQuery.refetch(), commentsQuery.refetch(), userVoteQuery.refetch()])
     } catch (error) {
       console.error('Error refreshing data:', error)
     } finally {
@@ -125,10 +116,7 @@ export default function ListingDetailScreen() {
         listingId: id!,
         value,
       })
-      await Promise.all([
-        listingQuery.refetch(),
-        userVoteQuery.refetch(),
-      ])
+      await Promise.all([listingQuery.refetch(), userVoteQuery.refetch()])
     } catch {
       Alert.alert('Error', 'Failed to submit vote. Please try again.')
     }
@@ -160,7 +148,7 @@ export default function ListingDetailScreen() {
 
   const handleShare = async () => {
     if (!listingQuery.data) return
-    
+
     try {
       await Share.share({
         message: `Check out this ${listingQuery.data.game?.title} performance report on EmuReady!`,
@@ -173,21 +161,31 @@ export default function ListingDetailScreen() {
 
   const getPerformanceColor = (performanceId: number) => {
     switch (performanceId) {
-      case 49: return theme.colors.performance.perfect
-      case 50: return theme.colors.performance.great
-      case 51: return theme.colors.performance.good
-      case 52: return theme.colors.performance.poor
-      default: return theme.colors.performance.unplayable
+      case 49:
+        return theme.colors.performance.perfect
+      case 50:
+        return theme.colors.performance.great
+      case 51:
+        return theme.colors.performance.good
+      case 52:
+        return theme.colors.performance.poor
+      default:
+        return theme.colors.performance.unplayable
     }
   }
 
   const getPerformanceLabel = (performanceId: number) => {
     switch (performanceId) {
-      case 49: return 'Perfect'
-      case 50: return 'Great'
-      case 51: return 'Playable'
-      case 52: return 'Poor'
-      default: return 'Unplayable'
+      case 49:
+        return 'Perfect'
+      case 50:
+        return 'Great'
+      case 51:
+        return 'Playable'
+      case 52:
+        return 'Poor'
+      default:
+        return 'Unplayable'
     }
   }
 
@@ -211,7 +209,7 @@ export default function ListingDetailScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
-        
+
         {/* Header Skeleton */}
         <View style={{ height: HEADER_HEIGHT }}>
           <SkeletonLoader width="100%" height={HEADER_HEIGHT} />
@@ -219,8 +217,18 @@ export default function ListingDetailScreen() {
 
         {/* Content Skeleton */}
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: theme.spacing.lg }}>
-          <SkeletonLoader width="100%" height={200} borderRadius={theme.borderRadius.lg} style={{ marginBottom: theme.spacing.lg }} />
-          <SkeletonLoader width="100%" height={150} borderRadius={theme.borderRadius.lg} style={{ marginBottom: theme.spacing.lg }} />
+          <SkeletonLoader
+            width="100%"
+            height={200}
+            borderRadius={theme.borderRadius.lg}
+            style={{ marginBottom: theme.spacing.lg }}
+          />
+          <SkeletonLoader
+            width="100%"
+            height={150}
+            borderRadius={theme.borderRadius.lg}
+            style={{ marginBottom: theme.spacing.lg }}
+          />
           <SkeletonLoader width="100%" height={100} borderRadius={theme.borderRadius.lg} />
         </ScrollView>
       </View>
@@ -247,7 +255,7 @@ export default function ListingDetailScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
-      
+
       {/* Hero Header */}
       <Animated.View
         style={[
@@ -263,15 +271,18 @@ export default function ListingDetailScreen() {
         ]}
       >
         <CachedImage
-          source={{ 
-            uri: listing?.game?.coverImageUrl || listing?.game?.boxArtUrl || 'https://via.placeholder.com/400x600'
+          source={{
+            uri:
+              listing?.game?.coverImageUrl ||
+              listing?.game?.boxArtUrl ||
+              'https://via.placeholder.com/400x600',
           }}
           style={{
             width: '100%',
             height: '100%',
           }}
         />
-        
+
         {/* Gradient Overlay */}
         <Animated.View
           style={[
@@ -299,13 +310,17 @@ export default function ListingDetailScreen() {
 
       {/* Navigation Header */}
       <SafeAreaView style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
-        <BlurView intensity={80} tint={theme.isDark ? 'dark' : 'light'} style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: theme.spacing.lg,
-          paddingVertical: theme.spacing.md,
-        }}>
+        <BlurView
+          intensity={80}
+          tint={theme.isDark ? 'dark' : 'light'}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.md,
+          }}
+        >
           <Pressable
             onPress={() => router.back()}
             style={{
@@ -334,7 +349,7 @@ export default function ListingDetailScreen() {
             >
               <Ionicons name="share" size={20} color={theme.colors.text} />
             </Pressable>
-            
+
             <View
               style={{
                 width: 44,
@@ -370,7 +385,7 @@ export default function ListingDetailScreen() {
           />
         }
         style={{ flex: 1 }}
-        contentContainerStyle={{ 
+        contentContainerStyle={{
           paddingTop: HEADER_HEIGHT - theme.spacing.xl,
         }}
       >
@@ -382,49 +397,61 @@ export default function ListingDetailScreen() {
             paddingBottom: 0,
           }}
         >
-          <Text style={{
-            fontSize: theme.typography.fontSize.xxxl,
-            fontWeight: theme.typography.fontWeight.extrabold,
-            color: theme.colors.text,
-            marginBottom: theme.spacing.sm,
-            lineHeight: theme.typography.lineHeight.tight * theme.typography.fontSize.xxxl,
-          }}>
+          <Text
+            style={{
+              fontSize: theme.typography.fontSize.xxxl,
+              fontWeight: theme.typography.fontWeight.extrabold,
+              color: theme.colors.text,
+              marginBottom: theme.spacing.sm,
+              lineHeight: theme.typography.lineHeight.tight * theme.typography.fontSize.xxxl,
+            }}
+          >
             {listing?.game?.title}
           </Text>
-          
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: theme.spacing.lg,
-            flexWrap: 'wrap',
-            gap: theme.spacing.sm,
-          }}>
-            <View style={{
-              backgroundColor: theme.colors.primary,
-              paddingHorizontal: theme.spacing.md,
-              paddingVertical: theme.spacing.xs,
-              borderRadius: theme.borderRadius.lg,
-            }}>
-              <Text style={{
-                fontSize: theme.typography.fontSize.sm,
-                fontWeight: theme.typography.fontWeight.semibold,
-                color: theme.colors.textInverse,
-              }}>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: theme.spacing.lg,
+              flexWrap: 'wrap',
+              gap: theme.spacing.sm,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: theme.colors.primary,
+                paddingHorizontal: theme.spacing.md,
+                paddingVertical: theme.spacing.xs,
+                borderRadius: theme.borderRadius.lg,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.sm,
+                  fontWeight: theme.typography.fontWeight.semibold,
+                  color: theme.colors.textInverse,
+                }}
+              >
                 {listing?.game?.system?.name}
               </Text>
             </View>
-            
-            <View style={{
-              backgroundColor: getPerformanceColor(listing?.performance?.id || 0),
-              paddingHorizontal: theme.spacing.md,
-              paddingVertical: theme.spacing.xs,
-              borderRadius: theme.borderRadius.lg,
-            }}>
-              <Text style={{
-                fontSize: theme.typography.fontSize.sm,
-                fontWeight: theme.typography.fontWeight.semibold,
-                color: theme.colors.textInverse,
-              }}>
+
+            <View
+              style={{
+                backgroundColor: getPerformanceColor(listing?.performance?.id || 0),
+                paddingHorizontal: theme.spacing.md,
+                paddingVertical: theme.spacing.xs,
+                borderRadius: theme.borderRadius.lg,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.sm,
+                  fontWeight: theme.typography.fontWeight.semibold,
+                  color: theme.colors.textInverse,
+                }}
+              >
                 {getPerformanceLabel(listing?.performance?.id || 0)}
               </Text>
             </View>
@@ -432,77 +459,94 @@ export default function ListingDetailScreen() {
         </Animated.View>
 
         {/* Setup Information */}
-        <Animated.View entering={FadeInUp.delay(300).springify()} style={{ padding: theme.spacing.lg }}>
+        <Animated.View
+          entering={FadeInUp.delay(300).springify()}
+          style={{ padding: theme.spacing.lg }}
+        >
           <Card style={{ marginBottom: theme.spacing.lg, overflow: 'hidden' }}>
             <LinearGradient
               colors={theme.colors.gradients.card as [string, string, ...string[]]}
               style={{ padding: theme.spacing.lg }}
             >
-              <Text style={{
-                fontSize: theme.typography.fontSize.xl,
-                fontWeight: theme.typography.fontWeight.bold,
-                color: theme.colors.text,
-                marginBottom: theme.spacing.lg,
-              }}>
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.xl,
+                  fontWeight: theme.typography.fontWeight.bold,
+                  color: theme.colors.text,
+                  marginBottom: theme.spacing.lg,
+                }}
+              >
                 Setup Information
               </Text>
 
               <View style={{ gap: theme.spacing.md }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <View style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: `${theme.colors.primary  }20`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: theme.spacing.md,
-                  }}>
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: `${theme.colors.primary}20`,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: theme.spacing.md,
+                    }}
+                  >
                     <Ionicons name="hardware-chip" size={20} color={theme.colors.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={{
-                      fontSize: theme.typography.fontSize.sm,
-                      color: theme.colors.textMuted,
-                      marginBottom: theme.spacing.xs,
-                    }}>
+                    <Text
+                      style={{
+                        fontSize: theme.typography.fontSize.sm,
+                        color: theme.colors.textMuted,
+                        marginBottom: theme.spacing.xs,
+                      }}
+                    >
                       Device
                     </Text>
-                    <Text style={{
-                      fontSize: theme.typography.fontSize.md,
-                      fontWeight: theme.typography.fontWeight.semibold,
-                      color: theme.colors.text,
-                    }}>
+                    <Text
+                      style={{
+                        fontSize: theme.typography.fontSize.md,
+                        fontWeight: theme.typography.fontWeight.semibold,
+                        color: theme.colors.text,
+                      }}
+                    >
                       {listing?.device?.brand?.name} {listing?.device?.modelName}
                     </Text>
                   </View>
                 </View>
 
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <View style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: `${theme.colors.secondary  }20`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: theme.spacing.md,
-                  }}>
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: `${theme.colors.secondary}20`,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: theme.spacing.md,
+                    }}
+                  >
                     <Ionicons name="apps" size={20} color={theme.colors.secondary} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={{
-                      fontSize: theme.typography.fontSize.sm,
-                      color: theme.colors.textMuted,
-                      marginBottom: theme.spacing.xs,
-                    }}>
+                    <Text
+                      style={{
+                        fontSize: theme.typography.fontSize.sm,
+                        color: theme.colors.textMuted,
+                        marginBottom: theme.spacing.xs,
+                      }}
+                    >
                       Emulator
                     </Text>
-                    <Text style={{
-                      fontSize: theme.typography.fontSize.md,
-                      fontWeight: theme.typography.fontWeight.semibold,
-                      color: theme.colors.text,
-                    }}>
+                    <Text
+                      style={{
+                        fontSize: theme.typography.fontSize.md,
+                        fontWeight: theme.typography.fontWeight.semibold,
+                        color: theme.colors.text,
+                      }}
+                    >
                       {listing?.emulator?.name}
                     </Text>
                   </View>
@@ -515,19 +559,23 @@ export default function ListingDetailScreen() {
           {listing?.notes && (
             <Card style={{ marginBottom: theme.spacing.lg }}>
               <View style={{ padding: theme.spacing.lg }}>
-                <Text style={{
-                  fontSize: theme.typography.fontSize.xl,
-                  fontWeight: theme.typography.fontWeight.bold,
-                  color: theme.colors.text,
-                  marginBottom: theme.spacing.md,
-                }}>
+                <Text
+                  style={{
+                    fontSize: theme.typography.fontSize.xl,
+                    fontWeight: theme.typography.fontWeight.bold,
+                    color: theme.colors.text,
+                    marginBottom: theme.spacing.md,
+                  }}
+                >
                   Performance Notes
                 </Text>
-                <Text style={{
-                  fontSize: theme.typography.fontSize.md,
-                  color: theme.colors.textSecondary,
-                  lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
-                }}>
+                <Text
+                  style={{
+                    fontSize: theme.typography.fontSize.md,
+                    color: theme.colors.textSecondary,
+                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+                  }}
+                >
                   {listing.notes}
                 </Text>
               </View>
@@ -540,21 +588,25 @@ export default function ListingDetailScreen() {
               colors={theme.colors.gradients.primary as [string, string, ...string[]]}
               style={{ padding: theme.spacing.lg }}
             >
-              <Text style={{
-                fontSize: theme.typography.fontSize.xl,
-                fontWeight: theme.typography.fontWeight.bold,
-                color: theme.colors.textInverse,
-                marginBottom: theme.spacing.lg,
-                textAlign: 'center',
-              }}>
+              <Text
+                style={{
+                  fontSize: theme.typography.fontSize.xl,
+                  fontWeight: theme.typography.fontWeight.bold,
+                  color: theme.colors.textInverse,
+                  marginBottom: theme.spacing.lg,
+                  textAlign: 'center',
+                }}
+              >
                 Was this helpful?
               </Text>
 
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-around',
-                alignItems: 'center',
-              }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-around',
+                  alignItems: 'center',
+                }}
+              >
                 <Pressable
                   onPress={() => handleVote(true)}
                   disabled={voteMutation.isPending}
@@ -568,17 +620,19 @@ export default function ListingDetailScreen() {
                     opacity: userVoteQuery.data === true ? 1 : 0.7,
                   }}
                 >
-                  <Ionicons 
-                    name={userVoteQuery.data === true ? "thumbs-up" : "thumbs-up-outline"} 
-                    size={24} 
+                  <Ionicons
+                    name={userVoteQuery.data === true ? 'thumbs-up' : 'thumbs-up-outline'}
+                    size={24}
                     color={theme.colors.textInverse}
                   />
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.lg,
-                    fontWeight: theme.typography.fontWeight.semibold,
-                    color: theme.colors.textInverse,
-                    marginLeft: theme.spacing.sm,
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.lg,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                      color: theme.colors.textInverse,
+                      marginLeft: theme.spacing.sm,
+                    }}
+                  >
                     {listing?.upVotes || 0}
                   </Text>
                 </Pressable>
@@ -596,17 +650,19 @@ export default function ListingDetailScreen() {
                     opacity: userVoteQuery.data === false ? 1 : 0.7,
                   }}
                 >
-                  <Ionicons 
-                    name={userVoteQuery.data === false ? "thumbs-down" : "thumbs-down-outline"} 
-                    size={24} 
+                  <Ionicons
+                    name={userVoteQuery.data === false ? 'thumbs-down' : 'thumbs-down-outline'}
+                    size={24}
                     color={theme.colors.textInverse}
                   />
-                  <Text style={{
-                    fontSize: theme.typography.fontSize.lg,
-                    fontWeight: theme.typography.fontWeight.semibold,
-                    color: theme.colors.textInverse,
-                    marginLeft: theme.spacing.sm,
-                  }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.lg,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                      color: theme.colors.textInverse,
+                      marginLeft: theme.spacing.sm,
+                    }}
+                  >
                     {listing?.downVotes || 0}
                   </Text>
                 </Pressable>
@@ -617,24 +673,28 @@ export default function ListingDetailScreen() {
           {/* Comments Section */}
           <Card>
             <View style={{ padding: theme.spacing.lg }}>
-              <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: theme.spacing.lg,
-              }}>
-                <Text style={{
-                  fontSize: theme.typography.fontSize.xl,
-                  fontWeight: theme.typography.fontWeight.bold,
-                  color: theme.colors.text,
-                }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: theme.spacing.lg,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: theme.typography.fontSize.xl,
+                    fontWeight: theme.typography.fontWeight.bold,
+                    color: theme.colors.text,
+                  }}
+                >
                   Comments ({commentsQuery.data?.length || 0})
                 </Text>
-                
+
                 {isSignedIn && (
                   <Button
-                    title={showCommentForm ? "Cancel" : "Add Comment"}
-                    variant={showCommentForm ? "outline" : "primary"}
+                    title={showCommentForm ? 'Cancel' : 'Add Comment'}
+                    variant={showCommentForm ? 'outline' : 'primary'}
                     size="sm"
                     onPress={() => setShowCommentForm(!showCommentForm)}
                   />
@@ -644,12 +704,14 @@ export default function ListingDetailScreen() {
               {/* Comment Form */}
               {showCommentForm && (
                 <Animated.View entering={ZoomIn.springify()}>
-                  <View style={{
-                    backgroundColor: theme.colors.surface,
-                    borderRadius: theme.borderRadius.lg,
-                    padding: theme.spacing.md,
-                    marginBottom: theme.spacing.lg,
-                  }}>
+                  <View
+                    style={{
+                      backgroundColor: theme.colors.surface,
+                      borderRadius: theme.borderRadius.lg,
+                      padding: theme.spacing.md,
+                      marginBottom: theme.spacing.lg,
+                    }}
+                  >
                     <TextInput
                       style={{
                         borderWidth: 1,
@@ -668,12 +730,14 @@ export default function ListingDetailScreen() {
                       multiline
                       numberOfLines={4}
                     />
-                    <View style={{
-                      flexDirection: 'row',
-                      justifyContent: 'flex-end',
-                      marginTop: theme.spacing.md,
-                      gap: theme.spacing.sm,
-                    }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'flex-end',
+                        marginTop: theme.spacing.md,
+                        gap: theme.spacing.sm,
+                      }}
+                    >
                       <Button
                         title="Cancel"
                         variant="outline"
@@ -714,31 +778,40 @@ export default function ListingDetailScreen() {
                       marginBottom: theme.spacing.md,
                     }}
                   >
-                    <View style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: theme.spacing.sm,
-                    }}>
-                      <Text style={{
-                        fontSize: theme.typography.fontSize.sm,
-                        fontWeight: theme.typography.fontWeight.semibold,
-                        color: theme.colors.primary,
-                      }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: theme.spacing.sm,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: theme.typography.fontSize.sm,
+                          fontWeight: theme.typography.fontWeight.semibold,
+                          color: theme.colors.primary,
+                        }}
+                      >
                         {(comment as any).author?.name || 'Anonymous'}
                       </Text>
-                      <Text style={{
-                        fontSize: theme.typography.fontSize.xs,
-                        color: theme.colors.textMuted,
-                      }}>
+                      <Text
+                        style={{
+                          fontSize: theme.typography.fontSize.xs,
+                          color: theme.colors.textMuted,
+                        }}
+                      >
                         {new Date(comment.createdAt).toLocaleDateString()}
                       </Text>
                     </View>
-                    <Text style={{
-                      fontSize: theme.typography.fontSize.md,
-                      color: theme.colors.text,
-                      lineHeight: theme.typography.lineHeight.normal * theme.typography.fontSize.md,
-                    }}>
+                    <Text
+                      style={{
+                        fontSize: theme.typography.fontSize.md,
+                        color: theme.colors.text,
+                        lineHeight:
+                          theme.typography.lineHeight.normal * theme.typography.fontSize.md,
+                      }}
+                    >
                       {comment.content}
                     </Text>
                   </Animated.View>
@@ -748,7 +821,7 @@ export default function ListingDetailScreen() {
                   icon="chatbubble"
                   title="No Comments Yet"
                   subtitle="Be the first to share your thoughts!"
-                  actionLabel={isSignedIn ? "Add Comment" : "Sign In to Comment"}
+                  actionLabel={isSignedIn ? 'Add Comment' : 'Sign In to Comment'}
                   onAction={() => {
                     if (isSignedIn) {
                       setShowCommentForm(true)

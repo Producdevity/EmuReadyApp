@@ -1,13 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import {
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-  Alert,
-  Pressable,
-  Animated,
-} from 'react-native'
+import { StatusBar, StyleSheet, Text, View, Alert, Pressable, Animated } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -53,10 +45,7 @@ export default function UserProfileScreen() {
   const slideAnim = useMemo(() => new Animated.Value(50), [])
 
   // Fetch user profile data (always call hooks before conditionals)
-  const userProfileQuery = useUserProfile(
-    { userId: id || '' },
-    { enabled: !!id }
-  )
+  const userProfileQuery = useUserProfile({ userId: id || '' }, { enabled: !!id })
 
   // Fetch user listings
   const userListingsQuery = useUserListings({ userId: id || '' })
@@ -74,9 +63,9 @@ export default function UserProfileScreen() {
       scrollY.value,
       [0, PROFILE_HEIGHT / 2, PROFILE_HEIGHT],
       [0, 0.5, 1],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
-    
+
     return {
       opacity,
     }
@@ -87,16 +76,11 @@ export default function UserProfileScreen() {
       scrollY.value,
       [0, PROFILE_HEIGHT],
       [0, -PROFILE_HEIGHT / 3],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
-    
-    const scale = interpolate(
-      scrollY.value,
-      [0, PROFILE_HEIGHT],
-      [1, 0.8],
-      Extrapolation.CLAMP
-    )
-    
+
+    const scale = interpolate(scrollY.value, [0, PROFILE_HEIGHT], [1, 0.8], Extrapolation.CLAMP)
+
     return {
       transform: [{ translateY }, { scale }],
     }
@@ -104,7 +88,7 @@ export default function UserProfileScreen() {
 
   useEffect(() => {
     if (!id) return
-    
+
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -124,10 +108,7 @@ export default function UserProfileScreen() {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text>Invalid user ID</Text>
-        <Button
-          title="Go Back"
-          onPress={() => router.back()}
-        />
+        <Button title="Go Back" onPress={() => router.back()} />
       </SafeAreaView>
     )
   }
@@ -135,8 +116,9 @@ export default function UserProfileScreen() {
   const handleShare = async () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-      
-      const shareContent = `Check out ${userProfileQuery.data?.name}'s profile on EmuReady!\n\n` +
+
+      const shareContent =
+        `Check out ${userProfileQuery.data?.name}'s profile on EmuReady!\n\n` +
         `${userProfileQuery.data?._count?.listings || 0} performance listings\n` +
         `${userProfileQuery.data?._count?.votes || 0} votes cast\n` +
         `Member since ${userProfileQuery.data?.createdAt ? new Date(userProfileQuery.data.createdAt).toLocaleDateString() : 'Unknown'}\n\n` +
@@ -161,8 +143,18 @@ export default function UserProfileScreen() {
   }
 
   const tabs: TabData[] = [
-    { key: 'listings', title: 'Listings', count: userProfileQuery.data?._count?.listings, icon: 'list' },
-    { key: 'activity', title: 'Activity', count: userProfileQuery.data?._count?.comments, icon: 'pulse' },
+    {
+      key: 'listings',
+      title: 'Listings',
+      count: userProfileQuery.data?._count?.listings,
+      icon: 'list',
+    },
+    {
+      key: 'activity',
+      title: 'Activity',
+      count: userProfileQuery.data?._count?.comments,
+      icon: 'pulse',
+    },
     { key: 'stats', title: 'Stats', icon: 'analytics' },
   ]
 
@@ -174,10 +166,7 @@ export default function UserProfileScreen() {
         return (
           <View style={styles.tabContentContainer}>
             {userListingsQuery.data?.map((listing: Listing, index: number) => (
-              <RNAnimated.View
-                key={listing.id}
-                entering={FadeInUp.delay(index * 100).springify()}
-              >
+              <RNAnimated.View key={listing.id} entering={FadeInUp.delay(index * 100).springify()}>
                 <ListingCard
                   listing={listing}
                   style={{
@@ -196,21 +185,23 @@ export default function UserProfileScreen() {
               <RNAnimated.View entering={FadeInUp.delay(200).springify()}>
                 <Card variant="glass" padding="lg" style={styles.emptyState}>
                   <RNAnimated.View entering={FadeInDown.delay(400)}>
-                    <View style={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: 40,
-                      backgroundColor: `${theme.colors.primary}20`,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 20,
-                    }}>
+                    <View
+                      style={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: 40,
+                        backgroundColor: `${theme.colors.primary}20`,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 20,
+                      }}
+                    >
                       <Ionicons name="list-outline" size={36} color={theme.colors.primary} />
                     </View>
                     <Text style={styles.emptyStateTitle}>No Listings Yet</Text>
                     <Text style={styles.emptyStateText}>
                       {isOwnProfile
-                        ? "Start creating performance listings to share your emulation experiences!"
+                        ? 'Start creating performance listings to share your emulation experiences!'
                         : "This user hasn't created any listings yet."}
                     </Text>
                     {isOwnProfile && (
@@ -231,18 +222,30 @@ export default function UserProfileScreen() {
 
       case 'activity':
         const activities = [
-          { icon: 'thumbs-up', color: theme.colors.primary, text: 'Upvoted "Super Mario World on Steam Deck"', time: '2 hours ago' },
-          { icon: 'chatbubble', color: theme.colors.secondary, text: 'Commented on "Zelda: Breath of the Wild performance"', time: '1 day ago' },
-          { icon: 'add-circle', color: theme.colors.success, text: 'Created listing for "Mario Kart 8 Deluxe"', time: '3 days ago' },
+          {
+            icon: 'thumbs-up',
+            color: theme.colors.primary,
+            text: 'Upvoted "Super Mario World on Steam Deck"',
+            time: '2 hours ago',
+          },
+          {
+            icon: 'chatbubble',
+            color: theme.colors.secondary,
+            text: 'Commented on "Zelda: Breath of the Wild performance"',
+            time: '1 day ago',
+          },
+          {
+            icon: 'add-circle',
+            color: theme.colors.success,
+            text: 'Created listing for "Mario Kart 8 Deluxe"',
+            time: '3 days ago',
+          },
         ]
-        
+
         return (
           <View style={styles.tabContentContainer}>
             {activities.map((activity, index) => (
-              <RNAnimated.View
-                key={index}
-                entering={SlideInRight.delay(index * 100).springify()}
-              >
+              <RNAnimated.View key={index} entering={SlideInRight.delay(index * 100).springify()}>
                 <Card variant="glass" padding="md" style={styles.activityCard}>
                   <View style={styles.activityItem}>
                     <View style={[styles.activityIcon, { backgroundColor: `${activity.color}20` }]}>
@@ -261,18 +264,48 @@ export default function UserProfileScreen() {
 
       case 'stats':
         const statItems = [
-          { value: userProfileQuery.data?._count?.listings || 0, label: 'Total Listings', icon: 'list', color: theme.colors.primary },
-          { value: userProfileQuery.data?._count?.votes || 0, label: 'Total Votes', icon: 'thumbs-up', color: theme.colors.secondary },
-          { value: userProfileQuery.data?._count?.comments || 0, label: 'Comments Made', icon: 'chatbubble', color: theme.colors.accent },
+          {
+            value: userProfileQuery.data?._count?.listings || 0,
+            label: 'Total Listings',
+            icon: 'list',
+            color: theme.colors.primary,
+          },
+          {
+            value: userProfileQuery.data?._count?.votes || 0,
+            label: 'Total Votes',
+            icon: 'thumbs-up',
+            color: theme.colors.secondary,
+          },
+          {
+            value: userProfileQuery.data?._count?.comments || 0,
+            label: 'Comments Made',
+            icon: 'chatbubble',
+            color: theme.colors.accent,
+          },
           { value: '4.8', label: 'Avg Rating', icon: 'star', color: theme.colors.success },
         ]
-        
+
         const achievements = [
-          { name: 'Performance Expert', desc: 'Created 10+ detailed listings', icon: 'trophy', color: '#FFD700' },
-          { name: 'Community Helper', desc: 'Received 100+ upvotes', icon: 'star', color: '#FF6B6B' },
-          { name: 'Early Adopter', desc: 'Joined in the first month', icon: 'rocket', color: '#8B5CF6' },
+          {
+            name: 'Performance Expert',
+            desc: 'Created 10+ detailed listings',
+            icon: 'trophy',
+            color: '#FFD700',
+          },
+          {
+            name: 'Community Helper',
+            desc: 'Received 100+ upvotes',
+            icon: 'star',
+            color: '#FF6B6B',
+          },
+          {
+            name: 'Early Adopter',
+            desc: 'Joined in the first month',
+            icon: 'rocket',
+            color: '#8B5CF6',
+          },
         ]
-        
+
         return (
           <View style={styles.tabContentContainer}>
             <View style={styles.statsGrid}>
@@ -283,15 +316,17 @@ export default function UserProfileScreen() {
                   style={{ flex: 1, minWidth: '45%', marginBottom: 12 }}
                 >
                   <Card variant="glass" padding="md" style={styles.statCard}>
-                    <View style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 24,
-                      backgroundColor: `${stat.color}20`,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 12,
-                    }}>
+                    <View
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 24,
+                        backgroundColor: `${stat.color}20`,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 12,
+                      }}
+                    >
                       <Ionicons name={stat.icon as any} size={24} color={stat.color} />
                     </View>
                     <Text style={styles.statValue}>{stat.value}</Text>
@@ -310,16 +345,22 @@ export default function UserProfileScreen() {
                     entering={SlideInRight.delay(600 + index * 100).springify()}
                     style={styles.achievement}
                   >
-                    <View style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: `${achievement.color}20`,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginRight: 12,
-                    }}>
-                      <Ionicons name={achievement.icon as any} size={20} color={achievement.color} />
+                    <View
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        backgroundColor: `${achievement.color}20`,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: 12,
+                      }}
+                    >
+                      <Ionicons
+                        name={achievement.icon as any}
+                        size={20}
+                        color={achievement.color}
+                      />
                     </View>
                     <View style={styles.achievementText}>
                       <Text style={styles.achievementName}>{achievement.name}</Text>
@@ -344,13 +385,11 @@ export default function UserProfileScreen() {
         backgroundColor="transparent"
         translucent
       />
-      
+
       {/* Gradient Background */}
       <LinearGradient
         colors={
-          theme.isDark
-            ? ['#1e293b', '#0f172a', '#0f172a']
-            : ['#f8fafc', '#ffffff', '#ffffff']
+          theme.isDark ? ['#1e293b', '#0f172a', '#0f172a'] : ['#f8fafc', '#ffffff', '#ffffff']
         }
         style={{
           position: 'absolute',
@@ -360,7 +399,7 @@ export default function UserProfileScreen() {
           height: PROFILE_HEIGHT + 200,
         }}
       />
-      
+
       {/* Animated Header */}
       <RNAnimated.View style={[styles.fixedHeader, headerAnimatedStyle]}>
         <BlurView
@@ -369,11 +408,11 @@ export default function UserProfileScreen() {
           style={StyleSheet.absoluteFillObject}
         />
         <SafeAreaView style={styles.headerContent}>
-          <Pressable 
+          <Pressable
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
               router.back()
-            }} 
+            }}
             style={styles.headerButton}
           >
             <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
@@ -403,7 +442,10 @@ export default function UserProfileScreen() {
           ]}
         >
           <SafeAreaView style={{ paddingTop: HEADER_HEIGHT }}>
-            <RNAnimated.View entering={FadeInDown.delay(200).springify()} style={styles.avatarContainer}>
+            <RNAnimated.View
+              entering={FadeInDown.delay(200).springify()}
+              style={styles.avatarContainer}
+            >
               <View style={styles.avatarWrapper}>
                 <LinearGradient
                   colors={[theme.colors.primary, theme.colors.primaryDark]}
@@ -423,7 +465,9 @@ export default function UserProfileScreen() {
               <Text style={styles.displayName}>
                 {userProfileQuery.data?.name || 'Unknown User'}
               </Text>
-              <Text style={styles.username}>@{userProfileQuery.data?.email?.split('@')[0] || 'username'}</Text>
+              <Text style={styles.username}>
+                @{userProfileQuery.data?.email?.split('@')[0] || 'username'}
+              </Text>
               {userProfileQuery.data?.bio && (
                 <Text style={styles.bio}>{userProfileQuery.data.bio}</Text>
               )}
@@ -431,28 +475,37 @@ export default function UserProfileScreen() {
               <Card variant="glass" padding="md" style={styles.quickStatsCard}>
                 <View style={styles.quickStats}>
                   <View style={styles.quickStat}>
-                    <Text style={styles.quickStatValue}>{userProfileQuery.data?._count?.listings || 0}</Text>
+                    <Text style={styles.quickStatValue}>
+                      {userProfileQuery.data?._count?.listings || 0}
+                    </Text>
                     <Text style={styles.quickStatLabel}>Listings</Text>
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.quickStat}>
-                    <Text style={styles.quickStatValue}>{userProfileQuery.data?._count?.votes || 0}</Text>
+                    <Text style={styles.quickStatValue}>
+                      {userProfileQuery.data?._count?.votes || 0}
+                    </Text>
                     <Text style={styles.quickStatLabel}>Votes</Text>
                   </View>
                   <View style={styles.statDivider} />
                   <View style={styles.quickStat}>
-                    <Text style={styles.quickStatValue}>{userProfileQuery.data?._count?.comments || 0}</Text>
+                    <Text style={styles.quickStatValue}>
+                      {userProfileQuery.data?._count?.comments || 0}
+                    </Text>
                     <Text style={styles.quickStatLabel}>Comments</Text>
                   </View>
                 </View>
               </Card>
 
               <Text style={styles.joinDate}>
-                🗓️ Joined {userProfileQuery.data?.createdAt ? new Date(userProfileQuery.data.createdAt).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long',
-                  day: 'numeric'
-                }) : 'Unknown'}
+                🗓️ Joined{' '}
+                {userProfileQuery.data?.createdAt
+                  ? new Date(userProfileQuery.data.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })
+                  : 'Unknown'}
               </Text>
             </RNAnimated.View>
 
@@ -463,24 +516,30 @@ export default function UserProfileScreen() {
                   variant="outline"
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                    Alert.alert(
-                      'Edit Profile',
-                      'Choose what you would like to edit:',
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Profile Photo',
-                          onPress: () => Alert.alert('Photo Update', 'Profile photo editing will be available soon.')
-                        },
-                        {
-                          text: 'Bio & Info',
-                          onPress: () => Alert.alert('Profile Info', 'Profile information editing will be available soon.')
-                        },
-                      ]
-                    )
+                    Alert.alert('Edit Profile', 'Choose what you would like to edit:', [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Profile Photo',
+                        onPress: () =>
+                          Alert.alert(
+                            'Photo Update',
+                            'Profile photo editing will be available soon.',
+                          ),
+                      },
+                      {
+                        text: 'Bio & Info',
+                        onPress: () =>
+                          Alert.alert(
+                            'Profile Info',
+                            'Profile information editing will be available soon.',
+                          ),
+                      },
+                    ])
                   }}
                   style={styles.editButton}
-                  leftIcon={<Ionicons name="create-outline" size={16} color={theme.colors.primary} />}
+                  leftIcon={
+                    <Ionicons name="create-outline" size={16} color={theme.colors.primary} />
+                  }
                 />
               </RNAnimated.View>
             )}
@@ -501,33 +560,37 @@ export default function UserProfileScreen() {
                   }}
                 >
                   <View style={styles.tabContentContainer}>
-                    <Ionicons 
-                      name={tab.icon as any} 
-                      size={18} 
-                      color={selectedTab === tab.key ? theme.colors.primary : theme.colors.textMuted}
+                    <Ionicons
+                      name={tab.icon as any}
+                      size={18}
+                      color={
+                        selectedTab === tab.key ? theme.colors.primary : theme.colors.textMuted
+                      }
                       style={{ marginBottom: 4 }}
                     />
-                    <Text
-                      style={[
-                        styles.tabText,
-                        selectedTab === tab.key && styles.activeTabText,
-                      ]}
-                    >
+                    <Text style={[styles.tabText, selectedTab === tab.key && styles.activeTabText]}>
                       {tab.title}
                     </Text>
                     {tab.count !== undefined && (
-                      <View style={[
-                        styles.tabBadge,
-                        { backgroundColor: selectedTab === tab.key ? theme.colors.primary : theme.colors.textMuted }
-                      ]}>
+                      <View
+                        style={[
+                          styles.tabBadge,
+                          {
+                            backgroundColor:
+                              selectedTab === tab.key
+                                ? theme.colors.primary
+                                : theme.colors.textMuted,
+                          },
+                        ]}
+                      >
                         <Text style={styles.tabBadgeText}>{tab.count}</Text>
                       </View>
                     )}
                   </View>
                   {selectedTab === tab.key && (
-                    <RNAnimated.View 
+                    <RNAnimated.View
                       entering={FadeInUp.duration(200)}
-                      style={[styles.tabIndicator, { backgroundColor: theme.colors.primary }]} 
+                      style={[styles.tabIndicator, { backgroundColor: theme.colors.primary }]}
                     />
                   )}
                 </Pressable>

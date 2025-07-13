@@ -1,11 +1,5 @@
 import React, { type ErrorInfo, type ReactNode } from 'react'
-import {
-  View,
-  Text,
-  StyleSheet,
-  Alert,
-  Pressable,
-} from 'react-native'
+import { View, Text, StyleSheet, Alert, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeInUp, SlideInDown } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
@@ -76,7 +70,7 @@ export class EnhancedErrorBoundary extends React.Component<Props, State> {
       Alert.alert(
         'Maximum Retries Reached',
         'The app has failed to recover after multiple attempts. Please restart the app.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       )
     }
   }
@@ -98,7 +92,7 @@ Timestamp: ${new Date().toISOString()}
       Alert.alert(
         'Cannot Send Report',
         'Unable to send error report. Please contact support at support@emuready.app',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       )
     }
   }
@@ -111,13 +105,15 @@ Timestamp: ${new Date().toISOString()}
       }
 
       // Default error UI
-      return <ErrorFallback 
-        error={this.state.error}
-        retryCount={this.state.retryCount}
-        maxRetries={this.maxRetries}
-        onRetry={this.handleRetry}
-        onSendReport={this.handleSendReport}
-      />
+      return (
+        <ErrorFallback
+          error={this.state.error}
+          retryCount={this.state.retryCount}
+          maxRetries={this.maxRetries}
+          onRetry={this.handleRetry}
+          onSendReport={this.handleSendReport}
+        />
+      )
     }
 
     return this.props.children
@@ -147,26 +143,16 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Animated.View
-          entering={FadeInUp.delay(100).springify()}
-          style={styles.iconContainer}
-        >
-          <Ionicons
-            name="alert-circle-outline"
-            size={80}
-            color={theme.colors.error}
-          />
+        <Animated.View entering={FadeInUp.delay(100).springify()} style={styles.iconContainer}>
+          <Ionicons name="alert-circle-outline" size={80} color={theme.colors.error} />
         </Animated.View>
 
-        <Animated.View
-          entering={FadeInUp.delay(200).springify()}
-          style={styles.textContainer}
-        >
+        <Animated.View entering={FadeInUp.delay(200).springify()} style={styles.textContainer}>
           <Text style={styles.title}>Something went wrong</Text>
           <Text style={styles.subtitle}>
             The app encountered an unexpected error and needs to recover.
           </Text>
-          
+
           {__DEV__ && error && (
             <Card variant="outline" padding="sm" style={styles.errorCard}>
               <Text style={styles.errorTitle}>Debug Information:</Text>
@@ -177,10 +163,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
           )}
         </Animated.View>
 
-        <Animated.View
-          entering={SlideInDown.delay(300).springify()}
-          style={styles.actionContainer}
-        >
+        <Animated.View entering={SlideInDown.delay(300).springify()} style={styles.actionContainer}>
           {canRetry ? (
             <Button
               title={`Try Again ${retryCount > 0 ? `(${retryCount}/${maxRetries})` : ''}`}
@@ -215,82 +198,83 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({
   )
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  iconContainer: {
-    marginBottom: 24,
-  },
-  textContainer: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 16,
-  },
-  errorCard: {
-    marginTop: 16,
-    maxWidth: '100%',
-  },
-  errorTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: theme.colors.error,
-    marginBottom: 8,
-  },
-  errorText: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    fontFamily: 'monospace',
-  },
-  actionContainer: {
-    width: '100%',
-    gap: 12,
-  },
-  primaryButton: {
-    width: '100%',
-  },
-  secondaryButton: {
-    width: '100%',
-  },
-  maxRetriesText: {
-    fontSize: 14,
-    color: theme.colors.warning,
-    textAlign: 'center',
-    marginBottom: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: theme.colors.warningLight,
-    borderRadius: 8,
-  },
-  helpButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  helpText: {
-    fontSize: 14,
-    color: theme.colors.primary,
-    textDecorationLine: 'underline',
-  },
-})
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+    },
+    iconContainer: {
+      marginBottom: 24,
+    },
+    textContainer: {
+      alignItems: 'center',
+      marginBottom: 32,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      textAlign: 'center',
+      marginBottom: 12,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 24,
+      marginBottom: 16,
+    },
+    errorCard: {
+      marginTop: 16,
+      maxWidth: '100%',
+    },
+    errorTitle: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: theme.colors.error,
+      marginBottom: 8,
+    },
+    errorText: {
+      fontSize: 12,
+      color: theme.colors.textMuted,
+      fontFamily: 'monospace',
+    },
+    actionContainer: {
+      width: '100%',
+      gap: 12,
+    },
+    primaryButton: {
+      width: '100%',
+    },
+    secondaryButton: {
+      width: '100%',
+    },
+    maxRetriesText: {
+      fontSize: 14,
+      color: theme.colors.warning,
+      textAlign: 'center',
+      marginBottom: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: theme.colors.warningLight,
+      borderRadius: 8,
+    },
+    helpButton: {
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    helpText: {
+      fontSize: 14,
+      color: theme.colors.primary,
+      textDecorationLine: 'underline',
+    },
+  })
 
 export default EnhancedErrorBoundary

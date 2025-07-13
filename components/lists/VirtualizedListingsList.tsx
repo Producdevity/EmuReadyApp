@@ -1,12 +1,5 @@
 import React, { memo, useCallback } from 'react'
-import {
-  FlatList,
-  View,
-  Text,
-  type ListRenderItem,
-  StyleSheet,
-  RefreshControl,
-} from 'react-native'
+import { FlatList, View, Text, type ListRenderItem, StyleSheet, RefreshControl } from 'react-native'
 import Animated, { FadeInUp } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import { ListingCard } from '@/components/cards'
@@ -28,31 +21,25 @@ interface VirtualizedListingsListProps {
   emptySubtitle?: string
 }
 
-const AnimatedListingCard = memo(function AnimatedListingCard({ listing, onPress, index }: {
+const AnimatedListingCard = memo(function AnimatedListingCard({
+  listing,
+  onPress,
+  index,
+}: {
   listing: Listing
   onPress: () => void
   index: number
 }) {
   return (
-    <Animated.View
-      entering={FadeInUp.delay(index * 50).springify()}
-      style={styles.listingWrapper}
-    >
-      <ListingCard
-        listing={listing}
-        onPress={onPress}
-        style={styles.listingCard}
-      />
+    <Animated.View entering={FadeInUp.delay(index * 50).springify()} style={styles.listingWrapper}>
+      <ListingCard listing={listing} onPress={onPress} style={styles.listingCard} />
     </Animated.View>
   )
 })
 
 const LoadingItem = memo(function LoadingItem({ index }: { index: number }) {
   return (
-    <Animated.View
-      entering={FadeInUp.delay(index * 100).springify()}
-      style={styles.listingWrapper}
-    >
+    <Animated.View entering={FadeInUp.delay(index * 100).springify()} style={styles.listingWrapper}>
       <SkeletonListingCard />
     </Animated.View>
   )
@@ -68,35 +55,36 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
   onRetry,
   ListHeaderComponent,
   ListFooterComponent,
-  emptyTitle = "No Results Found",
+  emptyTitle = 'No Results Found',
   emptySubtitle = "Try adjusting your search terms or filters to find what you're looking for.",
 }) => {
   const { theme } = useTheme()
   const styles = createStyles(theme)
 
-  const renderItem: ListRenderItem<Listing> = useCallback(({ item, index }) => (
-    <AnimatedListingCard
-      listing={item}
-      onPress={() => onListingPress(item.id)}
-      index={index}
-    />
-  ), [onListingPress])
+  const renderItem: ListRenderItem<Listing> = useCallback(
+    ({ item, index }) => (
+      <AnimatedListingCard listing={item} onPress={() => onListingPress(item.id)} index={index} />
+    ),
+    [onListingPress],
+  )
 
-  const renderLoadingItem: ListRenderItem<number> = useCallback(({ index }) => (
-    <LoadingItem index={index} />
-  ), [])
+  const renderLoadingItem: ListRenderItem<number> = useCallback(
+    ({ index }) => <LoadingItem index={index} />,
+    [],
+  )
 
   const keyExtractor = useCallback((item: Listing) => item.id, [])
 
-  const getItemLayout = useCallback((data: any, index: number) => ({
-    length: 180, // Approximate height of ListingCard
-    offset: 180 * index,
-    index,
-  }), [])
+  const getItemLayout = useCallback(
+    (data: any, index: number) => ({
+      length: 180, // Approximate height of ListingCard
+      offset: 180 * index,
+      index,
+    }),
+    [],
+  )
 
-  const ItemSeparator = useCallback(() => (
-    <View style={styles.separator} />
-  ), [styles.separator])
+  const ItemSeparator = useCallback(() => <View style={styles.separator} />, [styles.separator])
 
   // Loading state
   if (isLoading) {
@@ -131,9 +119,7 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
                 style={styles.errorIcon}
               />
               <Text style={styles.errorTitle}>Unable to Load Listings</Text>
-              <Text style={styles.errorText}>
-                Please check your connection and try again.
-              </Text>
+              <Text style={styles.errorText}>Please check your connection and try again.</Text>
               {onRetry && (
                 <Button
                   title="Retry"
@@ -165,7 +151,9 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
       updateCellsBatchingPeriod={50}
       windowSize={10}
       initialNumToRender={8}
-      contentContainerStyle={listings.length === 0 ? styles.emptyContainer : styles.contentContainer}
+      contentContainerStyle={
+        listings.length === 0 ? styles.emptyContainer : styles.contentContainer
+      }
       ListHeaderComponent={ListHeaderComponent}
       ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={
@@ -196,68 +184,69 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
   )
 }
 
-const createStyles = (theme: any) => StyleSheet.create({
-  contentContainer: {
-    paddingBottom: 100,
-  },
-  emptyContainer: {
-    flexGrow: 1,
-    paddingBottom: 100,
-  },
-  listingWrapper: {
-    paddingHorizontal: 20,
-  },
-  listingCard: {
-    marginBottom: 0,
-  },
-  separator: {
-    height: 16,
-  },
-  errorCard: {
-    alignItems: 'center',
-    marginHorizontal: 20,
-  },
-  errorIcon: {
-    marginBottom: 16,
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.text,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  errorText: {
-    fontSize: 14,
-    color: theme.colors.textMuted,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
-  },
-  retryButton: {
-    width: '100%',
-  },
-  emptyCard: {
-    alignItems: 'center',
-    marginHorizontal: 20,
-  },
-  emptyIcon: {
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.text,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: theme.colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-})
+const createStyles = (theme: any) =>
+  StyleSheet.create({
+    contentContainer: {
+      paddingBottom: 100,
+    },
+    emptyContainer: {
+      flexGrow: 1,
+      paddingBottom: 100,
+    },
+    listingWrapper: {
+      paddingHorizontal: 20,
+    },
+    listingCard: {
+      marginBottom: 0,
+    },
+    separator: {
+      height: 16,
+    },
+    errorCard: {
+      alignItems: 'center',
+      marginHorizontal: 20,
+    },
+    errorIcon: {
+      marginBottom: 16,
+    },
+    errorTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    errorText: {
+      fontSize: 14,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+      marginBottom: 24,
+      lineHeight: 20,
+    },
+    retryButton: {
+      width: '100%',
+    },
+    emptyCard: {
+      alignItems: 'center',
+      marginHorizontal: 20,
+    },
+    emptyIcon: {
+      marginBottom: 16,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.colors.text,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    emptyText: {
+      fontSize: 14,
+      color: theme.colors.textMuted,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+  })
 
 export default memo(VirtualizedListingsList)
 
