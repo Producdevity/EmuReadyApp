@@ -141,21 +141,21 @@ const lightTheme: Theme = {
   mode: 'light',
   isDark: false,
   colors: {
-    // Modern primary colors with more vibrant gradients
-    primary: '#6366f1',
-    primaryDark: '#4338ca',
-    primaryLight: '#8b5cf6',
+    // Modern vibrant primary colors with better contrast
+    primary: '#5b21b6',
+    primaryDark: '#4c1d95',
+    primaryLight: '#7c3aed',
 
-    secondary: '#06b6d4',
+    secondary: '#0891b2',
     accent: '#f59e0b',
 
-    // Layered backgrounds for depth
-    background: '#f8fafc',
-    backgroundSecondary: '#f1f5f9',
+    // Layered backgrounds with subtle depth
+    background: '#fafbfc',
+    backgroundSecondary: '#f3f4f6',
     surface: '#ffffff',
-    surfaceElevated: '#ffffff',
+    surfaceElevated: '#fcfcfd',
     card: '#ffffff',
-    cardElevated: '#ffffff',
+    cardElevated: '#f9fafb',
 
     // Refined text hierarchy
     text: '#0f172a',
@@ -178,27 +178,27 @@ const lightTheme: Theme = {
     info: '#06b6d4',
     infoLight: '#cffafe',
 
-    // Glass morphism and shadows
-    overlay: 'rgba(15, 23, 42, 0.4)',
-    shadow: 'rgba(15, 23, 42, 0.08)',
-    shadowLight: 'rgba(15, 23, 42, 0.04)',
-    glass: 'rgba(255, 255, 255, 0.8)',
+    // Enhanced glass morphism and shadows
+    overlay: 'rgba(15, 23, 42, 0.5)',
+    shadow: 'rgba(91, 33, 182, 0.12)',
+    shadowLight: 'rgba(91, 33, 182, 0.06)',
+    glass: 'rgba(255, 255, 255, 0.85)',
 
     performance: {
-      perfect: '#22c55e',
+      perfect: '#10b981',
       great: '#3b82f6',
       good: '#f59e0b',
-      poor: '#ef4444',
-      unplayable: '#64748b',
+      poor: '#f87171',
+      unplayable: '#94a3b8',
     },
 
-    // Modern gradients
+    // Enhanced modern gradients
     gradients: {
-      primary: ['#6366f1', '#8b5cf6'],
+      primary: ['#7c3aed', '#5b21b6'],
       secondary: ['#06b6d4', '#0891b2'],
-      card: ['#ffffff', '#f8fafc'],
-      hero: ['#6366f1', '#8b5cf6', '#06b6d4'],
-      gaming: ['#8b5cf6', '#6366f1', '#06b6d4'],
+      card: ['#ffffff', '#fafbfc'],
+      hero: ['#7c3aed', '#5b21b6', '#4c1d95'],
+      gaming: ['#8b5cf6', '#7c3aed', '#06b6d4'],
     },
   },
   spacing: {
@@ -243,11 +243,11 @@ const lightTheme: Theme = {
     },
   },
   shadows: {
-    xs: '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)',
-    sm: '0 3px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12)',
-    md: '0 10px 25px rgba(0, 0, 0, 0.15), 0 5px 10px rgba(0, 0, 0, 0.05)',
-    lg: '0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07)',
-    xl: '0 25px 50px rgba(0, 0, 0, 0.15), 0 12px 25px rgba(0, 0, 0, 0.1)',
+    xs: '0 1px 2px rgba(91, 33, 182, 0.06)',
+    sm: '0 2px 8px rgba(91, 33, 182, 0.08)',
+    md: '0 4px 20px rgba(91, 33, 182, 0.10)',
+    lg: '0 8px 30px rgba(91, 33, 182, 0.12)',
+    xl: '0 12px 40px rgba(91, 33, 182, 0.15)',
   },
   animations: {
     timing: {
@@ -269,24 +269,24 @@ const darkTheme: Theme = {
   colors: {
     ...lightTheme.colors,
 
-    // Enhanced dark backgrounds with depth
-    background: '#0f172a',
-    backgroundSecondary: '#1e293b',
-    surface: '#1e293b',
-    surfaceElevated: '#334155',
-    card: '#1e293b',
-    cardElevated: '#334155',
+    // Rich dark backgrounds with better depth
+    background: '#0a0a0a',
+    backgroundSecondary: '#141414',
+    surface: '#1a1a1a',
+    surfaceElevated: '#242424',
+    card: '#1f1f1f',
+    cardElevated: '#2a2a2a',
 
-    // Refined dark text
-    text: '#f8fafc',
-    textSecondary: '#cbd5e1',
-    textMuted: '#94a3b8',
-    textInverse: '#0f172a',
+    // Better contrast dark text
+    text: '#ffffff',
+    textSecondary: '#e5e5e5',
+    textMuted: '#a3a3a3',
+    textInverse: '#0a0a0a',
 
-    // Enhanced dark borders
-    border: '#334155',
-    borderLight: '#475569',
-    borderFocus: '#8b5cf6',
+    // Subtle dark borders
+    border: '#2a2a2a',
+    borderLight: '#3a3a3a',
+    borderFocus: '#7c3aed',
 
     // Dark status variants
     successLight: '#064e3b',
@@ -294,19 +294,19 @@ const darkTheme: Theme = {
     errorLight: '#450a0a',
     infoLight: '#0c4a6e',
 
-    // Dark glass and shadows
-    overlay: 'rgba(15, 23, 42, 0.9)',
-    shadow: 'rgba(0, 0, 0, 0.5)',
-    shadowLight: 'rgba(0, 0, 0, 0.25)',
-    glass: 'rgba(30, 41, 59, 0.8)',
+    // Enhanced dark glass and shadows
+    overlay: 'rgba(0, 0, 0, 0.85)',
+    shadow: 'rgba(0, 0, 0, 0.6)',
+    shadowLight: 'rgba(0, 0, 0, 0.3)',
+    glass: 'rgba(26, 26, 26, 0.85)',
 
-    // Dark gradients
+    // Vibrant dark gradients
     gradients: {
-      primary: ['#6366f1', '#8b5cf6'],
+      primary: ['#7c3aed', '#5b21b6'],
       secondary: ['#06b6d4', '#0891b2'],
-      card: ['#1e293b', '#334155'],
-      hero: ['#1e293b', '#6366f1', '#8b5cf6'],
-      gaming: ['#0f172a', '#6366f1', '#8b5cf6'],
+      card: ['#1f1f1f', '#2a2a2a'],
+      hero: ['#0a0a0a', '#5b21b6', '#7c3aed'],
+      gaming: ['#141414', '#7c3aed', '#06b6d4'],
     },
   },
 }

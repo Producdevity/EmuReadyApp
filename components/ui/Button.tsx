@@ -7,14 +7,13 @@ import {
   type ViewStyle,
   type TextStyle,
   View,
+  Platform,
 } from 'react-native'
-import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated'
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
-  createSpringAnimation,
-  createTimingAnimation,
   ANIMATION_CONFIG,
 } from '@/lib/animation/config'
 
@@ -73,15 +72,29 @@ export default function Button({
 
   const handlePressIn = () => {
     if (!disabled && !loading) {
-      scale.value = createSpringAnimation(ANIMATION_CONFIG.scale.press)
-      backgroundOpacity.value = createTimingAnimation(0.85, 'fast')
+      scale.value = withSpring(0.97, {
+        damping: 30,
+        stiffness: 400,
+        mass: 0.8
+      })
+      backgroundOpacity.value = withTiming(0.9, {
+        duration: 100,
+        easing: ANIMATION_CONFIG.easing.out
+      })
     }
   }
 
   const handlePressOut = () => {
     if (!disabled && !loading) {
-      scale.value = createSpringAnimation(1)
-      backgroundOpacity.value = createTimingAnimation(1, 'fast')
+      scale.value = withSpring(1, {
+        damping: 25,
+        stiffness: 350,
+        mass: 0.7
+      })
+      backgroundOpacity.value = withTiming(1, {
+        duration: 150,
+        easing: ANIMATION_CONFIG.easing.out
+      })
     }
   }
 
@@ -153,15 +166,20 @@ export default function Button({
       case 'secondary':
         return {
           ...baseStyles,
-          backgroundColor: theme.colors.surface,
+          backgroundColor: theme.colors.surfaceElevated,
           borderWidth: 1,
-          borderColor: theme.colors.border,
+          borderColor: theme.colors.borderLight,
+          shadowColor: theme.colors.shadow,
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: theme.isDark ? 0.2 : 0.05,
+          shadowRadius: 3,
+          elevation: Platform.OS === 'android' ? 2 : 0,
         }
       case 'outline':
         return {
           ...baseStyles,
           backgroundColor: 'transparent',
-          borderWidth: 1.5,
+          borderWidth: 2,
           borderColor: theme.colors.primary,
         }
       case 'ghost':
@@ -178,6 +196,11 @@ export default function Button({
         return {
           ...baseStyles,
           backgroundColor: theme.colors.primary,
+          shadowColor: theme.colors.primary,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 6,
+          elevation: Platform.OS === 'android' ? 4 : 0,
         }
     }
   }
@@ -243,8 +266,8 @@ export default function Button({
       >
         <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
           <LinearGradient
-            colors={[theme.colors.primary, theme.colors.primaryDark]}
-            style={StyleSheet.absoluteFillObject}
+            colors={theme.colors.gradients.primary as [string, string, ...string[]]}
+            style={[StyleSheet.absoluteFillObject, { borderRadius: buttonStyles.borderRadius }]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           />

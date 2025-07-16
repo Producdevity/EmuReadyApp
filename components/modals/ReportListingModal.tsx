@@ -264,3 +264,146 @@ export default function ReportListingModal({
     </Modal>
   )
 }
+
+const styles = StyleSheet.create({
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '90%',
+    overflow: 'hidden',
+  },
+  header: {
+    position: 'relative',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  headerGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    position: 'relative',
+    zIndex: 1,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: 20,
+  },
+  instructionsCard: {
+    marginBottom: 24,
+  },
+  instructionsContent: {
+    padding: 20,
+  },
+  instructionsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  iconGradient: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  reasonsContainer: {
+    gap: 12,
+  },
+  reasonCard: {
+    marginBottom: 8,
+  },
+  reasonCardContent: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  reasonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    position: 'relative',
+    zIndex: 1,
+  },
+  reasonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  reasonDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  checkboxContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 16,
+  },
+  descriptionCard: {
+    marginTop: 24,
+  },
+  descriptionContent: {
+    padding: 20,
+  },
+  textInputContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  textInput: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+    padding: 16,
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  buttonsContainer: {
+    paddingTop: 24,
+    paddingBottom: 32,
+    gap: 12,
+  },
+  submitButton: {
+    marginBottom: 0,
+  },
+  cancelButton: {
+    marginTop: 0,
+  },
+})

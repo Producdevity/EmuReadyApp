@@ -21,3 +21,61 @@ export {
   SkeletonCard,
   SkeletonListingCard,
 } from './loading/SkeletonLoader'
+
+// Advanced 2025 Design Components
+export {
+  default as GlassMorphism,
+  GlassCard,
+  CrystalCard,
+  AmbientCard,
+  DynamicCard,
+} from './GlassMorphism'
+
+export {
+  default as FluidGradient,
+  AuroraGradient,
+  OceanGradient,
+  SunsetGradient,
+  CosmicGradient,
+  GamingGradient,
+  DynamicGradient,
+} from './FluidGradient'
+
+export {
+  default as MagneticCard,
+  MagneticGlassCard,
+  MagneticGradientCard,
+  MagneticNeonCard,
+  MagneticHolographicCard,
+} from './MagneticCard'
+
+export {
+  usePressAnimation,
+  useHoverAnimation,
+  useFloatingAnimation,
+  usePulseAnimation,
+  useShakeAnimation,
+  useRippleAnimation,
+  AnimatedPressable,
+  FloatingElement,
+  PulsingElement,
+  RippleEffect,
+  MICRO_SPRING_CONFIG,
+} from './MicroInteractions'
+
+export {
+  default as MorphingSkeleton,
+  ShimmerSkeleton,
+  WaveSkeleton,
+  PulseSkeleton,
+  BreatheSkeleton,
+  MorphSkeleton,
+  EnhancedSkeletonCard,
+} from './MorphingSkeleton'
+
+export {
+  default as FloatingActionButton,
+  GlassFloatingActionButton,
+  NeonFloatingActionButton,
+  MinimalFloatingActionButton,
+} from './FloatingActionButton'

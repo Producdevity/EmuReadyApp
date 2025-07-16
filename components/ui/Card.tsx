@@ -9,6 +9,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import { useTheme } from '@/contexts/ThemeContext'
+import { ANIMATION_CONFIG } from '@/lib/animation/config'
 
 interface CardProps {
   children?: ReactNode
@@ -24,6 +25,7 @@ interface CardProps {
   accessibilityLabel?: string
   accessibilityHint?: string
   accessibilityRole?: 'button' | 'none'
+  disableAnimations?: boolean
 }
 
 export default function Card({
@@ -40,33 +42,47 @@ export default function Card({
   accessibilityLabel,
   accessibilityHint,
   accessibilityRole,
+  disableAnimations = false,
 }: CardProps) {
   const { theme } = useTheme()
   const scale = useSharedValue(1)
   const opacity = useSharedValue(1)
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }))
+  const animatedStyle = useAnimatedStyle(() => {
+    if (disableAnimations) {
+      return {}
+    }
+    return {
+      transform: [{ scale: scale.value }],
+      opacity: opacity.value,
+    }
+  })
 
   const handlePressIn = () => {
-    if (onPress && !disabled) {
-      scale.value = withSpring(0.98, {
-        damping: 20,
-        stiffness: 300,
+    if (onPress && !disabled && !disableAnimations) {
+      scale.value = withSpring(0.98, { 
+        damping: 30, 
+        stiffness: 400,
+        mass: 0.8
       })
-      opacity.value = withTiming(0.8, { duration: 150 })
+      opacity.value = withTiming(0.95, { 
+        duration: 100,
+        easing: ANIMATION_CONFIG.easing.out 
+      })
     }
   }
 
   const handlePressOut = () => {
-    if (onPress && !disabled) {
+    if (onPress && !disabled && !disableAnimations) {
       scale.value = withSpring(1, {
-        damping: 20,
-        stiffness: 300,
+        damping: 25,
+        stiffness: 350,
+        mass: 0.7
       })
-      opacity.value = withTiming(1, { duration: 150 })
+      opacity.value = withTiming(1, { 
+        duration: 150,
+        easing: ANIMATION_CONFIG.easing.out 
+      })
     }
   }
 
@@ -107,9 +123,10 @@ export default function Card({
       case 'glass':
         return {
           ...baseStyles,
-          backgroundColor: theme.isDark ? 'rgba(31, 41, 55, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+          backgroundColor: theme.colors.glass,
           borderWidth: 1,
-          borderColor: theme.isDark ? 'rgba(75, 85, 99, 0.3)' : 'rgba(209, 213, 219, 0.3)',
+          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(91, 33, 182, 0.1)',
+          backdropFilter: 'blur(12px)',
         }
       case 'gradient':
         return {
@@ -127,14 +144,16 @@ export default function Card({
         return {
           ...baseStyles,
           backgroundColor: theme.colors.card,
+          borderWidth: theme.isDark ? 1 : 0,
+          borderColor: theme.isDark ? theme.colors.border : 'transparent',
           shadowColor: theme.colors.shadow,
           shadowOffset: {
             width: 0,
-            height: elevation,
+            height: elevation * 0.5,
           },
-          shadowOpacity: theme.isDark ? 0.3 : 0.1,
-          shadowRadius: elevation * 2,
-          elevation: Platform.OS === 'android' ? elevation : 0,
+          shadowOpacity: theme.isDark ? 0.4 : 0.08,
+          shadowRadius: elevation * 3,
+          elevation: Platform.OS === 'android' ? elevation * 1.5 : 0,
         }
     }
   }
@@ -143,19 +162,15 @@ export default function Card({
     <Animated.View style={[getVariantStyles(), style, animatedStyle]}>
       {variant === 'glass' && (
         <BlurView
-          intensity={20}
+          intensity={theme.isDark ? 30 : 25}
           tint={theme.isDark ? 'dark' : 'light'}
-          style={StyleSheet.absoluteFillObject}
+          style={[StyleSheet.absoluteFillObject, { borderRadius: borderRadius || theme.borderRadius.lg }]}
         />
       )}
       {variant === 'gradient' && (
         <LinearGradient
-          colors={
-            theme.isDark
-              ? ['rgba(55, 65, 81, 0.8)', 'rgba(31, 41, 55, 0.9)']
-              : ['rgba(248, 250, 252, 0.8)', 'rgba(241, 245, 249, 0.9)']
-          }
-          style={StyleSheet.absoluteFillObject}
+          colors={theme.colors.gradients.card as [string, string, ...string[]]}
+          style={[StyleSheet.absoluteFillObject, { borderRadius: borderRadius || theme.borderRadius.lg }]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         />

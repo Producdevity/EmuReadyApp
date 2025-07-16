@@ -12,6 +12,7 @@
     "lint": "expo lint --config eslint.config.js",
     "eslint:check": "eslint . --config eslint.config.js --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",
+    "types": "tsc --noEmit",
     "check": "npm run lint && npm run typecheck",
     "format": "prettier --write .",
     "build:android": "./scripts/build-android.sh",

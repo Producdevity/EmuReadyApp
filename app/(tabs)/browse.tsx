@@ -8,6 +8,7 @@ import {
   StatusBar,
   Pressable,
   Dimensions,
+  StyleSheet,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -18,17 +19,27 @@ import Animated, {
   SlideInLeft,
   SlideInRight,
   ZoomIn,
+  BounceIn,
   useSharedValue,
   useAnimatedStyle,
   useAnimatedScrollHandler,
   withSpring,
   withTiming,
+  withSequence,
+  withRepeat,
   interpolate,
+  runOnJS,
   Extrapolation,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 
-import { Card, SearchSuggestions, SkeletonLoader } from '@/components/ui'
+import { SearchSuggestions } from '@/components/ui'
+import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import { HeroText, GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
+import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
+import { FluidGradient, AuroraGradient, CosmicGradient } from '@/components/ui/FluidGradient'
+import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
 import { ListingCard } from '@/components/cards'
 import QuickAccessSection from '@/components/sections/QuickAccessSection'
 import { useListings, useSystems, useSearchSuggestions } from '@/lib/api/hooks'
@@ -67,6 +78,45 @@ export default function BrowseScreen() {
   const scrollY = useSharedValue(0)
   const filtersOpacity = useSharedValue(0)
   const filtersHeight = useSharedValue(0)
+  
+  // Enhanced 2025 animation values
+  const heroGlow = useSharedValue(0)
+  const searchPulse = useSharedValue(1)
+  const particleFlow = useSharedValue(0)
+  const backgroundShift = useSharedValue(0)
+  
+  useEffect(() => {
+    // Initialize premium animations
+    heroGlow.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 3000 }),
+        withTiming(0.3, { duration: 3000 })
+      ),
+      -1,
+      true
+    )
+    
+    searchPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.01, { duration: 2000 }),
+        withTiming(1, { duration: 2000 })
+      ),
+      -1,
+      true
+    )
+    
+    particleFlow.value = withRepeat(
+      withTiming(1, { duration: 8000 }),
+      -1,
+      false
+    )
+    
+    backgroundShift.value = withRepeat(
+      withTiming(1, { duration: 15000 }),
+      -1,
+      true
+    )
+  }, [])
 
   // API calls
   const listingsQuery = useListings({
@@ -178,6 +228,7 @@ export default function BrowseScreen() {
   }))
 
   const handleFilterChange = (key: keyof SearchFilters, value: any) => {
+    runOnJS(Haptics.selectionAsync)()
     setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
@@ -192,6 +243,7 @@ export default function BrowseScreen() {
   }
 
   const handleListingPress = (listingId: string) => {
+    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
     router.push(`/listing/${listingId}`)
   }
 
@@ -274,36 +326,80 @@ export default function BrowseScreen() {
     { value: 'performance', label: 'Best Performing' },
   ]
 
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+  
+  const searchPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: searchPulse.value }],
+  }))
+  
+  const particleStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: interpolate(particleFlow.value, [0, 1], [-100, 100], Extrapolation.CLAMP) }],
+  }))
+
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar
         barStyle={theme.isDark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
         translucent
       />
 
-      {/* Enhanced Gradient Background */}
-      <LinearGradient
-        colors={theme.colors.gradients.hero as [string, string, ...string[]]}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: HEADER_HEIGHT + 100,
-        }}
+      {/* Revolutionary Background */}
+      <AuroraGradient
+        style={[
+          styles.backgroundGradient,
+          {
+            height: HEADER_HEIGHT + 100,
+          }
+        ]}
+        speed="slow"
       />
+      
+      {/* Hero glow effect */}
+      <Animated.View style={[styles.heroGlow, heroGlowStyle]}>
+        <LinearGradient
+          colors={[
+            'transparent',
+            `${theme.colors.primary}15`,
+            'transparent'
+          ]}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </Animated.View>
+      
+      {/* Floating particles */}
+      <View style={styles.particlesContainer}>
+        {Array.from({ length: 6 }).map((_, index) => (
+          <Animated.View
+            key={index}
+            style={[
+              styles.particle,
+              particleStyle,
+              {
+                left: `${(index * 15) + 5}%`,
+                top: `${15 + (index % 2) * 20}%`,
+              }
+            ]}
+          >
+            <FloatingElement intensity={3} duration={2000 + index * 300}>
+              <View style={[styles.particleDot, { backgroundColor: `${theme.colors.accent}60` }]} />
+            </FloatingElement>
+          </Animated.View>
+        ))}
+      </View>
 
       {/* Secondary gradient for depth */}
-      <LinearGradient
-        colors={['transparent', `${theme.colors.background}80`, theme.colors.background]}
-        style={{
-          position: 'absolute',
-          top: HEADER_HEIGHT - 50,
-          left: 0,
-          right: 0,
-          height: 150,
-        }}
+      <CosmicGradient
+        style={[
+          styles.depthGradient,
+          {
+            top: HEADER_HEIGHT - 50,
+          }
+        ]}
+        opacity={0.4}
+        speed="normal"
       />
 
       <Animated.ScrollView
@@ -322,128 +418,129 @@ export default function BrowseScreen() {
         }
         contentContainerStyle={{ paddingBottom: theme.spacing.xxxl }}
       >
-        {/* Enhanced Header */}
-        <View style={{ height: HEADER_HEIGHT }}>
+        {/* Revolutionary Header */}
+        <View style={styles.headerContainer}>
           <Animated.View style={headerAnimatedStyle}>
-            <SafeAreaView style={{ flex: 1, paddingHorizontal: theme.spacing.lg }}>
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Animated.View entering={FadeInDown.delay(200).springify()}>
-                  <Text
-                    style={{
-                      fontSize: theme.typography.fontSize.xxxl,
-                      fontWeight: theme.typography.fontWeight.extrabold,
-                      color: theme.isDark ? theme.colors.textInverse : theme.colors.text,
-                      marginBottom: theme.spacing.sm,
-                      textAlign: 'center',
-                      lineHeight:
-                        theme.typography.lineHeight.tight * theme.typography.fontSize.xxxl,
-                    }}
+            <SafeAreaView style={styles.headerSafeArea}>
+              <View style={styles.headerContent}>
+                <Animated.View entering={BounceIn.delay(200).springify()}>
+                  <HeroText 
+                    gradient 
+                    animated 
+                    variant="scale" 
+                    glow 
+                    style={styles.headerTitle}
+                    customColors={['#ffffff', theme.colors.primary, theme.colors.accent]}
                   >
                     Browse Listings
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: theme.typography.fontSize.lg,
-                      fontWeight: theme.typography.fontWeight.medium,
-                      color: theme.isDark
-                        ? `${theme.colors.textInverse}CC`
-                        : theme.colors.textSecondary,
-                      textAlign: 'center',
-                      lineHeight:
-                        theme.typography.lineHeight.relaxed * theme.typography.fontSize.lg,
-                      paddingHorizontal: theme.spacing.lg,
-                    }}
+                  </HeroText>
+                  
+                  <TypewriterText 
+                    animated 
+                    delay={600}
+                    style={[
+                      styles.headerSubtitle,
+                      {
+                        color: theme.isDark
+                          ? `${theme.colors.textInverse}CC`
+                          : theme.colors.textSecondary,
+                      }
+                    ]}
                   >
                     Find performance data for your favorite games
-                  </Text>
+                  </TypewriterText>
                 </Animated.View>
               </View>
             </SafeAreaView>
           </Animated.View>
         </View>
 
-        {/* Enhanced Search Bar with Glass Morphism */}
+        {/* Revolutionary Search Bar */}
         <Animated.View
-          entering={FadeInUp.delay(400).springify()}
-          style={{
-            marginHorizontal: theme.spacing.lg,
-            marginBottom: theme.spacing.lg,
-            marginTop: -theme.spacing.xl,
-          }}
+          entering={SlideInLeft.delay(800).springify()}
+          style={[styles.searchContainer, searchPulseStyle]}
         >
-          <BlurView
-            intensity={80}
-            tint={theme.isDark ? 'dark' : 'light'}
-            style={{
-              borderRadius: theme.borderRadius.xl,
-              overflow: 'hidden',
-            }}
+          <MagneticView
+            borderRadius={24}
+            animated
+            hoverable
+            style={styles.searchMagnetic}
           >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: theme.colors.glass,
-                paddingHorizontal: theme.spacing.lg,
-                paddingVertical: theme.spacing.md,
-                borderWidth: 1,
-                borderColor: theme.colors.borderLight,
-                gap: theme.spacing.md,
-              }}
+            <BlurView
+              intensity={100}
+              tint={theme.isDark ? 'dark' : 'light'}
+              style={styles.searchBlur}
             >
-              <Ionicons name="search" size={22} color={theme.colors.primary} />
-              <TextInput
-                style={{
-                  flex: 1,
-                  fontSize: theme.typography.fontSize.lg,
-                  color: theme.colors.text,
-                  fontWeight: theme.typography.fontWeight.medium,
-                }}
-                placeholder="Search games, systems, or devices..."
-                value={filters.query}
-                onChangeText={(text) => handleFilterChange('query', text)}
-                onFocus={handleSearchFocus}
-                onBlur={handleSearchBlur}
-                onSubmitEditing={() => {
-                  if (filters.query.trim()) {
-                    saveSearchToHistory(filters.query.trim())
-                    setShowSuggestions(false)
-                  }
-                }}
-                placeholderTextColor={theme.colors.textMuted}
+              <FluidGradient
+                variant="aurora"
+                borderRadius={24}
+                animated
+                speed="normal"
+                style={StyleSheet.absoluteFillObject}
+                opacity={0.08}
               />
-              <Pressable
-                onPress={toggleFilters}
-                style={({ pressed }) => [
-                  {
-                    backgroundColor: showFilters ? theme.colors.primary : theme.colors.surface,
-                    paddingHorizontal: theme.spacing.md,
-                    paddingVertical: theme.spacing.sm,
-                    borderRadius: theme.borderRadius.md,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: theme.spacing.sm,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name="filter"
-                  size={18}
-                  color={showFilters ? theme.colors.textInverse : theme.colors.primary}
-                />
-                <Text
-                  style={{
-                    color: showFilters ? theme.colors.textInverse : theme.colors.primary,
-                    fontSize: theme.typography.fontSize.sm,
-                    fontWeight: theme.typography.fontWeight.semibold,
+              
+              <View style={styles.searchInputContainer}>
+                <FloatingElement intensity={2} duration={2000}>
+                  <Ionicons name="search" size={22} color={theme.colors.primary} />
+                </FloatingElement>
+                
+                <TextInput
+                  style={[
+                    styles.searchInput,
+                    {
+                      color: theme.colors.text,
+                    }
+                  ]}
+                  placeholder="Search games, systems, or devices..."
+                  value={filters.query}
+                  onChangeText={(text) => handleFilterChange('query', text)}
+                  onFocus={handleSearchFocus}
+                  onBlur={handleSearchBlur}
+                  onSubmitEditing={() => {
+                    if (filters.query.trim()) {
+                      saveSearchToHistory(filters.query.trim())
+                      setShowSuggestions(false)
+                    }
                   }}
-                >
-                  Filters
-                </Text>
-              </Pressable>
-            </View>
-          </BlurView>
+                  placeholderTextColor={theme.colors.textMuted}
+                />
+                
+                <AnimatedPressable onPress={toggleFilters}>
+                  <HolographicView
+                    morphing
+                    borderRadius={12}
+                    style={[
+                      styles.filtersButton,
+                      {
+                        backgroundColor: showFilters ? theme.colors.primary : 'rgba(255,255,255,0.1)',
+                      }
+                    ]}
+                  >
+                    <FloatingElement intensity={1} duration={1500}>
+                      <Ionicons
+                        name="filter"
+                        size={18}
+                        color={showFilters ? theme.colors.textInverse : theme.colors.primary}
+                      />
+                    </FloatingElement>
+                    
+                    <GlowText 
+                      glow={showFilters}
+                      style={[
+                        styles.filtersButtonText,
+                        {
+                          color: showFilters ? theme.colors.textInverse : theme.colors.primary,
+                        }
+                      ]}
+                    >
+                      Filters
+                    </GlowText>
+                  </HolographicView>
+                </AnimatedPressable>
+              </View>
+            </BlurView>
+          </MagneticView>
         </Animated.View>
 
         {/* Search Suggestions */}
@@ -801,26 +898,18 @@ export default function BrowseScreen() {
           </Animated.View>
 
           {listingsQuery.isLoading ? (
-            <View style={{ gap: theme.spacing.md }}>
+            <View style={styles.loadingContainer}>
               {Array.from({ length: 4 }).map((_, index) => (
                 <Animated.View
                   key={index}
                   entering={SlideInRight.delay(700 + index * 150).springify()}
+                  style={styles.skeletonWrapper}
                 >
-                  <Card style={{ height: 120, padding: theme.spacing.lg }}>
-                    <View style={{ flexDirection: 'row', gap: theme.spacing.md }}>
-                      <SkeletonLoader width={80} height={80} borderRadius={theme.borderRadius.md} />
-                      <View style={{ flex: 1, justifyContent: 'space-between' }}>
-                        <SkeletonLoader width="90%" height={18} />
-                        <SkeletonLoader width="70%" height={14} />
-                        <SkeletonLoader width="60%" height={14} />
-                        <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-                          <SkeletonLoader width={60} height={12} />
-                          <SkeletonLoader width={40} height={12} />
-                        </View>
-                      </View>
-                    </View>
-                  </Card>
+                  <EnhancedSkeletonCard 
+                    variant="listing" 
+                    animated 
+                    style={styles.skeletonCard}
+                  />
                 </Animated.View>
               ))}
             </View>
@@ -1135,3 +1224,113 @@ export default function BrowseScreen() {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+  heroGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: HEADER_HEIGHT + 50,
+  },
+  particlesContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: HEADER_HEIGHT,
+    pointerEvents: 'none',
+  },
+  particle: {
+    position: 'absolute',
+  },
+  particleDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+  },
+  depthGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 150,
+  },
+  headerContainer: {
+    height: HEADER_HEIGHT,
+  },
+  headerSafeArea: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  headerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    textAlign: 'center',
+    lineHeight: 28,
+    paddingHorizontal: 16,
+    fontSize: 18,
+  },
+  searchContainer: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    marginTop: -24,
+  },
+  searchMagnetic: {
+    // MagneticView handles its own styling
+  },
+  searchBlur: {
+    borderRadius: 24,
+    overflow: 'hidden',
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    gap: 16,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '500',
+  },
+  filtersButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  filtersButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    gap: 12,
+  },
+  skeletonWrapper: {
+    // Animation wrapper
+  },
+  skeletonCard: {
+    borderRadius: 20,
+    height: 120,
+  },
+})

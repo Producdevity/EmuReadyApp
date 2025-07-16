@@ -41,36 +41,36 @@ export default function TestScreen() {
   const generateCustomSettings = (driverFilename: string) => {
     const fullPath = getFullDriverPath(driverFilename, packageName)
     return `[Controls]
-vibration_enabled\\\\\\\\use_global=true
-enable_accurate_vibrations\\\\\\\\use_global=true
-motion_enabled\\\\\\\\use_global=true
+vibration_enabled\\use_global=true
+enable_accurate_vibrations\\use_global=true
+motion_enabled\\use_global=true
 
 [Core]
-use_multi_core\\\\\\\\use_global=true
-memory_layout_mode\\\\\\\\use_global=true
-use_speed_limit\\\\\\\\use_global=true
+use_multi_core\\use_global=true
+memory_layout_mode\\use_global=true
+use_speed_limit\\use_global=true
 
 [Renderer]
-backend\\\\\\\\use_global=true
-shader_backend\\\\\\\\use_global=true
-use_vsync\\\\\\\\use_global=false
-use_vsync\\\\\\\\default=false
+backend\\use_global=true
+shader_backend\\use_global=true
+use_vsync\\use_global=false
+use_vsync\\default=false
 use_vsync=0
-use_asynchronous_shaders\\\\\\\\use_global=false
-use_asynchronous_shaders\\\\\\\\default=false
+use_asynchronous_shaders\\use_global=false
+use_asynchronous_shaders\\default=false
 use_asynchronous_shaders=true
 
 [Audio]
-output_engine\\\\\\\\use_global=true
-volume\\\\\\\\use_global=true
+output_engine\\use_global=true
+volume\\use_global=true
 
 [System]
-use_docked_mode\\\\\\\\use_global=true
-language_index\\\\\\\\use_global=true
+use_docked_mode\\use_global=true
+language_index\\use_global=true
 
 [GpuDriver]
-driver_path\\\\\\\\use_global=false
-driver_path\\\\\\\\default=false
+driver_path\\use_global=false
+driver_path\\default=false
 driver_path=${fullPath}`
   }
 
@@ -144,6 +144,66 @@ driver_path=${fullPath}`
     }
   }
 
+  const handleTestEdenTitleOnly = async () => {
+    if (Platform.OS !== 'android') {
+      Alert.alert('Platform Error', 'Eden emulator testing is only available on Android devices.')
+      return
+    }
+
+    if (!titleId.trim()) {
+      Alert.alert('Validation Error', 'Please enter a Title ID.')
+      return
+    }
+
+    if (!packageName.trim()) {
+      Alert.alert('Validation Error', 'Please enter a Package Name.')
+      return
+    }
+
+    if (!EmulatorService.validateTitleId(titleId)) {
+      Alert.alert(
+        'Validation Error',
+        'Title ID must be a 16-digit hexadecimal string (e.g., 0100000000010000).',
+      )
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      console.log('=== Starting Eden Emulator Title-Only Test ===')
+      console.log('Title ID:', titleId.trim())
+      console.log('Package Name:', packageName.trim())
+      console.log('Custom Settings: NONE (using game defaults)')
+
+      await EmulatorService.launchGameWithTitleOnly({
+        titleId: titleId.trim(),
+        packageName: packageName.trim(),
+      })
+
+      console.log('EmulatorService title-only call completed successfully')
+      Alert.alert(
+        'Launch Successful',
+        `Emulator launched successfully with title ID only (no custom settings)!`,
+      )
+    } catch (error) {
+      console.error('=== Error testing title-only launch ===')
+      console.error('Error object:', error)
+      console.error('Error message:', (error as any)?.message)
+
+      const errorMessage = getErrorMessage(error)
+      console.error('Formatted error message:', errorMessage)
+
+      Alert.alert(
+        'Launch Error',
+        `Failed to launch Eden emulator with title only.\n\nError: ${errorMessage}\n\nCheck console logs for detailed information.`,
+      )
+    } finally {
+      console.log('=== Eden Emulator Title-Only Test Completed ===')
+      setIsLoading(false)
+    }
+  }
+
   const handleDebugMethods = () => {
     EmulatorAltService.logAvailableMethods()
     Alert.alert('Debug Info', 'Check console logs for available methods')
@@ -198,6 +258,9 @@ driver_path=${fullPath}`
           break
         case 'allPackages':
           await EmulatorAltService.tryDifferentPackageNames(titleId.trim(), customSettings)
+          break
+        case 'titleOnly':
+          await EmulatorAltService.launchWithTitleOnly(titleId.trim(), packageName.trim())
           break
         default:
           throw new Error('Unknown method')
@@ -513,6 +576,23 @@ driver_path=${fullPath}`
                     leftIcon={<Ionicons name="play" size={20} color={theme.colors.textInverse} />}
                   />
                 </View>
+                
+                {/* Title-Only Launch Button */}
+                <View
+                  style={{
+                    marginBottom: theme.spacing.md,
+                  }}
+                >
+                  <Button
+                    title="Test Eden (Title Only - No Config)"
+                    onPress={handleTestEdenTitleOnly}
+                    loading={isLoading}
+                    disabled={isLoading || Platform.OS !== 'android'}
+                    variant="secondary"
+                    size="lg"
+                    leftIcon={<Ionicons name="rocket-outline" size={20} color={theme.colors.primary} />}
+                  />
+                </View>
 
                 {/* Debug Options Toggle */}
                 <View style={{ marginTop: theme.spacing.md }}>
@@ -659,6 +739,23 @@ driver_path=${fullPath}`
                         size="sm"
                         disabled={isLoading}
                         style={{ flex: isLandscape ? 1 : undefined }}
+                      />
+                    </View>
+
+                    <View
+                      style={{
+                        flexDirection: isLandscape ? 'row' : 'column',
+                        gap: theme.spacing.sm,
+                      }}
+                    >
+                      <Button
+                        title="Launch Title Only (No Config)"
+                        onPress={() => handleTestAlternative('titleOnly')}
+                        variant="primary"
+                        size="sm"
+                        disabled={isLoading}
+                        style={{ flex: isLandscape ? 1 : undefined }}
+                        leftIcon={<Ionicons name="rocket" size={18} color={theme.colors.textInverse} />}
                       />
                     </View>
                   </View>

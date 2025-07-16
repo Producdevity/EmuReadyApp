@@ -95,40 +95,40 @@ const GamepadTabButton = ({
     const shouldHighlight = isFocused || gamepadNav.isFocused
 
     if (shouldHighlight) {
-      scale.value = withSpring(isLandscape ? 1.02 : 1.05, {
-        damping: 15,
-        stiffness: 300,
-      })
-      iconScale.value = withSpring(isLandscape ? 1.05 : 1.1, {
-        damping: 12,
+      scale.value = withSpring(isLandscape ? 1.05 : 1.08, {
+        damping: 25,
         stiffness: 350,
       })
-      translateY.value = withSpring(isLandscape ? -1 : -2, {
-        damping: 15,
-        stiffness: 300,
-      })
-      opacity.value = withTiming(1, { duration: 200 })
-      focusScale.value = withSpring(gamepadNav.isFocused ? 1.1 : 1, {
-        damping: 20,
+      iconScale.value = withSpring(isLandscape ? 1.08 : 1.15, {
+        damping: 22,
         stiffness: 400,
+      })
+      translateY.value = withSpring(isLandscape ? -2 : -3, {
+        damping: 25,
+        stiffness: 350,
+      })
+      opacity.value = withTiming(1, { duration: 150 })
+      focusScale.value = withSpring(gamepadNav.isFocused ? 1.12 : 1, {
+        damping: 28,
+        stiffness: 420,
       })
     } else {
       scale.value = withSpring(1, {
-        damping: 15,
-        stiffness: 300,
-      })
-      iconScale.value = withSpring(1, {
-        damping: 12,
+        damping: 25,
         stiffness: 350,
       })
-      translateY.value = withSpring(0, {
-        damping: 15,
-        stiffness: 300,
-      })
-      opacity.value = withTiming(0.6, { duration: 200 })
-      focusScale.value = withSpring(1, {
-        damping: 20,
+      iconScale.value = withSpring(1, {
+        damping: 22,
         stiffness: 400,
+      })
+      translateY.value = withSpring(0, {
+        damping: 25,
+        stiffness: 350,
+      })
+      opacity.value = withTiming(0.65, { duration: 150 })
+      focusScale.value = withSpring(1, {
+        damping: 28,
+        stiffness: 420,
       })
     }
   }, [
@@ -253,8 +253,8 @@ export default function GamepadTabBar({ state, descriptors, navigation }: Gamepa
       <LinearGradient
         colors={
           theme.isDark
-            ? ['rgba(15, 23, 42, 0.97)', 'rgba(30, 41, 59, 0.99)']
-            : ['rgba(255, 255, 255, 0.97)', 'rgba(248, 250, 252, 0.99)']
+            ? ['rgba(10, 10, 10, 0.95)', 'rgba(20, 20, 20, 0.98)']
+            : ['rgba(255, 255, 255, 0.95)', 'rgba(250, 251, 252, 0.98)']
         }
         style={StyleSheet.absoluteFillObject}
       />

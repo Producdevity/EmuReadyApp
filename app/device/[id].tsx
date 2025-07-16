@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   SafeAreaView,
   StyleSheet,
@@ -9,27 +9,45 @@ import {
   ScrollView,
   RefreshControl,
   StatusBar,
+  Dimensions,
+  ActivityIndicator,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { LinearGradient } from 'expo-linear-gradient'
+import { BlurView } from 'expo-blur'
 import Animated, {
   FadeInUp,
   FadeInDown,
+  SlideInRight,
+  BounceIn,
+  ZoomIn,
   useSharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  withSpring,
+  withTiming,
+  withRepeat,
+  withSequence,
   interpolate,
+  runOnJS,
   Extrapolation,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import * as Sharing from 'expo-sharing'
+import * as Haptics from 'expo-haptics'
 // TODO: Update to use new hooks when implementing device details
 import { Button, Card, SkeletonLoader, SkeletonListingCard } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
+import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
+import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
+import { FluidGradient } from '@/components/ui/FluidGradient'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
 
-const HEADER_HEIGHT = 280
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const HEADER_HEIGHT = 320
+const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
 
 export default function DeviceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -38,6 +56,63 @@ export default function DeviceDetailScreen() {
   const [selectedTab, setSelectedTab] = useState<'overview' | 'listings'>('overview')
   const [refreshing, setRefreshing] = useState(false)
   const scrollY = useSharedValue(0)
+  
+  // Enhanced 2025 animation values
+  const heroGlow = useSharedValue(0)
+  const deviceFloat = useSharedValue(0)
+  const backgroundShift = useSharedValue(0)
+  const tabScale = useSharedValue(1)
+  const specPulse = useSharedValue(1)
+  const particleFlow = useSharedValue(0)
+  
+  useEffect(() => {
+    // Initialize cosmic background animation
+    backgroundShift.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 20000 }),
+        withTiming(0, { duration: 20000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 3000 }),
+        withTiming(0.3, { duration: 3000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Device floating animation
+    deviceFloat.value = withRepeat(
+      withSequence(
+        withTiming(10, { duration: 5000 }),
+        withTiming(-10, { duration: 5000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Spec pulse animation
+    specPulse.value = withRepeat(
+      withSequence(
+        withSpring(1.02, MICRO_SPRING_CONFIG.bouncy),
+        withSpring(1, MICRO_SPRING_CONFIG.smooth)
+      ),
+      -1,
+      true
+    )
+    
+    // Particle flow animation
+    particleFlow.value = withRepeat(
+      withTiming(1, { duration: 12000 }),
+      -1,
+      false
+    )
+  }, [])
 
   // TODO: Replace with proper API hooks
   const deviceQuery = {
@@ -82,11 +157,66 @@ export default function DeviceDetailScreen() {
       Extrapolation.CLAMP,
     )
 
+    const scale = interpolate(
+      scrollY.value,
+      [0, HEADER_HEIGHT],
+      [1, 0.9],
+      Extrapolation.CLAMP,
+    )
+
     return {
       opacity,
-      transform: [{ translateY }],
+      transform: [{ translateY }, { scale }],
     }
   })
+  
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          backgroundShift.value,
+          [0, 1],
+          [-80, 80],
+          Extrapolation.CLAMP
+        ),
+      },
+    ],
+  }))
+  
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+  
+  const deviceFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: deviceFloat.value }],
+  }))
+  
+  const tabScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: tabScale.value }],
+  }))
+  
+  const specPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: specPulse.value }],
+  }))
+  
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          particleFlow.value,
+          [0, 1],
+          [-200, SCREEN_WIDTH + 200],
+          Extrapolation.CLAMP
+        ),
+      },
+    ],
+    opacity: interpolate(
+      particleFlow.value,
+      [0, 0.2, 0.8, 1],
+      [0, 1, 1, 0],
+      Extrapolation.CLAMP
+    ),
+  }))
 
   const onRefresh = async () => {
     setRefreshing(true)
@@ -97,7 +227,7 @@ export default function DeviceDetailScreen() {
   // Guard against missing id parameter
   if (!id) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={styles.container}>
         <StatusBar
           barStyle={theme.isDark ? 'light-content' : 'dark-content'}
           backgroundColor="transparent"

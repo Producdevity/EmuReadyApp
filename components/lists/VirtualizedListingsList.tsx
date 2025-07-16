@@ -1,9 +1,31 @@
-import React, { memo, useCallback } from 'react'
+import React, { memo, useCallback, useEffect } from 'react'
 import { FlatList, View, Text, type ListRenderItem, StyleSheet, RefreshControl } from 'react-native'
-import Animated, { FadeInUp } from 'react-native-reanimated'
+import Animated, {
+  FadeInUp,
+  SlideInLeft,
+  BounceIn,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+  withTiming,
+  withRepeat,
+  interpolate,
+  runOnJS,
+  Extrapolation,
+} from 'react-native-reanimated'
+import { LinearGradient } from 'expo-linear-gradient'
+import { BlurView } from 'expo-blur'
 import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
+
 import { ListingCard } from '@/components/cards'
-import { Card, Button, SkeletonListingCard } from '@/components/ui'
+import { Button } from '@/components/ui'
+import { GlassView, HolographicView, FloatingView } from '@/components/themed/ThemedView'
+import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
+import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
+import { FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
+import { FluidGradient } from '@/components/ui/FluidGradient'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
 
@@ -30,17 +52,60 @@ const AnimatedListingCard = memo(function AnimatedListingCard({
   onPress: () => void
   index: number
 }) {
+  const scale = useSharedValue(0.95)
+  const opacity = useSharedValue(0)
+  const translateX = useSharedValue(-50)
+  const rotateY = useSharedValue(5)
+  
+  useEffect(() => {
+    const delay = index * 100
+    
+    setTimeout(() => {
+      scale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
+      opacity.value = withTiming(1, { duration: 400 })
+      translateX.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
+      rotateY.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
+    }, delay)
+  }, [index])
+  
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [
+      { scale: scale.value },
+      { translateX: translateX.value },
+      { rotateY: `${rotateY.value}deg` }
+    ],
+  }))
+  
+  const handlePress = () => {
+    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+    onPress()
+  }
+  
   return (
-    <Animated.View entering={FadeInUp.delay(index * 50).springify()} style={styles.listingWrapper}>
-      <ListingCard listing={listing} onPress={onPress} style={styles.listingCard} />
-    </Animated.View>
+    <FloatingElement intensity={2} duration={3000 + index * 200}>
+      <Animated.View style={[styles.listingWrapper, animatedStyle]}>
+        <ListingCard 
+          listing={listing} 
+          onPress={handlePress} 
+          style={styles.listingCard}
+        />
+      </Animated.View>
+    </FloatingElement>
   )
 })
 
 const LoadingItem = memo(function LoadingItem({ index }: { index: number }) {
   return (
-    <Animated.View entering={FadeInUp.delay(index * 100).springify()} style={styles.listingWrapper}>
-      <SkeletonListingCard />
+    <Animated.View 
+      entering={SlideInLeft.delay(index * 150).springify().damping(15)}
+      style={styles.listingWrapper}
+    >
+      <EnhancedSkeletonCard 
+        variant="listing" 
+        animated 
+        style={styles.skeletonCard}
+      />
     </Animated.View>
   )
 })
@@ -102,7 +167,7 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
     )
   }
 
-  // Error state
+  // Enhanced Error state with 2025 design
   if (error && listings.length === 0) {
     return (
       <FlatList
@@ -110,26 +175,67 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
         renderItem={() => null}
         ListHeaderComponent={ListHeaderComponent}
         ListEmptyComponent={
-          <Animated.View entering={FadeInUp.delay(300).springify()}>
-            <Card variant="glass" style={styles.errorCard} padding="lg">
-              <Ionicons
-                name="cloud-offline"
-                size={48}
-                color={theme.colors.textMuted}
-                style={styles.errorIcon}
+          <Animated.View entering={BounceIn.delay(300).springify()}>
+            <HolographicView 
+              morphing 
+              borderRadius={24}
+              style={styles.errorCard}
+            >
+              <FluidGradient
+                variant="cosmic"
+                borderRadius={24}
+                animated
+                speed="slow"
+                style={StyleSheet.absoluteFillObject}
+                opacity={0.1}
               />
-              <Text style={styles.errorTitle}>Unable to Load Listings</Text>
-              <Text style={styles.errorText}>Please check your connection and try again.</Text>
-              {onRetry && (
-                <Button
-                  title="Retry"
-                  variant="gradient"
-                  onPress={onRetry}
-                  style={styles.retryButton}
-                  leftIcon={<Ionicons name="refresh" size={16} color="#ffffff" />}
-                />
-              )}
-            </Card>
+              
+              <View style={styles.errorContent}>
+                <FloatingElement intensity={5} duration={2000}>
+                  <View style={styles.errorIconContainer}>
+                    <LinearGradient
+                      colors={[theme.colors.error, `${theme.colors.error}80`]}
+                      style={styles.errorIconGradient}
+                    >
+                      <Ionicons
+                        name="cloud-offline"
+                        size={48}
+                        color="#ffffff"
+                      />
+                    </LinearGradient>
+                  </View>
+                </FloatingElement>
+                
+                <GradientTitle 
+                  gradient 
+                  animated 
+                  variant="scale"
+                  style={styles.errorTitle}
+                >
+                  Unable to Load Listings
+                </GradientTitle>
+                
+                <TypewriterText 
+                  animated 
+                  delay={500}
+                  style={styles.errorText}
+                >
+                  Please check your connection and try again.
+                </TypewriterText>
+                
+                {onRetry && (
+                  <FloatingElement intensity={3} duration={2500}>
+                    <Button
+                      title="Retry"
+                      variant="gradient"
+                      onPress={onRetry}
+                      style={styles.retryButton}
+                      leftIcon={<Ionicons name="refresh" size={16} color="#ffffff" />}
+                    />
+                  </FloatingElement>
+                )}
+              </View>
+            </HolographicView>
           </Animated.View>
         }
         ListFooterComponent={ListFooterComponent}
@@ -157,17 +263,54 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
       ListHeaderComponent={ListHeaderComponent}
       ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={
-        <Animated.View entering={FadeInUp.delay(300).springify()}>
-          <Card variant="glass" style={styles.emptyCard} padding="lg">
-            <Ionicons
-              name="search"
-              size={48}
-              color={theme.colors.textMuted}
-              style={styles.emptyIcon}
+        <Animated.View entering={BounceIn.delay(300).springify()}>
+          <GlassView 
+            borderRadius={24} 
+            blurIntensity={30}
+            style={styles.emptyCard}
+          >
+            <FluidGradient
+              variant="aurora"
+              borderRadius={24}
+              animated
+              speed="normal"
+              style={StyleSheet.absoluteFillObject}
+              opacity={0.08}
             />
-            <Text style={styles.emptyTitle}>{emptyTitle}</Text>
-            <Text style={styles.emptyText}>{emptySubtitle}</Text>
-          </Card>
+            
+            <View style={styles.emptyContent}>
+              <FloatingElement intensity={4} duration={3000}>
+                <View style={styles.emptyIconContainer}>
+                  <LinearGradient
+                    colors={theme.colors.gradients.primary}
+                    style={styles.emptyIconGradient}
+                  >
+                    <Ionicons
+                      name="search"
+                      size={48}
+                      color="#ffffff"
+                    />
+                  </LinearGradient>
+                </View>
+              </FloatingElement>
+              
+              <GlowText 
+                type="title" 
+                glow 
+                style={styles.emptyTitle}
+              >
+                {emptyTitle}
+              </GlowText>
+              
+              <TypewriterText 
+                animated 
+                delay={400}
+                style={styles.emptyText}
+              >
+                {emptySubtitle}
+              </TypewriterText>
+            </View>
+          </GlassView>
         </Animated.View>
       }
       refreshControl={
@@ -187,77 +330,117 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
 const createStyles = (theme: any) =>
   StyleSheet.create({
     contentContainer: {
-      paddingBottom: 100,
+      paddingBottom: 120,
+      paddingTop: 8,
     },
     emptyContainer: {
       flexGrow: 1,
-      paddingBottom: 100,
+      paddingBottom: 120,
+      justifyContent: 'center',
     },
     listingWrapper: {
       paddingHorizontal: 20,
+      marginBottom: 8,
     },
     listingCard: {
       marginBottom: 0,
     },
+    skeletonCard: {
+      borderRadius: 20,
+    },
     separator: {
-      height: 16,
+      height: 20,
     },
     errorCard: {
-      alignItems: 'center',
       marginHorizontal: 20,
+      padding: 32,
+      position: 'relative',
+      overflow: 'hidden',
     },
-    errorIcon: {
-      marginBottom: 16,
+    errorContent: {
+      alignItems: 'center',
+      position: 'relative',
+      zIndex: 1,
+    },
+    errorIconContainer: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      overflow: 'hidden',
+      marginBottom: 24,
+      shadowColor: theme.colors.error,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 16,
+      elevation: 8,
+    },
+    errorIconGradient: {
+      width: '100%',
+      height: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     errorTitle: {
-      fontSize: 18,
-      fontWeight: '600',
+      fontSize: 20,
+      fontWeight: '700',
       color: theme.colors.text,
-      marginBottom: 8,
+      marginBottom: 12,
       textAlign: 'center',
     },
     errorText: {
-      fontSize: 14,
+      fontSize: 16,
       color: theme.colors.textMuted,
       textAlign: 'center',
-      marginBottom: 24,
-      lineHeight: 20,
+      marginBottom: 32,
+      lineHeight: 24,
     },
     retryButton: {
       width: '100%',
+      borderRadius: 16,
     },
     emptyCard: {
-      alignItems: 'center',
       marginHorizontal: 20,
+      padding: 32,
+      position: 'relative',
+      overflow: 'hidden',
     },
-    emptyIcon: {
-      marginBottom: 16,
+    emptyContent: {
+      alignItems: 'center',
+      position: 'relative',
+      zIndex: 1,
+    },
+    emptyIconContainer: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      overflow: 'hidden',
+      marginBottom: 24,
+      shadowColor: theme.colors.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 16,
+      elevation: 8,
+    },
+    emptyIconGradient: {
+      width: '100%',
+      height: '100%',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     emptyTitle: {
-      fontSize: 18,
-      fontWeight: '600',
+      fontSize: 20,
+      fontWeight: '700',
       color: theme.colors.text,
-      marginBottom: 8,
+      marginBottom: 12,
       textAlign: 'center',
     },
     emptyText: {
-      fontSize: 14,
+      fontSize: 16,
       color: theme.colors.textMuted,
       textAlign: 'center',
-      lineHeight: 20,
+      lineHeight: 24,
     },
   })
 
 export default memo(VirtualizedListingsList)
 
-const styles = StyleSheet.create({
-  listingWrapper: {
-    paddingHorizontal: 20,
-  },
-  listingCard: {
-    marginBottom: 0,
-  },
-  separator: {
-    height: 16,
-  },
-})

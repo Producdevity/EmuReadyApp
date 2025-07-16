@@ -31,22 +31,27 @@ export function Skeleton({
 
   React.useEffect(() => {
     shimmerValue.value = withRepeat(
-      withSequence(withTiming(1, { duration: 1200 }), withTiming(0, { duration: 1200 })),
+      withSequence(
+        withTiming(1, { duration: 1000 }), 
+        withTiming(0, { duration: 1000 })
+      ),
       -1,
       false,
     )
   }, [shimmerValue])
 
   const shimmerStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(shimmerValue.value, [0, 1], [-200, 200])
+    const translateX = interpolate(shimmerValue.value, [0, 1], [-300, 300])
+    const opacity = interpolate(shimmerValue.value, [0, 0.5, 1], [0.3, 0.8, 0.3])
 
     return {
       transform: [{ translateX }],
+      opacity,
     }
   })
 
-  const baseColor = theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)'
-  const highlightColor = theme.isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.12)'
+  const baseColor = theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(91, 33, 182, 0.06)'
+  const highlightColor = theme.isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(91, 33, 182, 0.12)'
 
   return (
     <View
@@ -63,9 +68,10 @@ export function Skeleton({
     >
       <Animated.View style={[StyleSheet.absoluteFillObject, shimmerStyle]}>
         <LinearGradient
-          colors={['transparent', highlightColor, 'transparent']}
+          colors={['transparent', highlightColor, highlightColor, 'transparent']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
+          locations={[0, 0.4, 0.6, 1]}
           style={StyleSheet.absoluteFillObject}
         />
       </Animated.View>

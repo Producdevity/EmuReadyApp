@@ -29,7 +29,7 @@ export class EmulatorAltService {
     }
   }
 
-  // Method 2: Check if installed using multiple approaches
+  // Method 2: Check if installed using expo-intent-launcher (non-intrusive)
   static async checkIfInstalled(packageName: string = 'dev.eden.eden_emulator'): Promise<boolean> {
     if (Platform.OS !== 'android') {
       return false
@@ -37,42 +37,19 @@ export class EmulatorAltService {
 
     console.log(`Checking installation of package: ${packageName}`)
 
-    // Try multiple intent URI formats
-    const intentUris = [
-      // Custom action intent
-      `intent://launch#Intent;package=${packageName};action=${packageName}.LAUNCH_WITH_CUSTOM_CONFIG;end`,
-      // Simple package intent
-      `intent:#Intent;package=${packageName};end`,
-      // Market intent (will return false if package is installed)
-      `market://details?id=${packageName}`,
-    ]
-
-    for (const uri of intentUris) {
-      try {
-        console.log(`Trying intent URI: ${uri}`)
-        const canOpen = await Linking.canOpenURL(uri)
-        console.log(`Can open ${uri}: ${canOpen}`)
-
-        // For market:// URI, if it can open, the app is NOT installed
-        // For intent:// URIs, if it can open, the app IS installed
-        if (uri.startsWith('market://')) {
-          if (!canOpen) {
-            console.log(`Package ${packageName} installed: true (market check failed)`)
-            return true
-          }
-        } else {
-          if (canOpen) {
-            console.log(`Package ${packageName} installed: true (intent check passed)`)
-            return true
-          }
-        }
-      } catch (error) {
-        console.log(`Intent URI failed: ${uri}`, error)
-      }
+    // Use expo-intent-launcher to check if app is installed without launching it
+    try {
+      console.log('Trying expo-intent-launcher getApplicationIconAsync...')
+      // This method will throw an error if the app is not installed
+      const icon = await IntentLauncher.getApplicationIconAsync(packageName)
+      console.log(`Package ${packageName} installed: true (icon retrieved successfully)`)
+      console.log(`Icon length: ${icon.length} characters`)
+      return true
+    } catch (error) {
+      console.log('getApplicationIconAsync failed:', error)
+      console.log(`Package ${packageName} installation status: false`)
+      return false
     }
-
-    console.log(`Package ${packageName} installation status: false`)
-    return false
   }
 
   // Method 3: Try opening with Linking API using intent URIs
@@ -126,6 +103,10 @@ export class EmulatorAltService {
       // Just open the app without any data using main action
       await IntentLauncher.startActivityAsync('android.intent.action.MAIN', {
         packageName,
+        // className: 'org.yuzu.yuzu_emu.activities.EmulationActivity',
+        className: 'org.yuzu.yuzu_emu.ui.main.MainActivity',
+        category: 'android.intent.category.LAUNCHER',
+        flags: 0x10000000, // FLAG_ACTIVITY_NEW_TASK
       })
     } catch (error) {
       console.log('Simple app launch failed:', error)
@@ -159,7 +140,46 @@ export class EmulatorAltService {
     throw new Error('Could not find any compatible emulator package')
   }
 
-  // Method 6: Log available methods
+  // Method 6: Launch with title ID only (no custom settings)
+  static async launchWithTitleOnly(
+    titleId: string,
+    packageName: string = 'dev.eden.eden_emulator',
+  ): Promise<void> {
+    if (Platform.OS !== 'android') {
+      throw new Error('Only available on Android')
+    }
+
+    try {
+      console.log('=== Eden Emulator Title-Only Launch ===')
+      console.log('Package Name:', packageName)
+      console.log('Title ID:', titleId)
+      console.log('Custom Settings: NONE (using game defaults)')
+      
+      // Only pass title_id, omit custom_settings entirely
+      // This allows Eden's getStringExtra to return null as expected
+      const intentExtras = {
+        title_id: titleId,
+        // custom_settings is omitted entirely
+      }
+      
+      // Explicitly log what we're sending to diagnose the issue
+      console.log('Intent extras being sent:', JSON.stringify(intentExtras, null, 2))
+      
+      // Try without specifying className to let Android resolve the correct activity
+      await IntentLauncher.startActivityAsync(`${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`, {
+        packageName: packageName,
+        // className: 'org.yuzu.yuzu_emu.activities.EmulationActivity',
+        extra: intentExtras,
+      })
+      
+      console.log('Title-only launch successful!')
+    } catch (error) {
+      console.log('Title-only launch failed:', error)
+      throw new Error(`Failed to launch with title only: ${getErrorMessage(error)}`)
+    }
+  }
+
+  // Method 7: Log available methods
   static logAvailableMethods(): void {
     console.log('=== Available Launch Methods ===')
     console.log('1. launchWithDirectIntent - Direct intent with expo-intent-launcher')
@@ -167,5 +187,6 @@ export class EmulatorAltService {
     console.log('3. launchWithLinking - Launch using Linking API with intent URIs')
     console.log('4. launchAppOnly - Launch app without custom data')
     console.log('5. tryDifferentPackageNames - Try multiple package names')
+    console.log('6. launchWithTitleOnly - Launch with title ID only (no custom settings)')
   }
 }

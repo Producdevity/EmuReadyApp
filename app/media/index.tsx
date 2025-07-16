@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, ActivityIndicator, TouchableOpacity, Image } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { FlashList } from '@shopify/flash-list'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useRawgSearchGameImages, useTgdbSearchGameImages } from '@/lib/api/hooks'
 import Card from '@/components/ui/Card'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { router } from 'expo-router'
 
 type MediaSource = 'rawg' | 'tgdb'
@@ -25,18 +26,19 @@ export default function GameMediaScreen() {
   }, [search])
 
   // Fetch from selected source
-  const { data: rawgData, isLoading: rawgLoading } = useRawgSearchGameImages(
+  const { data: rawgData, isLoading: rawgLoading, error: rawgError } = useRawgSearchGameImages(
     { query: debouncedSearch, pageSize: 20 },
-    { enabled: selectedSource === 'rawg' && !!debouncedSearch },
+    { enabled: selectedSource === 'rawg' && !!debouncedSearch, retry: false },
   )
 
-  const { data: tgdbData, isLoading: tgdbLoading } = useTgdbSearchGameImages(
+  const { data: tgdbData, isLoading: tgdbLoading, error: tgdbError } = useTgdbSearchGameImages(
     { name: debouncedSearch },
-    { enabled: selectedSource === 'tgdb' && !!debouncedSearch },
+    { enabled: selectedSource === 'tgdb' && !!debouncedSearch, retry: false },
   )
 
   const isLoading = selectedSource === 'rawg' ? rawgLoading : tgdbLoading
   const data = selectedSource === 'rawg' ? rawgData : tgdbData
+  const error = selectedSource === 'rawg' ? rawgError : tgdbError
 
   const handleImagePress = (gameId: string, gameName: string) => {
     router.push(`/media/${selectedSource}/${gameId}?name=${encodeURIComponent(gameName)}`)
@@ -95,19 +97,35 @@ export default function GameMediaScreen() {
     )
   }
 
-  const renderEmptyState = () => (
-    <View className="flex-1 justify-center items-center px-8">
-      <Ionicons name="images-outline" size={64} color={theme.colors.textSecondary} />
-      <Text className="text-xl font-semibold mt-4 mb-2" style={{ color: theme.colors.text }}>
-        {debouncedSearch ? 'No Media Found' : 'Search Game Media'}
-      </Text>
-      <Text className="text-center mb-6" style={{ color: theme.colors.textSecondary }}>
-        {debouncedSearch
-          ? `No results found for "${debouncedSearch}" in ${selectedSource.toUpperCase()}`
-          : 'Enter a game name to search for images and media'}
-      </Text>
-    </View>
-  )
+  const renderEmptyState = () => {
+    if (error) {
+      return (
+        <View className="flex-1 justify-center items-center px-8">
+          <Ionicons name="alert-circle-outline" size={64} color={theme.colors.error} />
+          <Text className="text-xl font-semibold mt-4 mb-2" style={{ color: theme.colors.error }}>
+            Media Search Unavailable
+          </Text>
+          <Text className="text-center mb-6" style={{ color: theme.colors.textSecondary }}>
+            {`The ${selectedSource.toUpperCase()} media service is currently unavailable. Please try again later or contact support.`}
+          </Text>
+        </View>
+      )
+    }
+
+    return (
+      <View className="flex-1 justify-center items-center px-8">
+        <Ionicons name="images-outline" size={64} color={theme.colors.textSecondary} />
+        <Text className="text-xl font-semibold mt-4 mb-2" style={{ color: theme.colors.text }}>
+          {debouncedSearch ? 'No Media Found' : 'Search Game Media'}
+        </Text>
+        <Text className="text-center mb-6" style={{ color: theme.colors.textSecondary }}>
+          {debouncedSearch
+            ? `No results found for "${debouncedSearch}" in ${selectedSource.toUpperCase()}`
+            : 'Enter a game name to search for images and media'}
+        </Text>
+      </View>
+    )
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -181,14 +199,25 @@ export default function GameMediaScreen() {
       </View>
 
       {/* Content */}
-      {!debouncedSearch || !data?.length ? (
+      {error || !debouncedSearch || !data?.length ? (
         renderEmptyState()
       ) : isLoading ? (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text className="mt-4" style={{ color: theme.colors.textSecondary }}>
-            Searching {selectedSource.toUpperCase()}...
-          </Text>
+        <View style={{ padding: 16 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+            {Array.from({ length: 6 }).map((_, index) => (
+              <View key={index} style={{ width: '47%' }}>
+                <Card>
+                  <View style={{ aspectRatio: 16/9 }}>
+                    <Skeleton height="100%" borderRadius={8} />
+                  </View>
+                  <View style={{ padding: 12 }}>
+                    <Skeleton height={16} width="90%" style={{ marginBottom: 8 }} />
+                    <Skeleton height={12} width="70%" />
+                  </View>
+                </Card>
+              </View>
+            ))}
+          </View>
         </View>
       ) : (
         <FlashList

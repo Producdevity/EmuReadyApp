@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Alert,
   SafeAreaView,
@@ -9,6 +9,7 @@ import {
   StatusBar,
   Pressable,
   Dimensions,
+  StyleSheet,
 } from 'react-native'
 import { useAuth } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
@@ -16,20 +17,27 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import Animated, {
   FadeInUp,
-  FadeInDown,
-  SlideInRight,
   SlideInLeft,
-  ZoomIn,
+  BounceIn,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withSequence,
   withTiming,
+  withRepeat,
+  interpolate,
+  Extrapolation,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 
 import { Button, Card, SkeletonLoader } from '@/components/ui'
+import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useGames, useDevices, useEmulators, useCreateListing } from '@/lib/api/hooks'
+import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
+import { FluidGradient } from '@/components/ui/FluidGradient'
 import type { Game, Device } from '@/types'
 
 interface FormData {
@@ -62,8 +70,63 @@ export default function CreateScreen() {
   const emulatorsQuery = useEmulators({})
   const createListingMutation = useCreateListing()
 
+  // Enhanced 2025 animation values
   const fadeAnim = useSharedValue(1)
   const progressAnim = useSharedValue(0.2)
+  const heroGlow = useSharedValue(0)
+  const progressPulse = useSharedValue(1)
+  const backgroundShift = useSharedValue(0)
+  const stepFloat = useSharedValue(0)
+  const particleFlow = useSharedValue(0)
+  
+  useEffect(() => {
+    // Initialize cosmic background animation
+    backgroundShift.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 12000 }),
+        withTiming(0, { duration: 12000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2500 }),
+        withTiming(0.4, { duration: 2500 })
+      ),
+      -1,
+      true
+    )
+    
+    // Progress pulse animation
+    progressPulse.value = withRepeat(
+      withSequence(
+        withSpring(1.05, MICRO_SPRING_CONFIG.bouncy),
+        withSpring(1, MICRO_SPRING_CONFIG.smooth)
+      ),
+      -1,
+      true
+    )
+    
+    // Step floating animation
+    stepFloat.value = withRepeat(
+      withSequence(
+        withTiming(8, { duration: 5000 }),
+        withTiming(-8, { duration: 5000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Particle flow animation
+    particleFlow.value = withRepeat(
+      withTiming(1, { duration: 8000 }),
+      -1,
+      false
+    )
+  }, [])
 
   const steps = [
     { step: 1, title: 'Select Game', icon: 'game-controller', completed: !!formData.gameId },
@@ -943,15 +1006,71 @@ export default function CreateScreen() {
     )
   }
 
+  // Animated styles
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          backgroundShift.value,
+          [0, 1],
+          [-30, 30],
+          Extrapolation.CLAMP
+        ),
+      },
+    ],
+  }))
+  
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+  
+  const progressPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: progressPulse.value }],
+  }))
+  
+  const stepFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: stepFloat.value }],
+  }))
+  
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          particleFlow.value,
+          [0, 1],
+          [-150, 400],
+          Extrapolation.CLAMP
+        ),
+      },
+    ],
+    opacity: interpolate(
+      particleFlow.value,
+      [0, 0.2, 0.8, 1],
+      [0, 1, 1, 0],
+      Extrapolation.CLAMP
+    ),
+  }))
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <StatusBar
         barStyle={theme.isDark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
         translucent
       />
 
-      {/* Gradient Background */}
+      {/* Revolutionary Aurora Background */}
+      <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
+        <FluidGradient
+          variant="cosmic"
+          animated
+          speed="slow"
+          style={StyleSheet.absoluteFillObject}
+          opacity={0.2}
+        />
+      </Animated.View>
+      
+      {/* Enhanced Gradient Overlay */}
       <LinearGradient
         colors={theme.colors.gradients.hero as [string, string, ...string[]]}
         style={{
@@ -960,67 +1079,92 @@ export default function CreateScreen() {
           left: 0,
           right: 0,
           height: HEADER_HEIGHT + 100,
+          opacity: 0.8,
         }}
       />
+      
+      {/* Floating Particles */}
+      <Animated.View style={[styles.particle, { top: '15%' }, particleFlowStyle]}>
+        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.primary}50` }]} />
+      </Animated.View>
+      <Animated.View style={[styles.particle, { top: '35%' }, particleFlowStyle]}>
+        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.secondary}50` }]} />
+      </Animated.View>
+      <Animated.View style={[styles.particle, { top: '55%' }, particleFlowStyle]}>
+        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.accent}50` }]} />
+      </Animated.View>
+
+      <SafeAreaView style={{ flex: 1 }}>
 
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: theme.spacing.xxxl }}
       >
-        {/* Header */}
-        <View
-          style={{
-            paddingHorizontal: theme.spacing.lg,
-            paddingTop: theme.spacing.xl,
-            paddingBottom: theme.spacing.lg,
-          }}
-        >
-          <Animated.View entering={FadeInDown.delay(200).springify()}>
-            <Text
-              style={{
-                fontSize: theme.typography.fontSize.xxxl,
-                fontWeight: theme.typography.fontWeight.extrabold,
-                color: theme.isDark ? theme.colors.textInverse : theme.colors.text,
-                marginBottom: theme.spacing.sm,
-              }}
-            >
-              Create Listing
-            </Text>
-            <Text
-              style={{
-                fontSize: theme.typography.fontSize.lg,
-                color: theme.isDark ? `${theme.colors.textInverse}CC` : theme.colors.textSecondary,
-                lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.lg,
-              }}
-            >
-              Share your emulation performance data with the community
-            </Text>
-          </Animated.View>
-        </View>
+        {/* Revolutionary Hero Header */}
+        <FloatingElement intensity={4} duration={5000}>
+          <View style={styles.headerContainer}>
+            {/* Hero glow effect */}
+            <Animated.View style={[styles.headerGlow, heroGlowStyle]}>
+              <LinearGradient
+                colors={[
+                  'transparent',
+                  `${theme.colors.primary}40`,
+                  'transparent'
+                ]}
+                style={StyleSheet.absoluteFillObject}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              />
+            </Animated.View>
+            
+            <Animated.View entering={SlideInLeft.delay(200).springify().damping(15)}>
+              <GradientTitle 
+                gradient 
+                animated 
+                variant="bounce"
+                style={styles.heroTitle}
+              >
+                Create Listing
+              </GradientTitle>
+              
+              <TypewriterText 
+                animated 
+                delay={300}
+                style={styles.heroSubtitle}
+              >
+                Share your emulation performance data with the community using next-gen precision
+              </TypewriterText>
+            </Animated.View>
+          </View>
+        </FloatingElement>
 
-        {/* Progress Bar */}
+        {/* Revolutionary Progress Section */}
         <Animated.View
-          entering={FadeInUp.delay(300).springify()}
-          style={{
-            paddingHorizontal: theme.spacing.lg,
-            marginBottom: theme.spacing.xl,
-          }}
+          entering={BounceIn.delay(400).springify().damping(12)}
+          style={stepFloatStyle}
         >
-          <BlurView
-            intensity={80}
-            tint={theme.isDark ? 'dark' : 'light'}
-            style={{
-              borderRadius: theme.borderRadius.lg,
-              overflow: 'hidden',
-              padding: theme.spacing.lg,
-              backgroundColor: theme.colors.glass,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
+          <FloatingElement intensity={2} duration={6000}>
+            <View style={styles.progressContainer}>
+              <HolographicView 
+                morphing 
+                borderRadius={24}
+                style={styles.progressCard}
+              >
+                <FluidGradient
+                  variant="aurora"
+                  borderRadius={24}
+                  animated
+                  speed="normal"
+                  style={StyleSheet.absoluteFillObject}
+                  opacity={0.15}
+                />
+                
+                <View style={styles.progressContent}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
                 marginBottom: theme.spacing.md,
               }}
             >
@@ -1095,8 +1239,11 @@ export default function CreateScreen() {
                   progressAnimatedStyle,
                 ]}
               />
+                  </View>
+                </View>
+              </HolographicView>
             </View>
-          </BlurView>
+          </FloatingElement>
         </Animated.View>
 
         {/* Form Content */}
@@ -1237,3 +1384,55 @@ export default function CreateScreen() {
     </SafeAreaView>
   )
 }
+
+const styles = StyleSheet.create({
+  particle: {
+    position: 'absolute',
+    left: -20,
+  },
+  particleDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  headerContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 24,
+    position: 'relative',
+  },
+  headerGlow: {
+    position: 'absolute',
+    top: 16,
+    left: 8,
+    right: 8,
+    bottom: 8,
+    borderRadius: 24,
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: '900',
+    marginBottom: 8,
+    position: 'relative',
+    zIndex: 1,
+  },
+  heroSubtitle: {
+    fontSize: 18,
+    lineHeight: 28,
+    position: 'relative',
+    zIndex: 1,
+  },
+  progressContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  progressCard: {
+    padding: 24,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  progressContent: {
+    position: 'relative',
+    zIndex: 1,
+  },
+})

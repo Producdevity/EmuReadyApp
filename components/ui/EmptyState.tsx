@@ -4,6 +4,8 @@ import Animated, { FadeInUp } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import Button from './Button'
 import { useTheme } from '@/contexts/ThemeContext'
+import { GlassCard } from './GlassMorphism'
+import { FloatingElement, PulsingElement } from './MicroInteractions'
 
 interface EmptyStateProps {
   icon?: keyof typeof Ionicons.glyphMap
@@ -59,10 +61,20 @@ const EmptyState: React.FC<EmptyStateProps> = memo(function EmptyState({
   const config = getVariantConfig()
 
   return (
-    <Animated.View entering={FadeInUp.delay(200).springify()} style={[styles.container, style]}>
-      <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.iconContainer}>
-        <Ionicons name={config.icon} size={config.iconSize} color={config.iconColor} />
-      </Animated.View>
+    <GlassCard 
+      style={[styles.container, style]}
+      variant="frosted"
+      intensity={15}
+      elevation={2}
+      animated={true}
+    >
+      <FloatingElement intensity={2} duration={4000}>
+        <Animated.View entering={FadeInUp.delay(300).springify()} style={styles.iconContainer}>
+          <PulsingElement scale={1.1} duration={2000}>
+            <Ionicons name={config.icon} size={config.iconSize} color={config.iconColor} />
+          </PulsingElement>
+        </Animated.View>
+      </FloatingElement>
 
       <Animated.View entering={FadeInUp.delay(400).springify()} style={styles.textContainer}>
         <Text style={styles.title}>{title}</Text>
@@ -79,7 +91,7 @@ const EmptyState: React.FC<EmptyStateProps> = memo(function EmptyState({
           />
         </Animated.View>
       )}
-    </Animated.View>
+    </GlassCard>
   )
 })
 

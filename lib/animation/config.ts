@@ -1,53 +1,57 @@
 import { withSpring, withTiming, Easing } from 'react-native-reanimated'
 
-// Central animation configuration for consistent, snappy animations
+// Ultra-smooth animation configuration for 120Hz displays
 export const ANIMATION_CONFIG = {
-  // Timing presets - all fast and snappy
+  // Timing presets - optimized for modern high-refresh displays
   timing: {
-    instant: 100,
-    fast: 150,
-    normal: 200,
-    slow: 300,
+    instant: 50,    // Ultra-fast for immediate feedback
+    fast: 100,      // Quick transitions
+    normal: 150,    // Standard transitions
+    slow: 200,      // Deliberate animations
   },
 
-  // Spring presets - optimized for snappy feel
+  // Spring presets - physics-based for natural feel
   spring: {
-    snappy: { damping: 25, stiffness: 400, mass: 0.8 },
-    smooth: { damping: 30, stiffness: 350, mass: 0.9 },
-    bouncy: { damping: 20, stiffness: 300, mass: 1.0 },
+    snappy: { damping: 30, stiffness: 400, mass: 0.8 },   // iOS-like snappy
+    smooth: { damping: 35, stiffness: 350, mass: 0.9 },   // Smooth and controlled
+    bouncy: { damping: 25, stiffness: 300, mass: 1.0 },   // Playful with energy
+    gentle: { damping: 40, stiffness: 250, mass: 1.1 },   // Gentle and fluid
   },
 
-  // Stagger delays - much faster than before
+  // Stagger delays - optimized for fluid sequences
   stagger: {
-    fast: 15,
-    normal: 25,
-    slow: 35,
+    fast: 8,        // Rapid-fire
+    normal: 12,     // Smooth cascade
+    slow: 16,       // Deliberate sequence
   },
 
-  // Base delays - significantly reduced
+  // Base delays - optimized for responsiveness
   baseDelay: {
-    instant: 0,
-    fast: 50,
-    normal: 100,
-    slow: 150,
+    instant: 0,     // No delay
+    fast: 25,       // Minimal delay
+    normal: 50,     // Brief pause
+    slow: 80,       // Noticeable but not slow
   },
 
   // Scale presets for interactions
   scale: {
-    press: 0.97,
-    hover: 1.02,
-    active: 1.05,
+    press: 0.98,
+    hover: 1.03,
+    active: 1.06,
+    subtle: 0.995,
   },
 
-  // Easing curves
+  // Easing curves - optimized for modern UI feel
   easing: {
-    out: Easing.out(Easing.cubic),
-    inOut: Easing.inOut(Easing.cubic),
-    elastic: Easing.elastic(1.2),
+    out: Easing.out(Easing.cubic),       // Smooth deceleration
+    inOut: Easing.inOut(Easing.cubic),   // Smooth bidirectional
+    elastic: Easing.elastic(1.2),        // Subtle bounce
+    linear: Easing.linear,               // Constant speed
+    back: Easing.back(1.7),             // Overshoot effect
   },
 }
 
-// Animation factory functions
+// Enhanced animation factory functions
 export const createSpringAnimation = (
   value: number,
   preset: keyof typeof ANIMATION_CONFIG.spring = 'snappy',
@@ -64,6 +68,16 @@ export const createTimingAnimation = (
     duration: ANIMATION_CONFIG.timing[preset],
     easing: ANIMATION_CONFIG.easing[easing],
   })
+}
+
+// Utility for creating smooth press animations
+export const createPressAnimation = (pressed: boolean) => {
+  return withSpring(pressed ? ANIMATION_CONFIG.scale.press : 1, ANIMATION_CONFIG.spring.snappy)
+}
+
+// Utility for creating smooth hover animations
+export const createHoverAnimation = (hovered: boolean) => {
+  return withSpring(hovered ? ANIMATION_CONFIG.scale.hover : 1, ANIMATION_CONFIG.spring.smooth)
 }
 
 // Common animation presets

@@ -1,22 +1,23 @@
 import { useState, useEffect } from 'react'
-import { networkUtils } from '@/lib/api/client'
-import { queryClient } from '@/lib/api/client'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { networkUtils , queryClient } from '@/lib/api/client'
 
-// Simple storage interface for offline functionality
+// AsyncStorage-based storage implementation for offline functionality
 const storage = {
   async getItem(key: string): Promise<string | null> {
     try {
-      // In production, you would use AsyncStorage or MMKV
-      return null
-    } catch {
+      return await AsyncStorage.getItem(key)
+    } catch (error) {
+      console.error(`Failed to get item '${key}' from storage:`, error)
       return null
     }
   },
   async setItem(key: string, value: string): Promise<void> {
     try {
-      // In production, you would use AsyncStorage or MMKV
-    } catch {
-      // Handle error
+      await AsyncStorage.setItem(key, value)
+    } catch (error) {
+      console.error(`Failed to set item '${key}' in storage:`, error)
+      throw error
     }
   },
 }
@@ -33,7 +34,7 @@ interface OfflineQueue {
   id: string
   type: 'mutation'
   endpoint: string
-  data: any
+  data: Record<string, unknown>
   timestamp: Date
   retryCount: number
 }
@@ -182,7 +183,7 @@ const useOfflineMode = () => {
     }
   }
 
-  const addToOfflineQueue = async (endpoint: string, data: any, type: 'mutation' = 'mutation') => {
+  const addToOfflineQueue = async (endpoint: string, data: Record<string, unknown>, type: 'mutation' = 'mutation') => {
     const queueItem: OfflineQueue = {
       id: `${Date.now()}_${Math.random()}`,
       type,

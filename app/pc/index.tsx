@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, ActivityIndicator } from 'react-native'
+import { View, Text, TextInput } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { FlashList } from '@shopify/flash-list'
@@ -7,6 +7,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { usePcListings } from '@/lib/api/hooks'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import { SkeletonCard } from '@/components/ui/Skeleton'
 import { router } from 'expo-router'
 
 export default function PCListingsScreen() {
@@ -90,12 +91,12 @@ export default function PCListingsScreen() {
     <View className="flex-1 justify-center items-center px-8">
       <Ionicons name="alert-circle-outline" size={64} color={theme.colors.error} />
       <Text className="text-xl font-semibold mt-4 mb-2" style={{ color: theme.colors.error }}>
-        Error Loading PC Listings
+        PC Gaming Coming Soon
       </Text>
       <Text className="text-center mb-6" style={{ color: theme.colors.textSecondary }}>
-        {listingsError?.message || 'Something went wrong. Please try again.'}
+        This feature is currently under development. Check back soon for PC gaming performance tracking!
       </Text>
-      <Button title="Try Again" onPress={() => window.location.reload()} variant="outline" />
+      <Button title="Browse Mobile Listings" onPress={() => router.push('/browse')} variant="primary" />
     </View>
   )
 
@@ -149,11 +150,10 @@ export default function PCListingsScreen() {
 
       {/* Content */}
       {loadingListings ? (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text className="mt-4" style={{ color: theme.colors.textSecondary }}>
-            Loading PC listings...
-          </Text>
+        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+          {Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
         </View>
       ) : !pcListingsData?.listings?.length ? (
         renderEmptyState()

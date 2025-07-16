@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
@@ -8,19 +8,37 @@ import {
   Platform,
   KeyboardAvoidingView,
   useWindowDimensions,
-  Pressable,
+  StyleSheet,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
+import Animated, {
+  SlideInLeft,
+  BounceIn,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+  withTiming,
+  withRepeat,
+  interpolate,
+  runOnJS,
+  Extrapolation,
+} from 'react-native-reanimated'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system'
+import * as Haptics from 'expo-haptics'
 
 import { useTheme } from '@/contexts/ThemeContext'
-import { Button, Card } from '@/components/ui'
+import { Button } from '@/components/ui'
+import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
 import { EmulatorService } from '@/lib/services/emulator'
-import { getBaseDelay, ANIMATION_CONFIG } from '@/lib/animation/config'
+import { getBaseDelay } from '@/lib/animation/config'
 import { getErrorMessage } from '@/lib/utils'
+import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
+import { FluidGradient } from '@/components/ui/FluidGradient'
 
 interface ConfigFile {
   name: string
@@ -37,6 +55,62 @@ export default function ConfigScreen() {
   const [packageName, setPackageName] = useState('dev.eden.eden_emulator')
   const [isLoading, setIsLoading] = useState(false)
   const [showContent, setShowContent] = useState(false)
+  
+  // Animation values
+  const heroGlow = useSharedValue(0)
+  const uploadPulse = useSharedValue(1)
+  const configFloat = useSharedValue(0)
+  const backgroundShift = useSharedValue(0)
+  const particleFlow = useSharedValue(0)
+  
+  useEffect(() => {
+    // Initialize aurora background animation
+    backgroundShift.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 8000 }),
+        withTiming(0, { duration: 8000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 3000 }),
+        withTiming(0.3, { duration: 3000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Floating animation for config elements
+    configFloat.value = withRepeat(
+      withSequence(
+        withTiming(5, { duration: 4000 }),
+        withTiming(-5, { duration: 4000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Particle flow animation
+    particleFlow.value = withRepeat(
+      withTiming(1, { duration: 6000 }),
+      -1,
+      false
+    )
+    
+    // Upload pulse animation
+    uploadPulse.value = withRepeat(
+      withSequence(
+        withSpring(1.05, MICRO_SPRING_CONFIG.bouncy),
+        withSpring(1, MICRO_SPRING_CONFIG.smooth)
+      ),
+      -1,
+      true
+    )
+  }, [])
 
   const extractTitleIdFromFilename = (filename: string): string => {
     // Remove file extension and check if it's a valid title ID
@@ -48,6 +122,8 @@ export default function ConfigScreen() {
   }
 
   const handleFilePick = async () => {
+    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+    
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: ['text/plain', 'application/octet-stream', '*/*'],
@@ -76,12 +152,16 @@ export default function ConfigScreen() {
         setCustomTitleId(titleId)
       }
 
+      // Success haptic feedback
+      runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success)
+      
       Alert.alert(
         'File Loaded',
         `Successfully loaded ${file.name}${titleId ? `\n\nDetected Title ID: ${titleId}` : '\n\nPlease enter the Title ID manually.'}`,
       )
     } catch (error) {
       console.error('Error picking file:', error)
+      runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Error)
       Alert.alert(
         'Error',
         `Failed to load configuration file. Please try again. 
@@ -91,12 +171,16 @@ export default function ConfigScreen() {
   }
 
   const handleTestWithConfig = async () => {
+    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+    
     if (Platform.OS !== 'android') {
+      runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Warning)
       Alert.alert('Platform Error', 'Eden emulator testing is only available on Android devices.')
       return
     }
 
     if (!configFile) {
+      runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Warning)
       Alert.alert('No Configuration', 'Please select a configuration file first.')
       return
     }
@@ -104,11 +188,13 @@ export default function ConfigScreen() {
     const titleId = customTitleId || configFile.titleId
 
     if (!titleId.trim()) {
+      runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Warning)
       Alert.alert('Missing Title ID', 'Please enter a Title ID.')
       return
     }
 
     if (!EmulatorService.validateTitleId(titleId)) {
+      runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Error)
       Alert.alert(
         'Invalid Title ID',
         'Title ID must be a 16-digit hexadecimal string (e.g., 0100000000010000).',
@@ -125,12 +211,14 @@ export default function ConfigScreen() {
         packageName: packageName.trim(),
       })
 
+      runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Success)
       Alert.alert(
         'Launch Successful',
         `Emulator launch command sent successfully to ${packageName}!`,
       )
     } catch (error) {
       console.error('Error testing emulator:', error)
+      runOnJS(Haptics.notificationAsync)(Haptics.NotificationFeedbackType.Error)
       Alert.alert(
         'Launch Error',
         `An unexpected error occurred while testing the emulator. ${getErrorMessage(error)}`,
@@ -141,6 +229,8 @@ export default function ConfigScreen() {
   }
 
   const handleClearConfig = () => {
+    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+    
     Alert.alert(
       'Clear Configuration',
       'Are you sure you want to clear the current configuration?',
@@ -150,6 +240,7 @@ export default function ConfigScreen() {
           text: 'Clear',
           style: 'destructive',
           onPress: () => {
+            runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
             setConfigFile(null)
             setCustomTitleId('')
             setShowContent(false)
@@ -158,9 +249,77 @@ export default function ConfigScreen() {
       ],
     )
   }
+  
+  // Animated styles
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          backgroundShift.value,
+          [0, 1],
+          [-50, 50],
+          Extrapolation.CLAMP
+        ),
+      },
+    ],
+  }))
+  
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+  
+  const uploadPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: uploadPulse.value }],
+  }))
+  
+  const configFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: configFloat.value }],
+  }))
+  
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          particleFlow.value,
+          [0, 1],
+          [-100, 400],
+          Extrapolation.CLAMP
+        ),
+      },
+    ],
+    opacity: interpolate(
+      particleFlow.value,
+      [0, 0.3, 0.7, 1],
+      [0, 1, 1, 0],
+      Extrapolation.CLAMP
+    ),
+  }))
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      {/* Aurora Background */}
+      <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
+        <FluidGradient
+          variant="aurora"
+          animated
+          speed="slow"
+          style={StyleSheet.absoluteFillObject}
+          opacity={0.15}
+        />
+      </Animated.View>
+      
+      {/* Floating Particles */}
+      <Animated.View style={[styles.particle, { top: '20%' }, particleFlowStyle]}>
+        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.primary}40` }]} />
+      </Animated.View>
+      <Animated.View style={[styles.particle, { top: '40%' }, particleFlowStyle]}>
+        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.secondary}40` }]} />
+      </Animated.View>
+      <Animated.View style={[styles.particle, { top: '60%' }, particleFlowStyle]}>
+        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.accent}40` }]} />
+      </Animated.View>
+      
+      <SafeAreaView style={{ flex: 1 }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -173,368 +332,700 @@ export default function ConfigScreen() {
           }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
+          {/* Enhanced Hero Header */}
           <Animated.View
-            entering={FadeInDown.delay(getBaseDelay('instant')).duration(
-              ANIMATION_CONFIG.timing.fast,
-            )}
+            entering={SlideInLeft.delay(getBaseDelay('instant')).springify().damping(15)}
           >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: theme.spacing.xl,
-              }}
-            >
-              <View
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: theme.colors.primary,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: theme.spacing.md,
-                }}
-              >
-                <Ionicons name="document-text" size={24} color={theme.colors.textInverse} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: theme.typography.fontSize.xxl,
-                    fontWeight: theme.typography.fontWeight.bold,
-                    color: theme.colors.text,
-                  }}
-                >
-                  Config File Tester
-                </Text>
-                <Text
-                  style={{
-                    fontSize: theme.typography.fontSize.md,
-                    color: theme.colors.textMuted,
-                    marginTop: theme.spacing.xs,
-                  }}
-                >
-                  Upload and test INI configurations
-                </Text>
-              </View>
-            </View>
-          </Animated.View>
-
-          {/* Information Card */}
-          <Animated.View
-            entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
-          >
-            <Card style={{ marginBottom: theme.spacing.lg }}>
-              <View style={{ padding: theme.spacing.lg }}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginBottom: theme.spacing.md,
-                  }}
-                >
-                  <Ionicons
-                    name="information-circle"
-                    size={20}
-                    color={theme.colors.primary}
-                    style={{ marginRight: theme.spacing.sm }}
+            <FloatingElement intensity={3} duration={4000}>
+              <View style={styles.heroContainer}>
+                {/* Hero glow effect */}
+                <Animated.View style={[styles.heroGlow, heroGlowStyle]}>
+                  <LinearGradient
+                    colors={[
+                      'transparent',
+                      `${theme.colors.primary}30`,
+                      'transparent'
+                    ]}
+                    style={StyleSheet.absoluteFillObject}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
                   />
-                  <Text
-                    style={{
-                      fontSize: theme.typography.fontSize.lg,
-                      fontWeight: theme.typography.fontWeight.semibold,
-                      color: theme.colors.text,
-                    }}
+                </Animated.View>
+                
+                <MagneticView 
+                  borderRadius={32}
+                  style={styles.heroIcon}
+                >
+                  <LinearGradient
+                    colors={theme.colors.gradients.primary}
+                    style={StyleSheet.absoluteFillObject}
+                  />
+                  <FloatingElement intensity={2} duration={2000}>
+                    <Ionicons name="document-text" size={28} color="#ffffff" />
+                  </FloatingElement>
+                </MagneticView>
+                
+                <View style={styles.heroContent}>
+                  <GradientTitle 
+                    gradient 
+                    animated 
+                    variant="bounce"
+                    style={styles.heroTitle}
                   >
-                    How to Use
-                  </Text>
+                    Config File Tester
+                  </GradientTitle>
+                  
+                  <TypewriterText 
+                    animated 
+                    delay={300}
+                    style={styles.heroSubtitle}
+                  >
+                    Upload and test INI configurations with next-gen precision
+                  </TypewriterText>
                 </View>
-                <Text
-                  style={{
-                    fontSize: theme.typography.fontSize.md,
-                    color: theme.colors.textMuted,
-                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
-                  }}
-                >
-                  Upload an INI configuration file (e.g., 0100000000010000.ini) to test custom game
-                  settings. The app will try to detect the Title ID from the filename.
-                </Text>
               </View>
-            </Card>
+            </FloatingElement>
           </Animated.View>
 
-          {/* File Upload Section */}
+          {/* Enhanced Information Card */}
           <Animated.View
-            entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
+            entering={BounceIn.delay(getBaseDelay('fast')).springify().damping(12)}
           >
-            <Card style={{ marginBottom: theme.spacing.lg }}>
-              <View style={{ padding: theme.spacing.lg }}>
-                <Text
-                  style={{
-                    fontSize: theme.typography.fontSize.lg,
-                    fontWeight: theme.typography.fontWeight.semibold,
-                    color: theme.colors.text,
-                    marginBottom: theme.spacing.lg,
-                  }}
-                >
-                  Configuration File
-                </Text>
+            <FloatingElement intensity={2} duration={5000}>
+              <GlassView 
+                borderRadius={24} 
+                blurIntensity={25}
+                style={styles.infoCard}
+              >
+                <FluidGradient
+                  variant="cosmic"
+                  borderRadius={24}
+                  animated
+                  speed="normal"
+                  style={StyleSheet.absoluteFillObject}
+                  opacity={0.08}
+                />
+                
+                <View style={styles.infoContent}>
+                  <View style={styles.infoHeader}>
+                    <HolographicView 
+                      morphing 
+                      borderRadius={16}
+                      style={styles.infoIconContainer}
+                    >
+                      <FloatingElement intensity={1} duration={3000}>
+                        <Ionicons
+                          name="information-circle"
+                          size={24}
+                          color={theme.colors.primary}
+                        />
+                      </FloatingElement>
+                    </HolographicView>
+                    
+                    <GlowText 
+                      type="title" 
+                      glow 
+                      style={styles.infoTitle}
+                    >
+                      How to Use
+                    </GlowText>
+                  </View>
+                  
+                  <TypewriterText 
+                    animated 
+                    delay={500}
+                    style={styles.infoDescription}
+                  >
+                    Upload an INI configuration file (e.g., 0100000000010000.ini) to test custom game
+                    settings. The app will try to detect the Title ID from the filename with AI-powered precision.
+                  </TypewriterText>
+                </View>
+              </GlassView>
+            </FloatingElement>
+          </Animated.View>
 
-                {/* File Picker */}
-                <Pressable
-                  onPress={handleFilePick}
-                  style={{
-                    backgroundColor: theme.colors.surface,
-                    borderWidth: 2,
-                    borderColor: configFile ? theme.colors.success : theme.colors.border,
-                    borderRadius: theme.borderRadius.md,
-                    borderStyle: 'dashed',
-                    padding: theme.spacing.xl,
-                    alignItems: 'center',
-                    marginBottom: theme.spacing.lg,
-                  }}
-                >
-                  <Ionicons
-                    name={configFile ? 'document-text' : 'cloud-upload'}
-                    size={48}
-                    color={configFile ? theme.colors.success : theme.colors.textMuted}
-                    style={{ marginBottom: theme.spacing.md }}
-                  />
-                  <Text
-                    style={{
-                      fontSize: theme.typography.fontSize.md,
-                      fontWeight: theme.typography.fontWeight.semibold,
-                      color: configFile ? theme.colors.success : theme.colors.text,
-                      marginBottom: theme.spacing.xs,
-                    }}
+          {/* Revolutionary File Upload Section */}
+          <Animated.View
+            entering={SlideInLeft.delay(getBaseDelay('normal')).springify().damping(15)}
+            style={configFloatStyle}
+          >
+            <FloatingElement intensity={3} duration={6000}>
+              <HolographicView 
+                morphing 
+                borderRadius={28}
+                style={styles.uploadCard}
+              >
+                <FluidGradient
+                  variant="gaming"
+                  borderRadius={28}
+                  animated
+                  speed="fast"
+                  style={StyleSheet.absoluteFillObject}
+                  opacity={0.12}
+                />
+                
+                <View style={styles.uploadContent}>
+                  <GradientTitle 
+                    gradient 
+                    animated 
+                    variant="scale"
+                    style={styles.uploadTitle}
                   >
-                    {configFile ? configFile.name : 'Select INI File'}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: theme.typography.fontSize.sm,
-                      color: theme.colors.textMuted,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {configFile ? 'Tap to change file' : 'Tap to browse for configuration files'}
-                  </Text>
-                </Pressable>
+                    Configuration File
+                  </GradientTitle>
+
+                  {/* Revolutionary File Picker */}
+                  <Animated.View style={uploadPulseStyle}>
+                    <AnimatedPressable onPress={handleFilePick}>
+                      <MagneticView
+                        borderRadius={20}
+                        animated
+                        hoverable
+                        style={[
+                          styles.filePicker,
+                          configFile && styles.filePickerActive
+                        ]}
+                      >
+                        <FluidGradient
+                          variant={configFile ? "success" : "cosmic"}
+                          borderRadius={20}
+                          animated
+                          speed="normal"
+                          style={StyleSheet.absoluteFillObject}
+                          opacity={0.15}
+                        />
+                        
+                        <FloatingElement intensity={4} duration={3000}>
+                          <View style={styles.filePickerIconContainer}>
+                            <LinearGradient
+                              colors={configFile ? 
+                                [theme.colors.success, `${theme.colors.success}80`] :
+                                theme.colors.gradients.primary
+                              }
+                              style={styles.filePickerIconGradient}
+                            >
+                              <Ionicons
+                                name={configFile ? 'document-text' : 'cloud-upload'}
+                                size={32}
+                                color="#ffffff"
+                              />
+                            </LinearGradient>
+                          </View>
+                        </FloatingElement>
+                        
+                        <GlowText 
+                          glow={!!configFile}
+                          style={[
+                            styles.filePickerTitle,
+                            configFile && styles.filePickerTitleActive
+                          ]}
+                        >
+                          {configFile ? configFile.name : 'Select INI File'}
+                        </GlowText>
+                        
+                        <TypewriterText 
+                          animated 
+                          delay={200}
+                          style={styles.filePickerSubtitle}
+                        >
+                          {configFile ? 'Tap to change file' : 'Tap to browse for configuration files'}
+                        </TypewriterText>
+                      </MagneticView>
+                    </AnimatedPressable>
+                  </Animated.View>
 
                 {configFile && (
-                  <>
-                    {/* Title ID Field */}
-                    <View style={{ marginBottom: theme.spacing.lg }}>
-                      <Text
-                        style={{
-                          fontSize: theme.typography.fontSize.md,
-                          fontWeight: theme.typography.fontWeight.medium,
-                          color: theme.colors.text,
-                          marginBottom: theme.spacing.sm,
-                        }}
-                      >
-                        Title ID
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: theme.typography.fontSize.sm,
-                          color: theme.colors.textMuted,
-                          marginBottom: theme.spacing.sm,
-                        }}
-                      >
-                        {configFile.titleId
-                          ? 'Auto-detected from filename'
-                          : 'Enter the game Title ID'}
-                      </Text>
-                      <TextInput
-                        style={{
-                          backgroundColor: theme.colors.surface,
-                          borderWidth: 1,
-                          borderColor: theme.colors.border,
-                          borderRadius: theme.borderRadius.md,
-                          paddingHorizontal: theme.spacing.md,
-                          paddingVertical: theme.spacing.md,
-                          fontSize: theme.typography.fontSize.md,
-                          color: theme.colors.text,
-                          fontFamily: 'monospace',
-                        }}
-                        value={customTitleId}
-                        onChangeText={setCustomTitleId}
-                        placeholder={configFile.titleId || '0100000000010000'}
-                        placeholderTextColor={theme.colors.textMuted}
-                        maxLength={16}
-                        autoCapitalize="characters"
-                        autoCorrect={false}
-                      />
-                    </View>
-
-                    {/* Package Name Field */}
-                    <View style={{ marginBottom: theme.spacing.lg }}>
-                      <Text
-                        style={{
-                          fontSize: theme.typography.fontSize.md,
-                          fontWeight: theme.typography.fontWeight.medium,
-                          color: theme.colors.text,
-                          marginBottom: theme.spacing.sm,
-                        }}
-                      >
-                        Emulator Package Name
-                      </Text>
-                      <TextInput
-                        style={{
-                          backgroundColor: theme.colors.surface,
-                          borderWidth: 1,
-                          borderColor: theme.colors.border,
-                          borderRadius: theme.borderRadius.md,
-                          paddingHorizontal: theme.spacing.md,
-                          paddingVertical: theme.spacing.md,
-                          fontSize: theme.typography.fontSize.md,
-                          color: theme.colors.text,
-                          fontFamily: 'monospace',
-                        }}
-                        value={packageName}
-                        onChangeText={setPackageName}
-                        placeholder="dev.eden.eden_emulator"
-                        placeholderTextColor={theme.colors.textMuted}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                      />
-                    </View>
-
-                    {/* Action Buttons */}
-                    <View
-                      style={{
-                        flexDirection: isLandscape ? 'row' : 'column',
-                        gap: theme.spacing.md,
-                      }}
-                    >
-                      <Button
-                        title={showContent ? 'Hide Content' : 'Show Content'}
-                        onPress={() => setShowContent(!showContent)}
-                        variant="outline"
-                        size="lg"
-                        style={{ flex: isLandscape ? 1 : undefined }}
-                        leftIcon={
-                          <Ionicons
-                            name={showContent ? 'eye-off' : 'eye'}
-                            size={20}
-                            color={theme.colors.primary}
+                  <Animated.View entering={SlideInLeft.delay(400).springify().damping(15)}>
+                    {/* Enhanced Title ID Field */}
+                    <FloatingElement intensity={2} duration={4000}>
+                      <View style={styles.formSection}>
+                        <GlowText 
+                          type="subtitle" 
+                          glow 
+                          style={styles.fieldLabel}
+                        >
+                          Title ID
+                        </GlowText>
+                        
+                        <TypewriterText 
+                          animated 
+                          delay={100}
+                          style={styles.fieldHint}
+                        >
+                          {configFile.titleId
+                            ? 'Auto-detected from filename'
+                            : 'Enter the game Title ID'}
+                        </TypewriterText>
+                        
+                        <MagneticView 
+                          borderRadius={16}
+                          style={styles.inputContainer}
+                        >
+                          <FluidGradient
+                            variant="cosmic"
+                            borderRadius={16}
+                            animated
+                            speed="slow"
+                            style={StyleSheet.absoluteFillObject}
+                            opacity={0.1}
                           />
-                        }
-                      />
-                      <Button
-                        title="Clear Config"
-                        onPress={handleClearConfig}
-                        variant="secondary"
-                        size="lg"
-                        style={{ flex: isLandscape ? 1 : undefined }}
-                        leftIcon={<Ionicons name="trash" size={20} color={theme.colors.text} />}
-                      />
-                      <Button
-                        title="Test Config"
-                        onPress={handleTestWithConfig}
-                        loading={isLoading}
-                        disabled={isLoading || Platform.OS !== 'android'}
-                        variant="primary"
-                        size="lg"
-                        style={{ flex: isLandscape ? 1 : undefined }}
-                        leftIcon={
-                          <Ionicons name="play" size={20} color={theme.colors.textInverse} />
-                        }
-                      />
-                    </View>
-                  </>
+                          <TextInput
+                            style={styles.textInput}
+                            value={customTitleId}
+                            onChangeText={setCustomTitleId}
+                            placeholder={configFile.titleId || '0100000000010000'}
+                            placeholderTextColor={theme.colors.textMuted}
+                            maxLength={16}
+                            autoCapitalize="characters"
+                            autoCorrect={false}
+                          />
+                        </MagneticView>
+                      </View>
+                    </FloatingElement>
+
+                    {/* Enhanced Package Name Field */}
+                    <FloatingElement intensity={2} duration={5000}>
+                      <View style={styles.formSection}>
+                        <GlowText 
+                          type="subtitle" 
+                          glow 
+                          style={styles.fieldLabel}
+                        >
+                          Emulator Package Name
+                        </GlowText>
+                        
+                        <MagneticView 
+                          borderRadius={16}
+                          style={styles.inputContainer}
+                        >
+                          <FluidGradient
+                            variant="gaming"
+                            borderRadius={16}
+                            animated
+                            speed="slow"
+                            style={StyleSheet.absoluteFillObject}
+                            opacity={0.1}
+                          />
+                          <TextInput
+                            style={styles.textInput}
+                            value={packageName}
+                            onChangeText={setPackageName}
+                            placeholder="dev.eden.eden_emulator"
+                            placeholderTextColor={theme.colors.textMuted}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                          />
+                        </MagneticView>
+                      </View>
+                    </FloatingElement>
+
+                    {/* Revolutionary Action Buttons */}
+                    <FloatingElement intensity={3} duration={6000}>
+                      <View style={[
+                        styles.actionButtons,
+                        isLandscape && styles.actionButtonsRow
+                      ]}>
+                        <MagneticView 
+                          borderRadius={16}
+                          style={[styles.actionButton, isLandscape && styles.actionButtonFlex]}
+                        >
+                          <Button
+                            title={showContent ? 'Hide Content' : 'Show Content'}
+                            onPress={() => setShowContent(!showContent)}
+                            variant="outline"
+                            size="lg"
+                            style={styles.button}
+                            leftIcon={
+                              <Ionicons
+                                name={showContent ? 'eye-off' : 'eye'}
+                                size={20}
+                                color={theme.colors.primary}
+                              />
+                            }
+                          />
+                        </MagneticView>
+                        
+                        <MagneticView 
+                          borderRadius={16}
+                          style={[styles.actionButton, isLandscape && styles.actionButtonFlex]}
+                        >
+                          <Button
+                            title="Clear Config"
+                            onPress={handleClearConfig}
+                            variant="secondary"
+                            size="lg"
+                            style={styles.button}
+                            leftIcon={<Ionicons name="trash" size={20} color={theme.colors.text} />}
+                          />
+                        </MagneticView>
+                        
+                        <MagneticView 
+                          borderRadius={16}
+                          style={[styles.actionButton, isLandscape && styles.actionButtonFlex]}
+                        >
+                          <LinearGradient
+                            colors={theme.colors.gradients.primary}
+                            style={StyleSheet.absoluteFillObject}
+                          />
+                          <Button
+                            title="Test Config"
+                            onPress={handleTestWithConfig}
+                            loading={isLoading}
+                            disabled={isLoading || Platform.OS !== 'android'}
+                            variant="primary"
+                            size="lg"
+                            style={styles.button}
+                            leftIcon={
+                              <Ionicons name="play" size={20} color={theme.colors.textInverse} />
+                            }
+                          />
+                        </MagneticView>
+                      </View>
+                    </FloatingElement>
+                  </Animated.View>
                 )}
 
                 {Platform.OS !== 'android' && (
-                  <Text
-                    style={{
-                      fontSize: theme.typography.fontSize.sm,
-                      color: theme.colors.textMuted,
-                      textAlign: 'center',
-                      marginTop: theme.spacing.md,
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    Eden emulator testing is only available on Android
-                  </Text>
+                  <FloatingElement intensity={1} duration={3000}>
+                    <TypewriterText 
+                      animated 
+                      delay={800}
+                      style={styles.platformWarning}
+                    >
+                      Eden emulator testing is only available on Android
+                    </TypewriterText>
+                  </FloatingElement>
                 )}
               </View>
-            </Card>
+            </HolographicView>
+            </FloatingElement>
           </Animated.View>
 
-          {/* Config Content Preview */}
+          {/* Revolutionary Config Content Preview */}
           {configFile && showContent && (
             <Animated.View
-              entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
+              entering={BounceIn.delay(getBaseDelay('fast')).springify().damping(12)}
             >
-              <Card>
-                <View style={{ padding: theme.spacing.lg }}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      marginBottom: theme.spacing.md,
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Ionicons
-                        name="code"
-                        size={20}
-                        color={theme.colors.primary}
-                        style={{ marginRight: theme.spacing.sm }}
-                      />
-                      <Text
-                        style={{
-                          fontSize: theme.typography.fontSize.lg,
-                          fontWeight: theme.typography.fontWeight.semibold,
-                          color: theme.colors.text,
-                        }}
+              <FloatingElement intensity={2} duration={7000}>
+                <HolographicView 
+                  morphing 
+                  borderRadius={24}
+                  style={styles.previewCard}
+                >
+                  <FluidGradient
+                    variant="aurora"
+                    borderRadius={24}
+                    animated
+                    speed="slow"
+                    style={StyleSheet.absoluteFillObject}
+                    opacity={0.1}
+                  />
+                  
+                  <View style={styles.previewContent}>
+                    <View style={styles.previewHeader}>
+                      <View style={styles.previewHeaderLeft}>
+                        <MagneticView 
+                          borderRadius={12}
+                          style={styles.previewIconContainer}
+                        >
+                          <FloatingElement intensity={1} duration={2000}>
+                            <Ionicons
+                              name="code"
+                              size={20}
+                              color={theme.colors.primary}
+                            />
+                          </FloatingElement>
+                        </MagneticView>
+                        
+                        <GlowText 
+                          type="title" 
+                          glow 
+                          style={styles.previewTitle}
+                        >
+                          Configuration Content
+                        </GlowText>
+                      </View>
+                      
+                      <TypewriterText 
+                        animated 
+                        delay={200}
+                        style={styles.previewStats}
                       >
-                        Configuration Content
-                      </Text>
+                        {configFile.content.length} chars
+                      </TypewriterText>
                     </View>
-                    <Text
-                      style={{
-                        fontSize: theme.typography.fontSize.xs,
-                        color: theme.colors.textMuted,
-                      }}
+                    
+                    <GlassView 
+                      borderRadius={16} 
+                      blurIntensity={20}
+                      style={styles.codeContainer}
                     >
-                      {configFile.content.length} chars
-                    </Text>
+                      <ScrollView
+                        style={styles.codeScrollView}
+                        showsVerticalScrollIndicator={true}
+                      >
+                        <Text style={styles.codeText}>
+                          {configFile.content}
+                        </Text>
+                      </ScrollView>
+                    </GlassView>
                   </View>
-                  <ScrollView
-                    style={{
-                      backgroundColor: theme.colors.surface,
-                      borderRadius: theme.borderRadius.md,
-                      padding: theme.spacing.md,
-                      borderWidth: 1,
-                      borderColor: theme.colors.border,
-                      maxHeight: 400,
-                    }}
-                    showsVerticalScrollIndicator={true}
-                  >
-                    <Text
-                      style={{
-                        fontSize: theme.typography.fontSize.xs,
-                        color: theme.colors.text,
-                        fontFamily: 'monospace',
-                        lineHeight:
-                          theme.typography.lineHeight.relaxed * theme.typography.fontSize.xs,
-                      }}
-                    >
-                      {configFile.content}
-                    </Text>
-                  </ScrollView>
-                </View>
-              </Card>
+                </HolographicView>
+              </FloatingElement>
             </Animated.View>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  particle: {
+    position: 'absolute',
+    left: -20,
+  },
+  particleDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+  },
+  heroContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 32,
+    position: 'relative',
+  },
+  heroGlow: {
+    position: 'absolute',
+    top: -16,
+    left: -16,
+    right: -16,
+    bottom: -16,
+    borderRadius: 32,
+  },
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 20,
+    position: 'relative',
+    shadowColor: '#7c3aed',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  heroContent: {
+    flex: 1,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+  },
+  heroSubtitle: {
+    fontSize: 16,
+    marginTop: 4,
+    lineHeight: 24,
+  },
+  infoCard: {
+    marginBottom: 24,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  infoContent: {
+    padding: 24,
+    position: 'relative',
+    zIndex: 1,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  infoIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  infoTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  infoDescription: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  uploadCard: {
+    marginBottom: 24,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  uploadContent: {
+    padding: 24,
+    position: 'relative',
+    zIndex: 1,
+  },
+  uploadTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 24,
+  },
+  filePicker: {
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(124, 58, 237, 0.3)',
+    borderRadius: 20,
+    padding: 32,
+    alignItems: 'center',
+    marginBottom: 24,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  filePickerActive: {
+    borderColor: 'rgba(34, 197, 94, 0.5)',
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  filePickerIconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  filePickerIconGradient: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filePickerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  filePickerTitleActive: {
+    color: '#22c55e',
+  },
+  filePickerSubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  formSection: {
+    marginBottom: 24,
+  },
+  fieldLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  fieldHint: {
+    fontSize: 14,
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  inputContainer: {
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(124, 58, 237, 0.3)',
+  },
+  textInput: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 16,
+    fontFamily: 'monospace',
+    position: 'relative',
+    zIndex: 1,
+    backgroundColor: 'transparent',
+  },
+  actionButtons: {
+    gap: 16,
+    marginTop: 8,
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+  },
+  actionButton: {
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 16,
+  },
+  actionButtonFlex: {
+    flex: 1,
+  },
+  button: {
+    width: '100%',
+    borderRadius: 16,
+  },
+  platformWarning: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 16,
+    fontStyle: 'italic',
+    lineHeight: 20,
+  },
+  previewCard: {
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  previewContent: {
+    padding: 24,
+    position: 'relative',
+    zIndex: 1,
+  },
+  previewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  previewHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  previewIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  previewTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  previewStats: {
+    fontSize: 12,
+  },
+  codeContainer: {
+    maxHeight: 400,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  codeScrollView: {
+    padding: 16,
+  },
+  codeText: {
+    fontSize: 12,
+    fontFamily: 'monospace',
+    lineHeight: 18,
+  },
+})

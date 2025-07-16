@@ -1,12 +1,15 @@
 import React, { useEffect } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native'
+import { View, Text, StyleSheet, Platform } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withTiming,
+  withSequence,
   interpolate,
+  interpolateColor,
   runOnJS,
+  Extrapolation,
 } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
@@ -14,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
 import { Home, Search, Plus, Bell, User, FlaskConical, FileText } from 'lucide-react-native'
 import { useTheme } from '@/contexts/ThemeContext'
+import { AnimatedPressable, FloatingElement , MICRO_SPRING_CONFIG } from './MicroInteractions'
 
 interface TabBarProps {
   state: any
@@ -35,6 +39,10 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
   const iconScale = useSharedValue(1)
   const translateY = useSharedValue(0)
   const opacity = useSharedValue(0.6)
+  const morphValue = useSharedValue(0)
+  const glowOpacity = useSharedValue(0)
+  const rippleScale = useSharedValue(0)
+  const indicatorWidth = useSharedValue(0)
 
   const getIcon = (routeName: string, focused: boolean) => {
     const color = focused ? '#ffffff' : theme.colors.textMuted
@@ -62,35 +70,34 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
 
   useEffect(() => {
     if (isFocused) {
-      scale.value = withSpring(1.05, {
-        damping: 15,
-        stiffness: 300,
-      })
-      iconScale.value = withSpring(1.1, {
-        damping: 12,
-        stiffness: 350,
-      })
-      translateY.value = withSpring(-2, {
-        damping: 15,
-        stiffness: 300,
-      })
-      opacity.value = withTiming(1, { duration: 200 })
+      // Enhanced focus animations with morphing
+      scale.value = withSpring(1.08, MICRO_SPRING_CONFIG.snappy)
+      iconScale.value = withSequence(
+        withSpring(1.2, MICRO_SPRING_CONFIG.bouncy),
+        withSpring(1.15, MICRO_SPRING_CONFIG.smooth)
+      )
+      translateY.value = withSpring(-3, MICRO_SPRING_CONFIG.snappy)
+      opacity.value = withTiming(1, { duration: 150 })
+      morphValue.value = withSpring(1, MICRO_SPRING_CONFIG.smooth)
+      glowOpacity.value = withTiming(0.8, { duration: 200 })
+      indicatorWidth.value = withSpring(20, MICRO_SPRING_CONFIG.snappy)
+      
+      // Ripple effect
+      rippleScale.value = 0
+      rippleScale.value = withSequence(
+        withTiming(1, { duration: 300 }),
+        withTiming(0, { duration: 200 })
+      )
     } else {
-      scale.value = withSpring(1, {
-        damping: 15,
-        stiffness: 300,
-      })
-      iconScale.value = withSpring(1, {
-        damping: 12,
-        stiffness: 350,
-      })
-      translateY.value = withSpring(0, {
-        damping: 15,
-        stiffness: 300,
-      })
-      opacity.value = withTiming(0.6, { duration: 200 })
+      scale.value = withSpring(1, MICRO_SPRING_CONFIG.smooth)
+      iconScale.value = withSpring(1, MICRO_SPRING_CONFIG.smooth)
+      translateY.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
+      opacity.value = withTiming(0.65, { duration: 150 })
+      morphValue.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
+      glowOpacity.value = withTiming(0, { duration: 300 })
+      indicatorWidth.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
     }
-  }, [isFocused, scale, iconScale, translateY, opacity])
+  }, [isFocused])
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }, { translateY: translateY.value }] as any,
@@ -100,8 +107,41 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
     transform: [{ scale: iconScale.value }],
   }))
 
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scale.value, [1, 1.05], [0, 1]),
+  const backgroundAnimatedStyle = useAnimatedStyle(() => {
+    const backgroundColor = interpolateColor(
+      morphValue.value,
+      [0, 1],
+      ['transparent', route.name === 'create' ? theme.colors.accent : theme.colors.primary]
+    )
+    
+    return {
+      opacity: interpolate(scale.value, [1, 1.08], [0, 1], Extrapolation.CLAMP),
+      backgroundColor,
+      transform: [
+        { scale: interpolate(morphValue.value, [0, 1], [0.8, 1], Extrapolation.CLAMP) }
+      ],
+    }
+  })
+
+  const glowAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+    transform: [
+      { scale: interpolate(glowOpacity.value, [0, 1], [0.5, 1.3], Extrapolation.CLAMP) }
+    ],
+  }))
+
+  const rippleAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(rippleScale.value, [0, 0.5, 1], [0, 0.6, 0], Extrapolation.CLAMP),
+    transform: [
+      { scale: interpolate(rippleScale.value, [0, 1], [0, 2], Extrapolation.CLAMP) }
+    ],
+  }))
+
+  const morphingIndicatorStyle = useAnimatedStyle(() => ({
+    width: indicatorWidth.value,
+    transform: [
+      { scaleX: interpolate(morphValue.value, [0, 1], [0, 1], Extrapolation.CLAMP) }
+    ],
   }))
 
   const labelAnimatedStyle = useAnimatedStyle(() => ({
@@ -109,8 +149,18 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
   }))
 
   const handlePress = () => {
-    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+    // Enhanced haptic feedback pattern
+    if (route.name === 'create') {
+      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+    } else {
+      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+    }
     onPress()
+  }
+
+  const handleLongPress = () => {
+    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Heavy)
+    onLongPress()
   }
 
   const { options } = descriptors[route.key]
@@ -122,26 +172,46 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
         : route.name
 
   return (
-    <TouchableOpacity
+    <AnimatedPressable
       onPress={handlePress}
-      onLongPress={onLongPress}
       style={styles.tabButton}
-      activeOpacity={0.8}
+      scale={0.95}
+      haptic={false}
     >
-      <Animated.View style={[styles.tabContainer, animatedStyle as any]}>
-        {/* Animated background for focused state */}
-        <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
-          <LinearGradient
-            colors={
-              route.name === 'create'
-                ? [theme.colors.accent, `${theme.colors.accent}dd`]
-                : [theme.colors.primary, theme.colors.primaryDark]
-            }
-            style={styles.gradientBackground}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          />
-        </Animated.View>
+      <FloatingElement intensity={1} duration={4000}>
+        <Animated.View style={[styles.tabContainer, animatedStyle as any]}>
+          {/* Glow effect */}
+          <Animated.View style={[styles.glowEffect, glowAnimatedStyle]}>
+            <LinearGradient
+              colors={[
+                route.name === 'create' ? theme.colors.accent : theme.colors.primary,
+                `${route.name === 'create' ? theme.colors.accent : theme.colors.primary}60`,
+              ]}
+              style={styles.glowGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+          </Animated.View>
+
+          {/* Ripple effect */}
+          <Animated.View style={[styles.rippleEffect, rippleAnimatedStyle]}>
+            <View style={[styles.rippleCircle, {
+              backgroundColor: route.name === 'create' ? theme.colors.accent : theme.colors.primary
+            }]} />
+          </Animated.View>
+
+          {/* Morphing background */}
+          <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
+            <LinearGradient
+              colors={[
+                route.name === 'create' ? theme.colors.accent : theme.colors.primary,
+                route.name === 'create' ? `${theme.colors.accent}dd` : theme.colors.primaryDark,
+              ]}
+              style={styles.gradientBackground}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+          </Animated.View>
 
         {/* Icon with animation */}
         <Animated.View style={[styles.iconContainer, iconAnimatedStyle]}>
@@ -157,14 +227,38 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
           </Text>
         </Animated.View>
 
-        {/* Active indicator dot */}
-        {isFocused && (
-          <Animated.View style={[styles.activeIndicator, backgroundAnimatedStyle]}>
-            <View style={styles.indicatorDot} />
+          {/* Morphing indicator */}
+          <Animated.View style={[styles.morphingIndicator, morphingIndicatorStyle]}>
+            <LinearGradient
+              colors={['#ffffff', '#ffffff88']}
+              style={styles.indicatorGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            />
           </Animated.View>
-        )}
-      </Animated.View>
-    </TouchableOpacity>
+
+          {/* Floating particles effect */}
+          {isFocused && (
+            <View style={styles.particlesContainer}>
+              {Array.from({ length: 3 }).map((_, index) => (
+                <FloatingElement
+                  key={index}
+                  intensity={2 + index}
+                  duration={2000 + index * 500}
+                  delay={index * 200}
+                >
+                  <View style={[styles.particle, {
+                    backgroundColor: route.name === 'create' ? theme.colors.accent : theme.colors.primary,
+                    left: 10 + index * 15,
+                    top: 5 + index * 3,
+                  }]} />
+                </FloatingElement>
+              ))}
+            </View>
+          )}
+        </Animated.View>
+      </FloatingElement>
+    </AnimatedPressable>
   )
 }
 
@@ -181,14 +275,26 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: TabBa
         style={StyleSheet.absoluteFillObject}
       />
 
-      {/* Gradient overlay */}
+      {/* Enhanced gradient overlay with morphism */}
       <LinearGradient
         colors={
           theme.isDark
-            ? ['rgba(15, 23, 42, 0.97)', 'rgba(30, 41, 59, 0.99)']
-            : ['rgba(255, 255, 255, 0.97)', 'rgba(248, 250, 252, 0.99)']
+            ? ['rgba(10, 10, 10, 0.95)', 'rgba(20, 20, 20, 0.98)', 'rgba(30, 30, 30, 0.99)']
+            : ['rgba(255, 255, 255, 0.95)', 'rgba(250, 251, 252, 0.98)', 'rgba(248, 250, 252, 0.99)']
         }
         style={StyleSheet.absoluteFillObject}
+      />
+
+      {/* Ambient glow */}
+      <LinearGradient
+        colors={[
+          'transparent',
+          `${theme.colors.primary}08`,
+          'transparent'
+        ]}
+        style={[StyleSheet.absoluteFillObject, { opacity: 0.6 }]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
       />
 
       {/* Tab buttons container */}
@@ -237,15 +343,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 82 : 72,
+    height: Platform.OS === 'ios' ? 85 : 75,
     overflow: 'hidden',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 10,
+    borderTopColor: 'rgba(124, 58, 237, 0.1)',
+    shadowColor: '#7c3aed',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 15,
   },
   tabsContainer: {
     flex: 1,
@@ -302,5 +408,62 @@ const styles = StyleSheet.create({
     height: 3,
     borderRadius: 1.5,
     backgroundColor: '#ffffff',
+  },
+  glowEffect: {
+    position: 'absolute',
+    top: -5,
+    left: -5,
+    right: -5,
+    bottom: -5,
+    borderRadius: 21,
+  },
+  glowGradient: {
+    flex: 1,
+    borderRadius: 21,
+  },
+  rippleEffect: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 60,
+    height: 60,
+    marginTop: -30,
+    marginLeft: -30,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rippleCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    opacity: 0.3,
+  },
+  morphingIndicator: {
+    position: 'absolute',
+    top: -2,
+    alignSelf: 'center',
+    height: 3,
+    borderRadius: 1.5,
+    overflow: 'hidden',
+  },
+  indicatorGradient: {
+    flex: 1,
+    borderRadius: 1.5,
+  },
+  particlesContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+  },
+  particle: {
+    position: 'absolute',
+    width: 2,
+    height: 2,
+    borderRadius: 1,
+    opacity: 0.6,
   },
 })

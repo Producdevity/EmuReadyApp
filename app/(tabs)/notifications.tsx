@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   ScrollView,
   View,
@@ -7,23 +7,31 @@ import {
   Alert,
   StatusBar,
   Dimensions,
+  StyleSheet,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import Animated, {
   FadeInUp,
-  FadeInDown,
   SlideInRight,
+  SlideInLeft,
   ZoomIn,
   useAnimatedStyle,
   withSpring,
+  withSequence,
+  withTiming,
+  withRepeat,
+  interpolate,
   useSharedValue,
+  Extrapolation,
 } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 
 import { ThemedView, ThemedText } from '@/components/themed'
+import { MagneticView } from '@/components/themed/ThemedView'
+import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
   useNotifications,
@@ -32,6 +40,8 @@ import {
   useMarkAllNotificationsAsRead,
 } from '@/lib/api/hooks'
 import { LoadingSpinner, Card, EmptyState } from '@/components/ui'
+import { FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
+import { FluidGradient } from '@/components/ui/FluidGradient'
 import type { Notification as ApiNotification } from '@/types/api/api.response'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -48,10 +58,106 @@ export default function NotificationsScreen() {
   const markAsReadMutation = useMarkNotificationAsRead()
   const markAllAsReadMutation = useMarkAllNotificationsAsRead()
 
+  // Enhanced 2025 animation values
   const filterScale = useSharedValue(1)
+  const heroGlow = useSharedValue(0)
+  const badgePulse = useSharedValue(1)
+  const backgroundShift = useSharedValue(0)
+  const notificationFloat = useSharedValue(0)
+  const particleFlow = useSharedValue(0)
+  
+  useEffect(() => {
+    // Initialize aurora background animation
+    backgroundShift.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 10000 }),
+        withTiming(0, { duration: 10000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2000 }),
+        withTiming(0.4, { duration: 2000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Badge pulse animation
+    badgePulse.value = withRepeat(
+      withSequence(
+        withSpring(1.15, MICRO_SPRING_CONFIG.bouncy),
+        withSpring(1, MICRO_SPRING_CONFIG.smooth)
+      ),
+      -1,
+      true
+    )
+    
+    // Notification floating animation
+    notificationFloat.value = withRepeat(
+      withSequence(
+        withTiming(6, { duration: 4000 }),
+        withTiming(-6, { duration: 4000 })
+      ),
+      -1,
+      true
+    )
+    
+    // Particle flow animation
+    particleFlow.value = withRepeat(
+      withTiming(1, { duration: 7000 }),
+      -1,
+      false
+    )
+  }, [])
 
+  // Animated styles  
   const filterAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: filterScale.value }],
+  }))
+  
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          backgroundShift.value,
+          [0, 1],
+          [-40, 40],
+          Extrapolation.CLAMP
+        ),
+      },
+    ],
+  }))
+  
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+  
+  const badgePulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: badgePulse.value }],
+  }))
+  
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          particleFlow.value,
+          [0, 1],
+          [-100, 400],
+          Extrapolation.CLAMP
+        ),
+      },
+    ],
+    opacity: interpolate(
+      particleFlow.value,
+      [0, 0.3, 0.7, 1],
+      [0, 1, 1, 0],
+      Extrapolation.CLAMP
+    ),
   }))
 
   const onRefresh = async () => {
@@ -207,7 +313,18 @@ export default function NotificationsScreen() {
         translucent
       />
 
-      {/* Gradient Background */}
+      {/* Revolutionary Aurora Background */}
+      <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
+        <FluidGradient
+          variant="cosmic"
+          animated
+          speed="slow"
+          style={StyleSheet.absoluteFillObject}
+          opacity={0.18}
+        />
+      </Animated.View>
+      
+      {/* Enhanced Gradient Overlay */}
       <LinearGradient
         colors={theme.colors.gradients.hero as [string, string, ...string[]]}
         style={{
@@ -216,44 +333,84 @@ export default function NotificationsScreen() {
           left: 0,
           right: 0,
           height: HEADER_HEIGHT + 100,
+          opacity: 0.7,
         }}
       />
+      
+      {/* Floating Particles */}
+      <Animated.View style={[styles.particle, { top: '20%' }, particleFlowStyle]}>
+        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.primary}40` }]} />
+      </Animated.View>
+      <Animated.View style={[styles.particle, { top: '40%' }, particleFlowStyle]}>
+        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.secondary}40` }]} />
+      </Animated.View>
+      <Animated.View style={[styles.particle, { top: '60%' }, particleFlowStyle]}>
+        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.accent}40` }]} />
+      </Animated.View>
 
       <SafeAreaView style={{ flex: 1 }}>
         <ThemedView style={{ flex: 1 }}>
-          {/* Enhanced Header */}
-          <View
-            style={{
-              paddingHorizontal: theme.spacing.lg,
-              paddingTop: theme.spacing.lg,
-              paddingBottom: theme.spacing.md,
-            }}
-          >
-            <Animated.View entering={FadeInDown.delay(200).springify()}>
-              <ThemedText
-                style={{
-                  fontSize: theme.typography.fontSize.xxxl,
-                  fontWeight: theme.typography.fontWeight.extrabold,
-                  color: theme.isDark ? theme.colors.textInverse : theme.colors.text,
-                  marginBottom: theme.spacing.sm,
-                }}
-              >
-                Notifications
-              </ThemedText>
-              {unreadCount > 0 && (
-                <ThemedText
-                  style={{
-                    fontSize: theme.typography.fontSize.md,
-                    color: theme.isDark
-                      ? `${theme.colors.textInverse}CC`
-                      : theme.colors.textSecondary,
-                  }}
-                >
-                  You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
-                </ThemedText>
-              )}
-            </Animated.View>
-          </View>
+          {/* Revolutionary Hero Header */}
+          <FloatingElement intensity={3} duration={4000}>
+            <View style={styles.headerContainer}>
+              {/* Hero glow effect */}
+              <Animated.View style={[styles.headerGlow, heroGlowStyle]}>
+                <LinearGradient
+                  colors={[
+                    'transparent',
+                    `${theme.colors.primary}30`,
+                    'transparent'
+                  ]}
+                  style={StyleSheet.absoluteFillObject}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                />
+              </Animated.View>
+              
+              <Animated.View entering={SlideInLeft.delay(200).springify().damping(15)}>
+                <View style={styles.heroContent}>
+                  <GradientTitle 
+                    gradient 
+                    animated 
+                    variant="bounce"
+                    style={styles.heroTitle}
+                  >
+                    Notifications
+                  </GradientTitle>
+                  
+                  {unreadCount > 0 && (
+                    <View style={styles.badgeContainer}>
+                      <Animated.View style={badgePulseStyle}>
+                        <MagneticView 
+                          borderRadius={16}
+                          style={styles.unreadBadge}
+                        >
+                          <LinearGradient
+                            colors={[theme.colors.error, `${theme.colors.error}80`]}
+                            style={StyleSheet.absoluteFillObject}
+                          />
+                          <GlowText 
+                            glow 
+                            style={styles.badgeText}
+                          >
+                            {unreadCount} unread
+                          </GlowText>
+                        </MagneticView>
+                      </Animated.View>
+                      
+                      <TypewriterText 
+                        animated 
+                        delay={400}
+                        style={styles.badgeSubtext}
+                      >
+                        notification{unreadCount !== 1 ? 's' : ''} waiting for you
+                      </TypewriterText>
+                    </View>
+                  )}
+                </View>
+              </Animated.View>
+            </View>
+          </FloatingElement>
 
           {/* Filter Bar */}
           <Animated.View
@@ -617,3 +774,64 @@ export default function NotificationsScreen() {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  particle: {
+    position: 'absolute',
+    left: -20,
+  },
+  particleDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+  },
+  headerContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
+    position: 'relative',
+  },
+  headerGlow: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    right: 8,
+    bottom: 0,
+    borderRadius: 24,
+  },
+  heroContent: {
+    position: 'relative',
+    zIndex: 1,
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    marginBottom: 12,
+  },
+  badgeContainer: {
+    alignItems: 'flex-start',
+  },
+  unreadBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 8,
+    shadowColor: '#ef4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  badgeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
+    position: 'relative',
+    zIndex: 1,
+  },
+  badgeSubtext: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+})

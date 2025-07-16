@@ -12,6 +12,7 @@ import * as Haptics from 'expo-haptics'
 import { Card } from '../ui'
 import { useVoteListing } from '@/lib/api/hooks'
 import { useTheme } from '@/contexts/ThemeContext'
+import { ANIMATION_CONFIG } from '@/lib/animation/config'
 import type { Listing } from '@/types'
 
 interface ListingCardProps {
@@ -20,6 +21,7 @@ interface ListingCardProps {
   onVote?: (vote: 'up' | 'down') => void
   compact?: boolean
   style?: ViewStyle
+  disableAnimations?: boolean
 }
 
 function ListingCardComponent(props: ListingCardProps) {
@@ -40,11 +42,11 @@ function ListingCardComponent(props: ListingCardProps) {
     // Haptic feedback
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
 
-    // Scale animation
+    // Smooth scale animation with better spring values
     scaleValue.value = withSequence(
-      withSpring(0.8, { damping: 15, stiffness: 300 }),
-      withSpring(1.1, { damping: 10, stiffness: 300 }),
-      withSpring(1, { damping: 15, stiffness: 300 }),
+      withSpring(0.9, { damping: 30, stiffness: 400 }),
+      withSpring(1.08, { damping: 25, stiffness: 350 }),
+      withSpring(1, { damping: 28, stiffness: 380 }),
     )
   }
 
@@ -94,26 +96,30 @@ function ListingCardComponent(props: ListingCardProps) {
 
   const handleCardPress = () => {
     if (props.onPress) {
-      // Card press animation
+      // Smooth card press animation
       cardScale.value = withSequence(
-        withTiming(0.98, { duration: 100 }),
-        withTiming(1, { duration: 100 }),
+        withTiming(0.98, { 
+          duration: 100,
+          easing: ANIMATION_CONFIG.easing.out
+        }),
+        withSpring(1, { 
+          damping: 25,
+          stiffness: 350
+        }),
       )
 
       // Haptic feedback
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
 
-      // Call the onPress after a small delay to let animation start
-      setTimeout(() => {
-        props.onPress!()
-      }, 50)
+      // Call the onPress immediately for better responsiveness
+      props.onPress()
     }
   }
 
   const handlePerformanceBadgePress = () => {
     performanceBadgeScale.value = withSequence(
-      withSpring(0.9, { damping: 15, stiffness: 300 }),
-      withSpring(1, { damping: 15, stiffness: 300 }),
+      withSpring(0.92, { damping: 28, stiffness: 400 }),
+      withSpring(1, { damping: 25, stiffness: 350 }),
     )
     Haptics.selectionAsync()
   }
@@ -140,7 +146,7 @@ function ListingCardComponent(props: ListingCardProps) {
 
   return (
     <Animated.View style={cardAnimatedStyle}>
-      <Card style={containerStyle} padding="md" onPress={handleCardPress}>
+      <Card style={containerStyle} padding="md" onPress={handleCardPress} disableAnimations={props.disableAnimations}>
         <View style={styles.header}>
           <View style={styles.gameInfo}>
             <Text style={styles.gameTitle} numberOfLines={props.compact ? 1 : 2}>
@@ -261,7 +267,14 @@ function createStyles(theme: any) {
   return StyleSheet.create({
     container: {
       backgroundColor: theme.colors.card,
-      marginBottom: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
+      borderWidth: theme.isDark ? 1 : 0,
+      borderColor: theme.colors.border,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: theme.isDark ? 0.3 : 0.08,
+      shadowRadius: 8,
+      elevation: 3,
     },
     header: {
       flexDirection: 'row',
@@ -285,17 +298,17 @@ function createStyles(theme: any) {
       fontWeight: theme.typography.fontWeight.medium,
     },
     performanceBadge: {
-      borderRadius: theme.borderRadius.lg,
+      borderRadius: theme.borderRadius.md,
       overflow: 'hidden',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3,
+      elevation: 2,
     },
     performanceBadgeContent: {
-      paddingHorizontal: theme.spacing.sm,
-      paddingVertical: 6,
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
     },
     performanceText: {
       fontSize: theme.typography.fontSize.xs,
@@ -358,32 +371,39 @@ function createStyles(theme: any) {
     },
     voteButtons: {
       flexDirection: 'row',
-      gap: theme.spacing.sm,
+      gap: 12,
     },
     voteButton: {
-      backgroundColor: theme.colors.surface,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      minWidth: 50,
+      minWidth: 70,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
       alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 20,
+      overflow: 'hidden',
+      position: 'relative',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 4,
     },
     voteButtonActive: {
-      backgroundColor: theme.colors.primary,
-      borderColor: theme.colors.primary,
+      shadowOpacity: 0.4,
+      shadowRadius: 12,
+      elevation: 8,
     },
     voteButtonDisabled: {
       opacity: 0.5,
     },
     voteButtonText: {
-      fontSize: theme.typography.fontSize.xs,
+      fontSize: 12,
       color: theme.colors.textSecondary,
-      fontWeight: theme.typography.fontWeight.medium,
+      fontWeight: '600',
+      position: 'relative',
+      zIndex: 1,
     },
     voteButtonTextActive: {
       color: '#ffffff',
-    },
-    voteButtonTextDisabled: {
-      color: theme.colors.textMuted,
     },
   })
 }

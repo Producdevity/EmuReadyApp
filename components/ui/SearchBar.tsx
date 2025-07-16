@@ -63,7 +63,8 @@ const SearchBar: React.FC<SearchBarProps> = memo(function SearchBar({
 
     return {
       borderColor,
-      transform: [{ scale: withSpring(focusValue.value === 1 ? 1.01 : 1) }],
+      transform: [{ scale: withSpring(focusValue.value === 1 ? 1.02 : 1) }],
+      shadowOpacity: withSpring(focusValue.value === 1 ? 0.1 : 0.05),
     }
   })
 
@@ -110,8 +111,13 @@ const createStyles = (theme: any) =>
       flexDirection: 'row',
       alignItems: 'center',
       borderWidth: 1,
-      borderRadius: 12,
+      borderRadius: 16,
       backgroundColor: theme.colors.surface,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 4,
+      elevation: 2,
     },
     defaultContainer: {
       paddingHorizontal: 16,
@@ -122,12 +128,12 @@ const createStyles = (theme: any) =>
       paddingHorizontal: 20,
       paddingVertical: 16,
       marginBottom: 20,
-      borderRadius: 16,
+      borderRadius: 20,
       shadowColor: theme.colors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
+      elevation: 6,
     },
     searchIcon: {
       marginRight: 12,
