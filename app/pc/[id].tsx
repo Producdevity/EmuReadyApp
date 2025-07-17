@@ -1,14 +1,14 @@
-import React from 'react'
-import { View, Text, ScrollView, ActivityIndicator, Alert } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useLocalSearchParams, router } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
-import { useTheme } from '@/contexts/ThemeContext'
-import { usePcListingById, useDeletePcListing } from '@/lib/api/hooks'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
-import { useAuth } from '@clerk/clerk-expo'
 import ReportButton from '@/components/ui/ReportButton'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useDeletePcListing, usePcListingById } from '@/lib/api/hooks'
+import { useAuth } from '@clerk/clerk-expo'
+import { Ionicons } from '@expo/vector-icons'
+import { router, useLocalSearchParams } from 'expo-router'
+import React from 'react'
+import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function PCListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()

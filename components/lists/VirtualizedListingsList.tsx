@@ -1,31 +1,25 @@
-import React, { memo, useCallback, useEffect } from 'react'
-import { FlatList, View, Text, type ListRenderItem, StyleSheet, RefreshControl } from 'react-native'
-import Animated, {
-  FadeInUp,
-  SlideInLeft,
-  BounceIn,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withSequence,
-  withTiming,
-  withRepeat,
-  interpolate,
-  runOnJS,
-  Extrapolation,
-} from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import React, { memo, useCallback, useEffect } from 'react'
+import { FlatList, RefreshControl, StyleSheet, View, type ListRenderItem } from 'react-native'
+import Animated, {
+  BounceIn,
+  runOnJS,
+  SlideInLeft,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 
 import { ListingCard } from '@/components/cards'
+import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
+import { GlassView, HolographicView } from '@/components/themed/ThemedView'
 import { Button } from '@/components/ui'
-import { GlassView, HolographicView, FloatingView } from '@/components/themed/ThemedView'
-import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
-import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
+import FluidGradient from '@/components/ui/FluidGradient'
 import { FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
-import { FluidGradient } from '@/components/ui/FluidGradient'
+import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
 
@@ -43,73 +37,6 @@ interface VirtualizedListingsListProps {
   emptySubtitle?: string
 }
 
-const AnimatedListingCard = memo(function AnimatedListingCard({
-  listing,
-  onPress,
-  index,
-}: {
-  listing: Listing
-  onPress: () => void
-  index: number
-}) {
-  const scale = useSharedValue(0.95)
-  const opacity = useSharedValue(0)
-  const translateX = useSharedValue(-50)
-  const rotateY = useSharedValue(5)
-  
-  useEffect(() => {
-    const delay = index * 100
-    
-    setTimeout(() => {
-      scale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
-      opacity.value = withTiming(1, { duration: 400 })
-      translateX.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
-      rotateY.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
-    }, delay)
-  }, [index])
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [
-      { scale: scale.value },
-      { translateX: translateX.value },
-      { rotateY: `${rotateY.value}deg` }
-    ],
-  }))
-  
-  const handlePress = () => {
-    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
-    onPress()
-  }
-  
-  return (
-    <FloatingElement intensity={2} duration={3000 + index * 200}>
-      <Animated.View style={[styles.listingWrapper, animatedStyle]}>
-        <ListingCard 
-          listing={listing} 
-          onPress={handlePress} 
-          style={styles.listingCard}
-        />
-      </Animated.View>
-    </FloatingElement>
-  )
-})
-
-const LoadingItem = memo(function LoadingItem({ index }: { index: number }) {
-  return (
-    <Animated.View 
-      entering={SlideInLeft.delay(index * 150).springify().damping(15)}
-      style={styles.listingWrapper}
-    >
-      <EnhancedSkeletonCard 
-        variant="listing" 
-        animated 
-        style={styles.skeletonCard}
-      />
-    </Animated.View>
-  )
-})
-
 const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
   listings,
   isLoading,
@@ -125,6 +52,67 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
 }) => {
   const { theme } = useTheme()
   const styles = createStyles(theme)
+
+  const AnimatedListingCard = memo(function AnimatedListingCard({
+    listing,
+    onPress,
+    index,
+  }: {
+    listing: Listing
+    onPress: () => void
+    index: number
+  }) {
+    const scale = useSharedValue(0.95)
+    const opacity = useSharedValue(0)
+    const translateX = useSharedValue(-50)
+    const rotateY = useSharedValue(5)
+
+    useEffect(() => {
+      const delay = index * 100
+
+      setTimeout(() => {
+        scale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
+        opacity.value = withTiming(1, { duration: 400 })
+        translateX.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
+        rotateY.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
+      }, delay)
+    }, [index])
+
+    const animatedStyle = useAnimatedStyle(() => ({
+      opacity: opacity.value,
+      transform: [
+        { scale: scale.value },
+        { translateX: translateX.value },
+        { rotateY: `${rotateY.value}deg` },
+      ],
+    }))
+
+    const handlePress = () => {
+      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+      onPress()
+    }
+
+    return (
+      <FloatingElement intensity={2} duration={3000 + index * 200}>
+        <Animated.View style={[styles.listingWrapper, animatedStyle]}>
+          <ListingCard listing={listing} onPress={handlePress} style={styles.listingCard} />
+        </Animated.View>
+      </FloatingElement>
+    )
+  })
+
+  const LoadingItem = memo(function LoadingItem({ index }: { index: number }) {
+    return (
+      <Animated.View
+        entering={SlideInLeft.delay(index * 150)
+          .springify()
+          .damping(15)}
+        style={styles.listingWrapper}
+      >
+        <EnhancedSkeletonCard variant="listing" animated style={styles.skeletonCard} />
+      </Animated.View>
+    )
+  })
 
   const renderItem: ListRenderItem<Listing> = useCallback(
     ({ item, index }) => (
@@ -176,11 +164,7 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
         ListHeaderComponent={ListHeaderComponent}
         ListEmptyComponent={
           <Animated.View entering={BounceIn.delay(300).springify()}>
-            <HolographicView 
-              morphing 
-              borderRadius={24}
-              style={styles.errorCard}
-            >
+            <HolographicView morphing borderRadius={24} style={styles.errorCard}>
               <FluidGradient
                 variant="cosmic"
                 borderRadius={24}
@@ -189,7 +173,7 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
                 style={StyleSheet.absoluteFillObject}
                 opacity={0.1}
               />
-              
+
               <View style={styles.errorContent}>
                 <FloatingElement intensity={5} duration={2000}>
                   <View style={styles.errorIconContainer}>
@@ -197,32 +181,19 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
                       colors={[theme.colors.error, `${theme.colors.error}80`]}
                       style={styles.errorIconGradient}
                     >
-                      <Ionicons
-                        name="cloud-offline"
-                        size={48}
-                        color="#ffffff"
-                      />
+                      <Ionicons name="cloud-offline" size={48} color="#ffffff" />
                     </LinearGradient>
                   </View>
                 </FloatingElement>
-                
-                <GradientTitle 
-                  gradient 
-                  animated 
-                  variant="scale"
-                  style={styles.errorTitle}
-                >
+
+                <GradientTitle gradient animated variant="scale" style={styles.errorTitle}>
                   Unable to Load Listings
                 </GradientTitle>
-                
-                <TypewriterText 
-                  animated 
-                  delay={500}
-                  style={styles.errorText}
-                >
+
+                <TypewriterText animated delay={500} style={styles.errorText}>
                   Please check your connection and try again.
                 </TypewriterText>
-                
+
                 {onRetry && (
                   <FloatingElement intensity={3} duration={2500}>
                     <Button
@@ -264,11 +235,7 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
       ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={
         <Animated.View entering={BounceIn.delay(300).springify()}>
-          <GlassView 
-            borderRadius={24} 
-            blurIntensity={30}
-            style={styles.emptyCard}
-          >
+          <GlassView borderRadius={24} blurIntensity={30} style={styles.emptyCard}>
             <FluidGradient
               variant="aurora"
               borderRadius={24}
@@ -277,7 +244,7 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
               style={StyleSheet.absoluteFillObject}
               opacity={0.08}
             />
-            
+
             <View style={styles.emptyContent}>
               <FloatingElement intensity={4} duration={3000}>
                 <View style={styles.emptyIconContainer}>
@@ -285,28 +252,16 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
                     colors={theme.colors.gradients.primary}
                     style={styles.emptyIconGradient}
                   >
-                    <Ionicons
-                      name="search"
-                      size={48}
-                      color="#ffffff"
-                    />
+                    <Ionicons name="search" size={48} color="#ffffff" />
                   </LinearGradient>
                 </View>
               </FloatingElement>
-              
-              <GlowText 
-                type="title" 
-                glow 
-                style={styles.emptyTitle}
-              >
+
+              <GlowText type="title" glow style={styles.emptyTitle}>
                 {emptyTitle}
               </GlowText>
-              
-              <TypewriterText 
-                animated 
-                delay={400}
-                style={styles.emptyText}
-              >
+
+              <TypewriterText animated delay={400} style={styles.emptyText}>
                 {emptySubtitle}
               </TypewriterText>
             </View>
@@ -443,4 +398,3 @@ const createStyles = (theme: any) =>
   })
 
 export default memo(VirtualizedListingsList)
-

@@ -1,9 +1,9 @@
 import {
-  useSharedValue,
+  Extrapolation,
+  interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  interpolate,
-  Extrapolation,
+  useSharedValue,
 } from 'react-native-reanimated'
 
 interface ScrollHeaderAnimationConfig {

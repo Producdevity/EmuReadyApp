@@ -1,30 +1,39 @@
-import React, { useEffect } from 'react'
-import { StyleSheet, Text, type TextProps, View } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withSequence,
-  withRepeat,
-  interpolate,
-  interpolateColor,
-  runOnJS,
-  Extrapolation,
-} from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
 import MaskedView from '@react-native-masked-view/masked-view'
 import { BlurView } from 'expo-blur'
 import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import React, { useEffect } from 'react'
+import { StyleSheet, Text, type TextProps, View } from 'react-native'
+import Animated, {
+  Extrapolation,
+  interpolate,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 
-import { useThemeColor } from '@/hooks/useThemeColor'
+import { AnimatedPressable, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
-import { MICRO_SPRING_CONFIG, AnimatedPressable } from '@/components/ui/MicroInteractions'
+import { useThemeColor } from '@/hooks/useThemeColor'
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string
   darkColor?: string
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link' | 'hero' | 'caption' | 'gradient' | 'glow' | 'morphing'
+  type?:
+    | 'default'
+    | 'title'
+    | 'defaultSemiBold'
+    | 'subtitle'
+    | 'link'
+    | 'hero'
+    | 'caption'
+    | 'gradient'
+    | 'glow'
+    | 'morphing'
   animated?: boolean
   gradient?: boolean
   morphing?: boolean
@@ -62,7 +71,7 @@ export function ThemedText({
 }: ThemedTextProps) {
   const { theme } = useTheme()
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text')
-  
+
   // Animation values
   const scale = useSharedValue(1)
   const opacity = useSharedValue(animated ? 0 : 1)
@@ -76,7 +85,7 @@ export function ThemedText({
   // Get gradient colors based on type or custom
   const getGradientColors = () => {
     if (customColors) return customColors
-    
+
     switch (type) {
       case 'hero':
         return theme.colors.gradients.primary
@@ -97,86 +106,79 @@ export function ThemedText({
   useEffect(() => {
     if (animated) {
       const animationDelay = delay
-      
+
       switch (variant) {
         case 'shimmer':
           opacity.value = withTiming(1, { duration: 300 })
-          shimmerX.value = withRepeat(
-            withTiming(200, { duration: 2000 }),
-            -1,
-            false
-          )
+          shimmerX.value = withRepeat(withTiming(200, { duration: 2000 }), -1, false)
           break
-          
+
         case 'typewriter':
           opacity.value = 1
           typewriterProgress.value = withTiming(1, { duration: 2000 + animationDelay })
           break
-          
+
         case 'fade':
           opacity.value = withTiming(1, { duration: 800 + animationDelay })
           break
-          
+
         case 'scale':
-          scale.value = withSpring(1, { ...MICRO_SPRING_CONFIG.bouncy, duration: 600 + animationDelay })
+          scale.value = withSpring(1, {
+            ...MICRO_SPRING_CONFIG.bouncy,
+            duration: 600 + animationDelay,
+          })
           opacity.value = withTiming(1, { duration: 400 + animationDelay })
           break
-          
+
         case 'bounce':
-          translateY.value = withSpring(0, { ...MICRO_SPRING_CONFIG.bouncy, duration: 800 + animationDelay })
+          translateY.value = withSpring(0, {
+            ...MICRO_SPRING_CONFIG.bouncy,
+            duration: 800 + animationDelay,
+          })
           opacity.value = withTiming(1, { duration: 600 + animationDelay })
           break
-          
+
         default:
           opacity.value = withTiming(1, { duration: 600 + animationDelay })
           translateY.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
       }
     }
-    
+
     if (glow) {
       glowOpacity.value = withRepeat(
-        withSequence(
-          withTiming(0.8, { duration: 1000 }),
-          withTiming(0.3, { duration: 1000 })
-        ),
+        withSequence(withTiming(0.8, { duration: 1000 }), withTiming(0.3, { duration: 1000 })),
         -1,
-        true
+        true,
       )
     }
-    
+
     if (morphing) {
       morphValue.value = withRepeat(
-        withSequence(
-          withTiming(1, { duration: 2000 }),
-          withTiming(0, { duration: 2000 })
-        ),
+        withSequence(withTiming(1, { duration: 2000 }), withTiming(0, { duration: 2000 })),
         -1,
-        true
+        true,
       )
-      
+
       rotateZ.value = withRepeat(
-        withSequence(
-          withTiming(2, { duration: 4000 }),
-          withTiming(-2, { duration: 4000 })
-        ),
+        withSequence(withTiming(2, { duration: 4000 }), withTiming(-2, { duration: 4000 })),
         -1,
-        true
+        true,
       )
     }
   }, [animated, variant, delay, glow, morphing])
 
   // Animated styles
   const animatedStyle = useAnimatedStyle(() => {
-    const scaleValue = morphing 
+    const scaleValue = morphing
       ? interpolate(morphValue.value, [0, 1], [1, 1.02 * intensity], Extrapolation.CLAMP)
       : scale.value
-      
+
     return {
       opacity: opacity.value,
       transform: [
         { scale: scaleValue },
         { translateY: translateY.value },
-        { rotateZ: `${rotateZ.value}deg` }
+        { rotateZ: `${rotateZ.value}deg` },
       ],
     }
   })
@@ -194,9 +196,9 @@ export function ThemedText({
   const typewriterStyle = useAnimatedStyle(() => {
     const textLength = typeof children === 'string' ? children.length : 0
     const visibleLength = Math.floor(typewriterProgress.value * textLength)
-    
+
     return {
-      width: `${(typewriterProgress.value * 100)}%`,
+      width: `${typewriterProgress.value * 100}%`,
     }
   })
 
@@ -213,7 +215,7 @@ export function ThemedText({
       type === 'link' ? styles.link : undefined,
       style,
     ]
-    
+
     if (glow) {
       baseStyles.push({
         shadowColor: theme.colors.primary,
@@ -221,7 +223,7 @@ export function ThemedText({
         elevation: 10,
       })
     }
-    
+
     return baseStyles
   }
 
@@ -229,7 +231,7 @@ export function ThemedText({
     if (pressable && onPress) {
       scale.value = withSequence(
         withSpring(0.95, MICRO_SPRING_CONFIG.instant),
-        withSpring(1, MICRO_SPRING_CONFIG.bouncy)
+        withSpring(1, MICRO_SPRING_CONFIG.bouncy),
       )
       runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
       onPress()
@@ -239,10 +241,7 @@ export function ThemedText({
   // Glass effect wrapper
   const renderContent = () => {
     const content = (
-      <AnimatedText
-        style={[getTextStyle(), animatedStyle, glow && glowStyle]}
-        {...rest}
-      >
+      <AnimatedText style={[getTextStyle(), animatedStyle, glow && glowStyle]} {...rest}>
         {children}
       </AnimatedText>
     )
@@ -263,7 +262,7 @@ export function ThemedText({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           />
-          
+
           {/* Shimmer overlay for gradient text */}
           {variant === 'shimmer' && (
             <Animated.View style={[styles.shimmerOverlay, shimmerStyle]}>
@@ -282,10 +281,7 @@ export function ThemedText({
     if (variant === 'typewriter') {
       return (
         <View style={styles.typewriterContainer}>
-          <AnimatedText
-            style={[getTextStyle(), animatedStyle]}
-            {...rest}
-          >
+          <AnimatedText style={[getTextStyle(), animatedStyle]} {...rest}>
             {children}
           </AnimatedText>
           <Animated.View style={[styles.typewriterMask, typewriterStyle]} />
@@ -300,8 +296,8 @@ export function ThemedText({
   if (glassEffect) {
     return (
       <View style={styles.glassContainer}>
-        <BlurView 
-          intensity={10} 
+        <BlurView
+          intensity={10}
           tint={theme.isDark ? 'dark' : 'light'}
           style={StyleSheet.absoluteFillObject}
         />
@@ -324,11 +320,7 @@ export function ThemedText({
   }
 
   if (pressable) {
-    return (
-      <AnimatedPressable onPress={handlePress}>
-        {renderContent()}
-      </AnimatedPressable>
-    )
+    return <AnimatedPressable onPress={handlePress}>{renderContent()}</AnimatedPressable>
   }
 
   return renderContent()
@@ -412,81 +404,50 @@ const styles = StyleSheet.create({
 
 // Enhanced text components with 2025 design patterns
 export const HeroText = ({ children, ...props }: Omit<ThemedTextProps, 'type'>) => (
-  <ThemedText 
-    type="hero" 
-    gradient 
-    animated 
-    variant="scale" 
-    glow 
-    {...props}
-  >
+  <ThemedText type="hero" gradient animated variant="scale" glow {...props}>
     {children}
   </ThemedText>
 )
 
-export const GradientTitle = ({ children, ...props }: Omit<ThemedTextProps, 'type' | 'gradient'>) => (
-  <ThemedText 
-    type="title" 
-    gradient 
-    animated 
-    variant="shimmer" 
-    {...props}
-  >
+export const GradientTitle = ({
+  children,
+  ...props
+}: Omit<ThemedTextProps, 'type' | 'gradient'>) => (
+  <ThemedText type="title" gradient animated variant="shimmer" {...props}>
     {children}
   </ThemedText>
 )
 
 export const TypewriterText = ({ children, ...props }: Omit<ThemedTextProps, 'variant'>) => (
-  <ThemedText 
-    animated 
-    variant="typewriter" 
-    {...props}
-  >
+  <ThemedText animated variant="typewriter" {...props}>
     {children}
   </ThemedText>
 )
 
 export const GlowText = ({ children, ...props }: Omit<ThemedTextProps, 'glow'>) => (
-  <ThemedText 
-    glow 
-    animated 
-    variant="fade" 
-    {...props}
-  >
+  <ThemedText glow animated variant="fade" {...props}>
     {children}
   </ThemedText>
 )
 
 export const MorphingText = ({ children, ...props }: Omit<ThemedTextProps, 'morphing'>) => (
-  <ThemedText 
-    morphing 
-    animated 
-    gradient 
-    {...props}
-  >
+  <ThemedText morphing animated gradient {...props}>
     {children}
   </ThemedText>
 )
 
 export const GlassText = ({ children, ...props }: Omit<ThemedTextProps, 'glassEffect'>) => (
-  <ThemedText 
-    glassEffect 
-    animated 
-    variant="bounce" 
-    {...props}
-  >
+  <ThemedText glassEffect animated variant="bounce" {...props}>
     {children}
   </ThemedText>
 )
 
-export const InteractiveText = ({ children, onPress, ...props }: Omit<ThemedTextProps, 'pressable'>) => (
-  <ThemedText 
-    pressable 
-    onPress={onPress} 
-    animated 
-    variant="scale" 
-    {...props}
-  >
+export const InteractiveText = ({
+  children,
+  onPress,
+  ...props
+}: Omit<ThemedTextProps, 'pressable'>) => (
+  <ThemedText pressable onPress={onPress} animated variant="scale" {...props}>
     {children}
   </ThemedText>
 )

@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { Platform, BackHandler } from 'react-native'
-import { gamepadNavigation, NavigationNode, GamepadEvent } from '@/lib/utils/gamepadNavigation'
+import { GamepadEvent, gamepadNavigation, NavigationNode } from '@/lib/utils/gamepadNavigation'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { BackHandler, Platform } from 'react-native'
 
 interface UseGamepadNavigationOptions {
   id: string

@@ -1,47 +1,47 @@
-import React, { useState, useEffect } from 'react'
+import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
+import { router } from 'expo-router'
+import React, { useEffect, useState } from 'react'
 import {
-  ScrollView,
-  View,
+  Alert,
+  Dimensions,
   Pressable,
   RefreshControl,
-  Alert,
+  ScrollView,
   StatusBar,
-  Dimensions,
   StyleSheet,
+  View,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
 import Animated, {
-  FadeInUp,
-  SlideInRight,
-  SlideInLeft,
-  ZoomIn,
-  useAnimatedStyle,
-  withSpring,
-  withSequence,
-  withTiming,
-  withRepeat,
-  interpolate,
-  useSharedValue,
   Extrapolation,
+  FadeInUp,
+  SlideInLeft,
+  SlideInRight,
+  ZoomIn,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
 } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { ThemedView, ThemedText } from '@/components/themed'
+import { ThemedText, ThemedView } from '@/components/themed'
+import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
 import { MagneticView } from '@/components/themed/ThemedView'
-import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
+import { Card, EmptyState, LoadingSpinner } from '@/components/ui'
+import FluidGradient from '@/components/ui/FluidGradient'
+import { FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
+  useMarkAllNotificationsAsRead,
+  useMarkNotificationAsRead,
   useNotifications,
   useUnreadNotificationCount,
-  useMarkNotificationAsRead,
-  useMarkAllNotificationsAsRead,
 } from '@/lib/api/hooks'
-import { LoadingSpinner, Card, EmptyState } from '@/components/ui'
-import { FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
-import { FluidGradient } from '@/components/ui/FluidGradient'
 import type { Notification as ApiNotification } from '@/types/api/api.response'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -65,99 +65,71 @@ export default function NotificationsScreen() {
   const backgroundShift = useSharedValue(0)
   const notificationFloat = useSharedValue(0)
   const particleFlow = useSharedValue(0)
-  
+
   useEffect(() => {
     // Initialize aurora background animation
     backgroundShift.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 10000 }),
-        withTiming(0, { duration: 10000 })
-      ),
+      withSequence(withTiming(1, { duration: 10000 }), withTiming(0, { duration: 10000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Hero glow animation
     heroGlow.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2000 }),
-        withTiming(0.4, { duration: 2000 })
-      ),
+      withSequence(withTiming(1, { duration: 2000 }), withTiming(0.4, { duration: 2000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Badge pulse animation
     badgePulse.value = withRepeat(
       withSequence(
         withSpring(1.15, MICRO_SPRING_CONFIG.bouncy),
-        withSpring(1, MICRO_SPRING_CONFIG.smooth)
+        withSpring(1, MICRO_SPRING_CONFIG.smooth),
       ),
       -1,
-      true
+      true,
     )
-    
+
     // Notification floating animation
     notificationFloat.value = withRepeat(
-      withSequence(
-        withTiming(6, { duration: 4000 }),
-        withTiming(-6, { duration: 4000 })
-      ),
+      withSequence(withTiming(6, { duration: 4000 }), withTiming(-6, { duration: 4000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Particle flow animation
-    particleFlow.value = withRepeat(
-      withTiming(1, { duration: 7000 }),
-      -1,
-      false
-    )
+    particleFlow.value = withRepeat(withTiming(1, { duration: 7000 }), -1, false)
   }, [])
 
-  // Animated styles  
+  // Animated styles
   const filterAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: filterScale.value }],
   }))
-  
+
   const backgroundAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateX: interpolate(
-          backgroundShift.value,
-          [0, 1],
-          [-40, 40],
-          Extrapolation.CLAMP
-        ),
+        translateX: interpolate(backgroundShift.value, [0, 1], [-40, 40], Extrapolation.CLAMP),
       },
     ],
   }))
-  
+
   const heroGlowStyle = useAnimatedStyle(() => ({
     opacity: heroGlow.value,
   }))
-  
+
   const badgePulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: badgePulse.value }],
   }))
-  
+
   const particleFlowStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateX: interpolate(
-          particleFlow.value,
-          [0, 1],
-          [-100, 400],
-          Extrapolation.CLAMP
-        ),
+        translateX: interpolate(particleFlow.value, [0, 1], [-100, 400], Extrapolation.CLAMP),
       },
     ],
-    opacity: interpolate(
-      particleFlow.value,
-      [0, 0.3, 0.7, 1],
-      [0, 1, 1, 0],
-      Extrapolation.CLAMP
-    ),
+    opacity: interpolate(particleFlow.value, [0, 0.3, 0.7, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
   }))
 
   const onRefresh = async () => {
@@ -323,10 +295,10 @@ export default function NotificationsScreen() {
           opacity={0.18}
         />
       </Animated.View>
-      
+
       {/* Enhanced Gradient Overlay */}
       <LinearGradient
-        colors={theme.colors.gradients.hero as [string, string, ...string[]]}
+        colors={theme.colors.gradients.hero}
         style={{
           position: 'absolute',
           top: 0,
@@ -336,7 +308,7 @@ export default function NotificationsScreen() {
           opacity: 0.7,
         }}
       />
-      
+
       {/* Floating Particles */}
       <Animated.View style={[styles.particle, { top: '20%' }, particleFlowStyle]}>
         <View style={[styles.particleDot, { backgroundColor: `${theme.colors.primary}40` }]} />
@@ -356,53 +328,32 @@ export default function NotificationsScreen() {
               {/* Hero glow effect */}
               <Animated.View style={[styles.headerGlow, heroGlowStyle]}>
                 <LinearGradient
-                  colors={[
-                    'transparent',
-                    `${theme.colors.primary}30`,
-                    'transparent'
-                  ]}
+                  colors={['transparent', `${theme.colors.primary}30`, 'transparent']}
                   style={StyleSheet.absoluteFillObject}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                 />
               </Animated.View>
-              
+
               <Animated.View entering={SlideInLeft.delay(200).springify().damping(15)}>
                 <View style={styles.heroContent}>
-                  <GradientTitle 
-                    gradient 
-                    animated 
-                    variant="bounce"
-                    style={styles.heroTitle}
-                  >
+                  <GradientTitle animated style={styles.heroTitle}>
                     Notifications
                   </GradientTitle>
-                  
+
                   {unreadCount > 0 && (
                     <View style={styles.badgeContainer}>
                       <Animated.View style={badgePulseStyle}>
-                        <MagneticView 
-                          borderRadius={16}
-                          style={styles.unreadBadge}
-                        >
+                        <MagneticView borderRadius={16} style={styles.unreadBadge}>
                           <LinearGradient
                             colors={[theme.colors.error, `${theme.colors.error}80`]}
                             style={StyleSheet.absoluteFillObject}
                           />
-                          <GlowText 
-                            glow 
-                            style={styles.badgeText}
-                          >
-                            {unreadCount} unread
-                          </GlowText>
+                          <GlowText style={styles.badgeText}>{unreadCount} unread</GlowText>
                         </MagneticView>
                       </Animated.View>
-                      
-                      <TypewriterText 
-                        animated 
-                        delay={400}
-                        style={styles.badgeSubtext}
-                      >
+
+                      <TypewriterText animated delay={400} style={styles.badgeSubtext}>
                         notification{unreadCount !== 1 ? 's' : ''} waiting for you
                       </TypewriterText>
                     </View>
@@ -579,7 +530,7 @@ export default function NotificationsScreen() {
               >
                 <Card style={{ overflow: 'hidden', width: '100%' }}>
                   <LinearGradient
-                    colors={theme.colors.gradients.secondary as [string, string, ...string[]]}
+                    colors={theme.colors.gradients.secondary}
                     style={{
                       padding: theme.spacing.xxl,
                       alignItems: 'center',

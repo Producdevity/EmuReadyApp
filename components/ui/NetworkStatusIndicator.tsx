@@ -1,15 +1,15 @@
-import React, { memo } from 'react'
-import { Text, StyleSheet, Pressable } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  SlideInDown,
-  SlideOutUp,
-} from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/contexts/ThemeContext'
 import useOfflineMode from '@/hooks/useOfflineMode'
+import { Ionicons } from '@expo/vector-icons'
+import React, { memo } from 'react'
+import { Pressable, StyleSheet, Text } from 'react-native'
+import Animated, {
+  SlideInDown,
+  SlideOutUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated'
 
 interface NetworkStatusIndicatorProps {
   position?: 'top' | 'bottom'

@@ -1,49 +1,46 @@
-import React, { useState, useEffect } from 'react'
-import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Alert,
-  Dimensions,
-  StatusBar,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native'
-import { useSignUp } from '@clerk/clerk-expo'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
-import Animated, {
-  FadeInDown,
-  SlideInRight,
-  BounceIn,
-  ZoomIn,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withSequence,
-  withTiming,
-  withRepeat,
-  interpolate,
-  runOnJS,
-  Extrapolation,
-} from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import * as Haptics from 'expo-haptics'
-import { Button } from '../../components/ui'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
+import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
+import { HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import FluidGradient from '@/components/ui/FluidGradient'
 import {
   AnimatedPressable,
   FloatingElement,
   MICRO_SPRING_CONFIG,
 } from '@/components/ui/MicroInteractions'
-import { FluidGradient } from '@/components/ui/FluidGradient'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useSignUp } from '@clerk/clerk-expo'
+import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
+import React, { useEffect, useState } from 'react'
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native'
+import Animated, {
+  BounceIn,
+  Extrapolation,
+  SlideInRight,
+  ZoomIn,
+  interpolate,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
@@ -267,12 +264,12 @@ export default function SignUpScreen() {
                   </MagneticView>
                 </FloatingElement>
 
-                <GradientTitle gradient animated variant="bounce" style={styles.title}>
+                <GradientTitle animated style={styles.title}>
                   Verify Your Email
                 </GradientTitle>
 
                 <TypewriterText animated delay={400} style={styles.subtitle}>
-                  We've sent a verification code to {email}
+                  We&apos;ve sent a verification code to {email}
                 </TypewriterText>
               </Animated.View>
 
@@ -296,9 +293,7 @@ export default function SignUpScreen() {
                   />
 
                   <View style={styles.cardContent}>
-                    <GlowText type="title" glow style={styles.cardTitle}>
-                      Enter Verification Code
-                    </GlowText>
+                    <GlowText style={styles.cardTitle}>Enter Verification Code</GlowText>
 
                     <TypewriterText animated delay={700} style={styles.cardSubtitle}>
                       Please enter the 6-digit code sent to your email
@@ -451,7 +446,7 @@ export default function SignUpScreen() {
                 </MagneticView>
               </FloatingElement>
 
-              <GradientTitle gradient animated variant="bounce" style={styles.title}>
+              <GradientTitle animated style={styles.title}>
                 Join EmuReady
               </GradientTitle>
 
@@ -480,9 +475,7 @@ export default function SignUpScreen() {
                 />
 
                 <View style={styles.cardContent}>
-                  <GlowText type="title" glow style={styles.cardTitle}>
-                    Create Account
-                  </GlowText>
+                  <GlowText style={styles.cardTitle}>Create Account</GlowText>
 
                   <TypewriterText animated delay={700} style={styles.cardSubtitle}>
                     Fill in your details to get started

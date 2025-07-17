@@ -1,23 +1,23 @@
+import { useTheme } from '@/contexts/ThemeContext'
+import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Bell, FileText, FlaskConical, Home, Plus, Search, User } from 'lucide-react-native'
 import React, { useEffect } from 'react'
-import { View, Text, StyleSheet, Platform } from 'react-native'
+import { Platform, StyleSheet, Text, View } from 'react-native'
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withSequence,
+  Extrapolation,
   interpolate,
   interpolateColor,
   runOnJS,
-  Extrapolation,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
 } from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import * as Haptics from 'expo-haptics'
-import { Home, Search, Plus, Bell, User, FlaskConical, FileText } from 'lucide-react-native'
-import { useTheme } from '@/contexts/ThemeContext'
-import { AnimatedPressable, FloatingElement , MICRO_SPRING_CONFIG } from './MicroInteractions'
+import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from './MicroInteractions'
 
 interface TabBarProps {
   state: any
@@ -74,19 +74,19 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
       scale.value = withSpring(1.08, MICRO_SPRING_CONFIG.snappy)
       iconScale.value = withSequence(
         withSpring(1.2, MICRO_SPRING_CONFIG.bouncy),
-        withSpring(1.15, MICRO_SPRING_CONFIG.smooth)
+        withSpring(1.15, MICRO_SPRING_CONFIG.smooth),
       )
       translateY.value = withSpring(-3, MICRO_SPRING_CONFIG.snappy)
       opacity.value = withTiming(1, { duration: 150 })
       morphValue.value = withSpring(1, MICRO_SPRING_CONFIG.smooth)
       glowOpacity.value = withTiming(0.8, { duration: 200 })
       indicatorWidth.value = withSpring(20, MICRO_SPRING_CONFIG.snappy)
-      
+
       // Ripple effect
       rippleScale.value = 0
       rippleScale.value = withSequence(
         withTiming(1, { duration: 300 }),
-        withTiming(0, { duration: 200 })
+        withTiming(0, { duration: 200 }),
       )
     } else {
       scale.value = withSpring(1, MICRO_SPRING_CONFIG.smooth)
@@ -111,37 +111,29 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
     const backgroundColor = interpolateColor(
       morphValue.value,
       [0, 1],
-      ['transparent', route.name === 'create' ? theme.colors.accent : theme.colors.primary]
+      ['transparent', route.name === 'create' ? theme.colors.accent : theme.colors.primary],
     )
-    
+
     return {
       opacity: interpolate(scale.value, [1, 1.08], [0, 1], Extrapolation.CLAMP),
       backgroundColor,
-      transform: [
-        { scale: interpolate(morphValue.value, [0, 1], [0.8, 1], Extrapolation.CLAMP) }
-      ],
+      transform: [{ scale: interpolate(morphValue.value, [0, 1], [0.8, 1], Extrapolation.CLAMP) }],
     }
   })
 
   const glowAnimatedStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value,
-    transform: [
-      { scale: interpolate(glowOpacity.value, [0, 1], [0.5, 1.3], Extrapolation.CLAMP) }
-    ],
+    transform: [{ scale: interpolate(glowOpacity.value, [0, 1], [0.5, 1.3], Extrapolation.CLAMP) }],
   }))
 
   const rippleAnimatedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(rippleScale.value, [0, 0.5, 1], [0, 0.6, 0], Extrapolation.CLAMP),
-    transform: [
-      { scale: interpolate(rippleScale.value, [0, 1], [0, 2], Extrapolation.CLAMP) }
-    ],
+    transform: [{ scale: interpolate(rippleScale.value, [0, 1], [0, 2], Extrapolation.CLAMP) }],
   }))
 
   const morphingIndicatorStyle = useAnimatedStyle(() => ({
     width: indicatorWidth.value,
-    transform: [
-      { scaleX: interpolate(morphValue.value, [0, 1], [0, 1], Extrapolation.CLAMP) }
-    ],
+    transform: [{ scaleX: interpolate(morphValue.value, [0, 1], [0, 1], Extrapolation.CLAMP) }],
   }))
 
   const labelAnimatedStyle = useAnimatedStyle(() => ({
@@ -172,12 +164,7 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
         : route.name
 
   return (
-    <AnimatedPressable
-      onPress={handlePress}
-      style={styles.tabButton}
-      scale={0.95}
-      haptic={false}
-    >
+    <AnimatedPressable onPress={handlePress} style={styles.tabButton} scale={0.95} haptic={false}>
       <FloatingElement intensity={1} duration={4000}>
         <Animated.View style={[styles.tabContainer, animatedStyle as any]}>
           {/* Glow effect */}
@@ -195,9 +182,15 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
 
           {/* Ripple effect */}
           <Animated.View style={[styles.rippleEffect, rippleAnimatedStyle]}>
-            <View style={[styles.rippleCircle, {
-              backgroundColor: route.name === 'create' ? theme.colors.accent : theme.colors.primary
-            }]} />
+            <View
+              style={[
+                styles.rippleCircle,
+                {
+                  backgroundColor:
+                    route.name === 'create' ? theme.colors.accent : theme.colors.primary,
+                },
+              ]}
+            />
           </Animated.View>
 
           {/* Morphing background */}
@@ -213,19 +206,19 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
             />
           </Animated.View>
 
-        {/* Icon with animation */}
-        <Animated.View style={[styles.iconContainer, iconAnimatedStyle]}>
-          {getIcon(route.name, isFocused)}
-        </Animated.View>
+          {/* Icon with animation */}
+          <Animated.View style={[styles.iconContainer, iconAnimatedStyle]}>
+            {getIcon(route.name, isFocused)}
+          </Animated.View>
 
-        {/* Label with fade animation */}
-        <Animated.View style={[labelAnimatedStyle]}>
-          <Text
-            style={[styles.tabLabel, { color: isFocused ? '#ffffff' : theme.colors.textMuted }]}
-          >
-            {label}
-          </Text>
-        </Animated.View>
+          {/* Label with fade animation */}
+          <Animated.View style={[labelAnimatedStyle]}>
+            <Text
+              style={[styles.tabLabel, { color: isFocused ? '#ffffff' : theme.colors.textMuted }]}
+            >
+              {label}
+            </Text>
+          </Animated.View>
 
           {/* Morphing indicator */}
           <Animated.View style={[styles.morphingIndicator, morphingIndicatorStyle]}>
@@ -247,11 +240,17 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
                   duration={2000 + index * 500}
                   delay={index * 200}
                 >
-                  <View style={[styles.particle, {
-                    backgroundColor: route.name === 'create' ? theme.colors.accent : theme.colors.primary,
-                    left: 10 + index * 15,
-                    top: 5 + index * 3,
-                  }]} />
+                  <View
+                    style={[
+                      styles.particle,
+                      {
+                        backgroundColor:
+                          route.name === 'create' ? theme.colors.accent : theme.colors.primary,
+                        left: 10 + index * 15,
+                        top: 5 + index * 3,
+                      },
+                    ]}
+                  />
                 </FloatingElement>
               ))}
             </View>
@@ -280,18 +279,18 @@ export default function AnimatedTabBar({ state, descriptors, navigation }: TabBa
         colors={
           theme.isDark
             ? ['rgba(10, 10, 10, 0.95)', 'rgba(20, 20, 20, 0.98)', 'rgba(30, 30, 30, 0.99)']
-            : ['rgba(255, 255, 255, 0.95)', 'rgba(250, 251, 252, 0.98)', 'rgba(248, 250, 252, 0.99)']
+            : [
+                'rgba(255, 255, 255, 0.95)',
+                'rgba(250, 251, 252, 0.98)',
+                'rgba(248, 250, 252, 0.99)',
+              ]
         }
         style={StyleSheet.absoluteFillObject}
       />
 
       {/* Ambient glow */}
       <LinearGradient
-        colors={[
-          'transparent',
-          `${theme.colors.primary}08`,
-          'transparent'
-        ]}
+        colors={['transparent', `${theme.colors.primary}08`, 'transparent']}
         style={[StyleSheet.absoluteFillObject, { opacity: 0.6 }]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}

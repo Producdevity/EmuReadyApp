@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Ionicons } from '@expo/vector-icons'
-import { FlashList } from '@shopify/flash-list'
-import { useTheme } from '@/contexts/ThemeContext'
-import { useRawgSearchGameImages, useTgdbSearchGameImages } from '@/lib/api/hooks'
 import Card from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useRawgSearchGameImages, useTgdbSearchGameImages } from '@/lib/api/hooks'
+import { Ionicons } from '@expo/vector-icons'
+import { FlashList } from '@shopify/flash-list'
 import { router } from 'expo-router'
+import React, { useState } from 'react'
+import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 type MediaSource = 'rawg' | 'tgdb'
 
@@ -26,12 +26,20 @@ export default function GameMediaScreen() {
   }, [search])
 
   // Fetch from selected source
-  const { data: rawgData, isLoading: rawgLoading, error: rawgError } = useRawgSearchGameImages(
+  const {
+    data: rawgData,
+    isLoading: rawgLoading,
+    error: rawgError,
+  } = useRawgSearchGameImages(
     { query: debouncedSearch, pageSize: 20 },
     { enabled: selectedSource === 'rawg' && !!debouncedSearch, retry: false },
   )
 
-  const { data: tgdbData, isLoading: tgdbLoading, error: tgdbError } = useTgdbSearchGameImages(
+  const {
+    data: tgdbData,
+    isLoading: tgdbLoading,
+    error: tgdbError,
+  } = useTgdbSearchGameImages(
     { name: debouncedSearch },
     { enabled: selectedSource === 'tgdb' && !!debouncedSearch, retry: false },
   )
@@ -207,7 +215,7 @@ export default function GameMediaScreen() {
             {Array.from({ length: 6 }).map((_, index) => (
               <View key={index} style={{ width: '47%' }}>
                 <Card>
-                  <View style={{ aspectRatio: 16/9 }}>
+                  <View style={{ aspectRatio: 16 / 9 }}>
                     <Skeleton height="100%" borderRadius={8} />
                   </View>
                   <View style={{ padding: 12 }}>

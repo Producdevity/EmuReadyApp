@@ -1,7 +1,7 @@
+import { appStorage } from '@/lib/storage'
+import type { AppState, User, UserPreferences } from '@/types'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import type { AppState, User, UserPreferences } from '@/types'
-import { appStorage } from '@/lib/storage'
 
 const defaultPreferences: UserPreferences = {
   theme: 'system',

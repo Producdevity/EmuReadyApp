@@ -1,46 +1,45 @@
-import React, { useState, useEffect } from 'react'
-import {
-  SafeAreaView,
-  StyleSheet,
-  View,
-  TextInput,
-  Alert,
-  Dimensions,
-  StatusBar,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native'
-import { useSignIn } from '@clerk/clerk-expo'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
-import Animated, {
-  SlideInLeft,
-  BounceIn,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withSequence,
-  withTiming,
-  withRepeat,
-  interpolate,
-  runOnJS,
-  Extrapolation,
-} from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import * as Haptics from 'expo-haptics'
-import { Button } from '../../components/ui'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
+import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
+import { HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import FluidGradient from '@/components/ui/FluidGradient'
 import {
   AnimatedPressable,
   FloatingElement,
   MICRO_SPRING_CONFIG,
 } from '@/components/ui/MicroInteractions'
-import { FluidGradient } from '@/components/ui/FluidGradient'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useSignIn } from '@clerk/clerk-expo'
+import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
+import React, { useEffect, useState } from 'react'
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native'
+import Animated, {
+  BounceIn,
+  Extrapolation,
+  interpolate,
+  runOnJS,
+  SlideInLeft,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
@@ -234,7 +233,7 @@ export default function SignInScreen() {
                 </FloatingElement>
               </Animated.View>
 
-              <GradientTitle gradient animated variant="bounce" style={styles.title}>
+              <GradientTitle animated style={styles.title}>
                 Welcome Back
               </GradientTitle>
 

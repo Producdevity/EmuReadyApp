@@ -1,20 +1,20 @@
-import React, { useEffect } from 'react'
-import { View, Text, StyleSheet, Platform, Pressable } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  interpolate,
-  runOnJS,
-} from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import * as Haptics from 'expo-haptics'
-import { Home, Search, Plus, Bell, User, FlaskConical, FileText } from 'lucide-react-native'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useGamepadNavigation, useOrientationOptimized } from '@/hooks/useGamepadNavigation'
+import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Bell, FileText, FlaskConical, Home, Plus, Search, User } from 'lucide-react-native'
+import React, { useEffect } from 'react'
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import Animated, {
+  interpolate,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 interface GamepadTabBarProps {
   state: any

@@ -1,20 +1,20 @@
-import React, { useState } from 'react'
-import {
-  View,
-  Text,
-  ScrollView,
-  ActivityIndicator,
-  Image,
-  TouchableOpacity,
-  Modal,
-  Dimensions,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useLocalSearchParams, router } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
+import Card from '@/components/ui/Card'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useRawgGameImages, useTgdbGameImages, useTgdbGameImageUrls } from '@/lib/api/hooks'
-import Card from '@/components/ui/Card'
+import { Ionicons } from '@expo/vector-icons'
+import { router, useLocalSearchParams } from 'expo-router'
+import React, { useState } from 'react'
+import {
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
 

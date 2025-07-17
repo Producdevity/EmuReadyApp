@@ -1,49 +1,48 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useRouter } from 'expo-router'
+import React, { useEffect, useRef, useState } from 'react'
 import {
+  Dimensions,
+  Pressable,
+  RefreshControl,
   SafeAreaView,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   View,
-  RefreshControl,
-  StatusBar,
-  Pressable,
-  Dimensions,
-  StyleSheet,
 } from 'react-native'
-import { useRouter } from 'expo-router'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
 import Animated, {
-  FadeInUp,
-  FadeInDown,
-  SlideInLeft,
-  SlideInRight,
-  ZoomIn,
   BounceIn,
-  useSharedValue,
-  useAnimatedStyle,
-  useAnimatedScrollHandler,
-  withSpring,
-  withTiming,
-  withSequence,
-  withRepeat,
+  Extrapolation,
+  FadeInUp,
   interpolate,
   runOnJS,
-  Extrapolation,
+  SlideInLeft,
+  SlideInRight,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+  ZoomIn,
 } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import * as Haptics from 'expo-haptics'
 
-import { SearchSuggestions } from '@/components/ui'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import { HeroText, GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
-import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
-import { FluidGradient, AuroraGradient, CosmicGradient } from '@/components/ui/FluidGradient'
-import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
 import { ListingCard } from '@/components/cards'
 import QuickAccessSection from '@/components/sections/QuickAccessSection'
-import { useListings, useSystems, useSearchSuggestions } from '@/lib/api/hooks'
+import { GlowText, HeroText, TypewriterText } from '@/components/themed/ThemedText'
+import { HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import { Card, SearchSuggestions } from '@/components/ui'
+import FluidGradient, { AuroraGradient, CosmicGradient } from '@/components/ui/FluidGradient'
+import { AnimatedPressable, FloatingElement } from '@/components/ui/MicroInteractions'
+import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useListings, useSearchSuggestions, useSystems } from '@/lib/api/hooks'
 import { appStorage } from '@/lib/storage'
 import type { Listing, System } from '@/types'
 
@@ -78,44 +77,30 @@ export default function BrowseScreen() {
   const scrollY = useSharedValue(0)
   const filtersOpacity = useSharedValue(0)
   const filtersHeight = useSharedValue(0)
-  
+
   // Enhanced 2025 animation values
   const heroGlow = useSharedValue(0)
   const searchPulse = useSharedValue(1)
   const particleFlow = useSharedValue(0)
   const backgroundShift = useSharedValue(0)
-  
+
   useEffect(() => {
     // Initialize premium animations
     heroGlow.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 3000 }),
-        withTiming(0.3, { duration: 3000 })
-      ),
+      withSequence(withTiming(1, { duration: 3000 }), withTiming(0.3, { duration: 3000 })),
       -1,
-      true
+      true,
     )
-    
+
     searchPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.01, { duration: 2000 }),
-        withTiming(1, { duration: 2000 })
-      ),
+      withSequence(withTiming(1.01, { duration: 2000 }), withTiming(1, { duration: 2000 })),
       -1,
-      true
+      true,
     )
-    
-    particleFlow.value = withRepeat(
-      withTiming(1, { duration: 8000 }),
-      -1,
-      false
-    )
-    
-    backgroundShift.value = withRepeat(
-      withTiming(1, { duration: 15000 }),
-      -1,
-      true
-    )
+
+    particleFlow.value = withRepeat(withTiming(1, { duration: 8000 }), -1, false)
+
+    backgroundShift.value = withRepeat(withTiming(1, { duration: 15000 }), -1, true)
   }, [])
 
   // API calls
@@ -329,13 +314,15 @@ export default function BrowseScreen() {
   const heroGlowStyle = useAnimatedStyle(() => ({
     opacity: heroGlow.value,
   }))
-  
+
   const searchPulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: searchPulse.value }],
   }))
-  
+
   const particleStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: interpolate(particleFlow.value, [0, 1], [-100, 100], Extrapolation.CLAMP) }],
+    transform: [
+      { translateX: interpolate(particleFlow.value, [0, 1], [-100, 100], Extrapolation.CLAMP) },
+    ],
   }))
 
   return (
@@ -352,23 +339,19 @@ export default function BrowseScreen() {
           styles.backgroundGradient,
           {
             height: HEADER_HEIGHT + 100,
-          }
+          },
         ]}
         speed="slow"
       />
-      
+
       {/* Hero glow effect */}
       <Animated.View style={[styles.heroGlow, heroGlowStyle]}>
         <LinearGradient
-          colors={[
-            'transparent',
-            `${theme.colors.primary}15`,
-            'transparent'
-          ]}
+          colors={['transparent', `${theme.colors.primary}15`, 'transparent']}
           style={StyleSheet.absoluteFillObject}
         />
       </Animated.View>
-      
+
       {/* Floating particles */}
       <View style={styles.particlesContainer}>
         {Array.from({ length: 6 }).map((_, index) => (
@@ -378,9 +361,9 @@ export default function BrowseScreen() {
               styles.particle,
               particleStyle,
               {
-                left: `${(index * 15) + 5}%`,
+                left: `${index * 15 + 5}%`,
                 top: `${15 + (index % 2) * 20}%`,
-              }
+              },
             ]}
           >
             <FloatingElement intensity={3} duration={2000 + index * 300}>
@@ -396,7 +379,7 @@ export default function BrowseScreen() {
           styles.depthGradient,
           {
             top: HEADER_HEIGHT - 50,
-          }
+          },
         ]}
         opacity={0.4}
         speed="normal"
@@ -424,19 +407,19 @@ export default function BrowseScreen() {
             <SafeAreaView style={styles.headerSafeArea}>
               <View style={styles.headerContent}>
                 <Animated.View entering={BounceIn.delay(200).springify()}>
-                  <HeroText 
-                    gradient 
-                    animated 
-                    variant="scale" 
-                    glow 
+                  <HeroText
+                    gradient
+                    animated
+                    variant="scale"
+                    glow
                     style={styles.headerTitle}
                     customColors={['#ffffff', theme.colors.primary, theme.colors.accent]}
                   >
                     Browse Listings
                   </HeroText>
-                  
-                  <TypewriterText 
-                    animated 
+
+                  <TypewriterText
+                    animated
                     delay={600}
                     style={[
                       styles.headerSubtitle,
@@ -444,7 +427,7 @@ export default function BrowseScreen() {
                         color: theme.isDark
                           ? `${theme.colors.textInverse}CC`
                           : theme.colors.textSecondary,
-                      }
+                      },
                     ]}
                   >
                     Find performance data for your favorite games
@@ -460,12 +443,7 @@ export default function BrowseScreen() {
           entering={SlideInLeft.delay(800).springify()}
           style={[styles.searchContainer, searchPulseStyle]}
         >
-          <MagneticView
-            borderRadius={24}
-            animated
-            hoverable
-            style={styles.searchMagnetic}
-          >
+          <MagneticView borderRadius={24} animated hoverable style={styles.searchMagnetic}>
             <BlurView
               intensity={100}
               tint={theme.isDark ? 'dark' : 'light'}
@@ -479,18 +457,18 @@ export default function BrowseScreen() {
                 style={StyleSheet.absoluteFillObject}
                 opacity={0.08}
               />
-              
+
               <View style={styles.searchInputContainer}>
                 <FloatingElement intensity={2} duration={2000}>
                   <Ionicons name="search" size={22} color={theme.colors.primary} />
                 </FloatingElement>
-                
+
                 <TextInput
                   style={[
                     styles.searchInput,
                     {
                       color: theme.colors.text,
-                    }
+                    },
                   ]}
                   placeholder="Search games, systems, or devices..."
                   value={filters.query}
@@ -505,7 +483,7 @@ export default function BrowseScreen() {
                   }}
                   placeholderTextColor={theme.colors.textMuted}
                 />
-                
+
                 <AnimatedPressable onPress={toggleFilters}>
                   <HolographicView
                     morphing
@@ -513,8 +491,10 @@ export default function BrowseScreen() {
                     style={[
                       styles.filtersButton,
                       {
-                        backgroundColor: showFilters ? theme.colors.primary : 'rgba(255,255,255,0.1)',
-                      }
+                        backgroundColor: showFilters
+                          ? theme.colors.primary
+                          : 'rgba(255,255,255,0.1)',
+                      },
                     ]}
                   >
                     <FloatingElement intensity={1} duration={1500}>
@@ -524,14 +504,13 @@ export default function BrowseScreen() {
                         color={showFilters ? theme.colors.textInverse : theme.colors.primary}
                       />
                     </FloatingElement>
-                    
-                    <GlowText 
-                      glow={showFilters}
+
+                    <GlowText
                       style={[
                         styles.filtersButtonText,
                         {
                           color: showFilters ? theme.colors.textInverse : theme.colors.primary,
-                        }
+                        },
                       ]}
                     >
                       Filters
@@ -579,7 +558,7 @@ export default function BrowseScreen() {
           >
             <Card style={{ overflow: 'hidden' }}>
               <LinearGradient
-                colors={theme.colors.gradients.card as [string, string, ...string[]]}
+                colors={theme.colors.gradients.card}
                 style={{ padding: theme.spacing.lg }}
               >
                 <View
@@ -905,11 +884,7 @@ export default function BrowseScreen() {
                   entering={SlideInRight.delay(700 + index * 150).springify()}
                   style={styles.skeletonWrapper}
                 >
-                  <EnhancedSkeletonCard 
-                    variant="listing" 
-                    animated 
-                    style={styles.skeletonCard}
-                  />
+                  <EnhancedSkeletonCard variant="listing" animated style={styles.skeletonCard} />
                 </Animated.View>
               ))}
             </View>
@@ -1000,7 +975,7 @@ export default function BrowseScreen() {
             <Animated.View entering={ZoomIn.delay(300).springify()}>
               <Card style={{ overflow: 'hidden' }}>
                 <LinearGradient
-                  colors={theme.colors.gradients.secondary as [string, string, ...string[]]}
+                  colors={theme.colors.gradients.secondary}
                   style={{
                     padding: theme.spacing.xxl,
                     alignItems: 'center',
@@ -1117,7 +1092,7 @@ export default function BrowseScreen() {
                     }}
                   >
                     <LinearGradient
-                      colors={theme.colors.gradients.primary as [string, string, ...string[]]}
+                      colors={theme.colors.gradients.primary}
                       style={{
                         padding: theme.spacing.lg,
                         alignItems: 'center',
@@ -1172,7 +1147,7 @@ export default function BrowseScreen() {
                     }}
                   >
                     <LinearGradient
-                      colors={theme.colors.gradients.gaming as [string, string, ...string[]]}
+                      colors={theme.colors.gradients.gaming}
                       style={{
                         padding: theme.spacing.lg,
                         alignItems: 'center',

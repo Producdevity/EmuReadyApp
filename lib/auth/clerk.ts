@@ -80,4 +80,4 @@ export function transformClerkUser(clerkUser: any) {
   }
 }
 
-export { ClerkProvider, tokenCache, CLERK_PUBLISHABLE_KEY, useAuth, useUser }
+export { CLERK_PUBLISHABLE_KEY, ClerkProvider, tokenCache, useAuth, useUser }

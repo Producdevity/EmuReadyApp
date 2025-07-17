@@ -1,19 +1,19 @@
-import React, { memo, useState } from 'react'
-import { StyleSheet, Text, View, Alert, type ViewStyle } from 'react-native'
-import { useAuth } from '@clerk/clerk-expo'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated'
-import * as Haptics from 'expo-haptics'
-import { Card } from '../ui'
-import { useVoteListing } from '@/lib/api/hooks'
 import { useTheme } from '@/contexts/ThemeContext'
 import { ANIMATION_CONFIG } from '@/lib/animation/config'
+import { useVoteListing } from '@/lib/api/hooks'
 import type { Listing } from '@/types'
+import { useAuth } from '@clerk/clerk-expo'
+import * as Haptics from 'expo-haptics'
+import React, { memo, useState } from 'react'
+import { Alert, StyleSheet, Text, View, type ViewStyle } from 'react-native'
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
+import { Card } from '../ui'
 
 interface ListingCardProps {
   listing: Listing
@@ -98,13 +98,13 @@ function ListingCardComponent(props: ListingCardProps) {
     if (props.onPress) {
       // Smooth card press animation
       cardScale.value = withSequence(
-        withTiming(0.98, { 
+        withTiming(0.98, {
           duration: 100,
-          easing: ANIMATION_CONFIG.easing.out
+          easing: ANIMATION_CONFIG.easing.out,
         }),
-        withSpring(1, { 
+        withSpring(1, {
           damping: 25,
-          stiffness: 350
+          stiffness: 350,
         }),
       )
 
@@ -146,7 +146,12 @@ function ListingCardComponent(props: ListingCardProps) {
 
   return (
     <Animated.View style={cardAnimatedStyle}>
-      <Card style={containerStyle} padding="md" onPress={handleCardPress} disableAnimations={props.disableAnimations}>
+      <Card
+        style={containerStyle}
+        padding="md"
+        onPress={handleCardPress}
+        disableAnimations={props.disableAnimations}
+      >
         <View style={styles.header}>
           <View style={styles.gameInfo}>
             <Text style={styles.gameTitle} numberOfLines={props.compact ? 1 : 2}>
@@ -226,7 +231,7 @@ function ListingCardComponent(props: ListingCardProps) {
                   style={[
                     styles.voteButtonText,
                     props.listing.userVote === true && styles.voteButtonTextActive,
-                    (voteMutation.isPending || isVoting === 'up') && styles.voteButtonTextDisabled,
+                    (voteMutation.isPending || isVoting === 'up') && styles.voteButtonDisabled,
                   ]}
                 >
                   👍 {props.listing.upVotes || 0}
@@ -248,8 +253,7 @@ function ListingCardComponent(props: ListingCardProps) {
                   style={[
                     styles.voteButtonText,
                     props.listing.userVote === false && styles.voteButtonTextActive,
-                    (voteMutation.isPending || isVoting === 'down') &&
-                      styles.voteButtonTextDisabled,
+                    (voteMutation.isPending || isVoting === 'down') && styles.voteButtonDisabled,
                   ]}
                 >
                   👎 {props.listing.downVotes || 0}

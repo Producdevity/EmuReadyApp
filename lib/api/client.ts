@@ -1,5 +1,5 @@
-import { QueryClient } from '@tanstack/react-query'
 import { CONFIG } from '@/lib/constants/config'
+import { QueryClient } from '@tanstack/react-query'
 
 // Create React Query client with mobile-optimized settings
 export const queryClient = new QueryClient({

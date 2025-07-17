@@ -1,24 +1,24 @@
 import { getErrorMessage } from '@/lib/utils'
+import { Ionicons } from '@expo/vector-icons'
 import React, { useState } from 'react'
 import {
-  View,
-  Text,
-  ScrollView,
-  TextInput,
   Alert,
-  Platform,
   KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
   useWindowDimensions,
+  View,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { useTheme } from '@/contexts/ThemeContext'
 import { Button, Card } from '@/components/ui'
+import { useTheme } from '@/contexts/ThemeContext'
+import { ANIMATION_CONFIG, getBaseDelay } from '@/lib/animation/config'
 import { EmulatorService } from '@/lib/services/emulator'
 import { EmulatorAltService } from '@/lib/services/emulator-alt'
-import { getBaseDelay, ANIMATION_CONFIG } from '@/lib/animation/config'
 
 export default function TestScreen() {
   const { theme } = useTheme()
@@ -576,7 +576,7 @@ driver_path=${fullPath}`
                     leftIcon={<Ionicons name="play" size={20} color={theme.colors.textInverse} />}
                   />
                 </View>
-                
+
                 {/* Title-Only Launch Button */}
                 <View
                   style={{
@@ -590,7 +590,9 @@ driver_path=${fullPath}`
                     disabled={isLoading || Platform.OS !== 'android'}
                     variant="secondary"
                     size="lg"
-                    leftIcon={<Ionicons name="rocket-outline" size={20} color={theme.colors.primary} />}
+                    leftIcon={
+                      <Ionicons name="rocket-outline" size={20} color={theme.colors.primary} />
+                    }
                   />
                 </View>
 
@@ -755,7 +757,9 @@ driver_path=${fullPath}`
                         size="sm"
                         disabled={isLoading}
                         style={{ flex: isLandscape ? 1 : undefined }}
-                        leftIcon={<Ionicons name="rocket" size={18} color={theme.colors.textInverse} />}
+                        leftIcon={
+                          <Ionicons name="rocket" size={18} color={theme.colors.textInverse} />
+                        }
                       />
                     </View>
                   </View>

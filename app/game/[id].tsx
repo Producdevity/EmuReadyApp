@@ -1,45 +1,58 @@
 import { getErrorMessage } from '@/lib/utils'
-import React, { useState } from 'react'
-import {
-  View,
-  Text,
-  ScrollView,
-  RefreshControl,
-  StatusBar,
-  Pressable,
-  Dimensions,
-  Share,
-  Platform,
-  Alert,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import React, { useEffect, useState } from 'react'
+import {
+  Alert,
+  Dimensions,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  Share,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native'
 import Animated, {
+  Extrapolation,
   FadeInDown,
   FadeInUp,
-  useSharedValue,
+  interpolate,
+  runOnJS,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  interpolate,
-  Extrapolation,
+  useSharedValue,
+  withRepeat,
+  withSequence,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { useTheme } from '@/contexts/ThemeContext'
-import { useGameById, useListingsByGame } from '@/lib/api/hooks'
-import { CachedImage, Button, Card, EmptyState, SkeletonLoader } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
 import GameMediaSection from '@/components/game/GameMediaSection'
-import { EmulatorService, EMULATOR_PRESETS } from '@/lib/services/emulator'
-import { getStaggerDelay, getBaseDelay, ANIMATION_CONFIG } from '@/lib/animation/config'
+import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
+import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import { CachedImage, EmptyState, SkeletonLoader } from '@/components/ui'
+import FluidGradient from '@/components/ui/FluidGradient'
+import {
+  AnimatedPressable,
+  FloatingElement,
+  MICRO_SPRING_CONFIG,
+} from '@/components/ui/MicroInteractions'
+import { useTheme } from '@/contexts/ThemeContext'
+import { ANIMATION_CONFIG, getBaseDelay, getStaggerDelay } from '@/lib/animation/config'
+import { useGameById, useListingsByGame } from '@/lib/api/hooks'
+import { EMULATOR_PRESETS, EmulatorService } from '@/lib/services/emulator'
 import type { Listing } from '@/types'
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.5
 const PARALLAX_HEIGHT = HEADER_HEIGHT * 1.2
+const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
 
 export default function GameDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -50,6 +63,51 @@ export default function GameDetailScreen() {
 
   const scrollY = useSharedValue(0)
   const headerOpacity = useSharedValue(1)
+
+  // Enhanced 2025 animation values
+  const heroGlow = useSharedValue(0)
+  const gameFloat = useSharedValue(0)
+  const backgroundShift = useSharedValue(0)
+  const tabScale = useSharedValue(1)
+  const statsFloat = useSharedValue(0)
+  const particleFlow = useSharedValue(0)
+  const coverScale = useSharedValue(0.9)
+
+  useEffect(() => {
+    // Initialize cosmic background animation
+    backgroundShift.value = withRepeat(
+      withSequence(withTiming(1, { duration: 20000 }), withTiming(0, { duration: 20000 })),
+      -1,
+      true,
+    )
+
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(withTiming(1, { duration: 3000 }), withTiming(0.3, { duration: 3000 })),
+      -1,
+      true,
+    )
+
+    // Game floating animation
+    gameFloat.value = withRepeat(
+      withSequence(withTiming(10, { duration: 5000 }), withTiming(-10, { duration: 5000 })),
+      -1,
+      true,
+    )
+
+    // Stats floating animation
+    statsFloat.value = withRepeat(
+      withSequence(withTiming(5, { duration: 4000 }), withTiming(-5, { duration: 4000 })),
+      -1,
+      true,
+    )
+
+    // Particle flow animation
+    particleFlow.value = withRepeat(withTiming(1, { duration: 12000 }), -1, false)
+
+    // Cover scale entrance
+    coverScale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
+  }, [])
 
   // API hooks
   const gameQuery = useGameById({ id: id! }, { enabled: !!id })
@@ -168,35 +226,46 @@ export default function GameDetailScreen() {
 
   const renderOverviewTab = () => (
     <View style={{ padding: theme.spacing.lg }}>
-      {/* Game Info Card */}
+      {/* Game Info Card - Enhanced with 2025 design */}
       <Animated.View
         entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
+        style={statsFloatStyle}
       >
-        <Card
+        <HolographicView
+          morphing
+          borderRadius={theme.borderRadius.xl}
           style={{
             marginBottom: theme.spacing.lg,
             overflow: 'hidden',
           }}
         >
-          <LinearGradient
-            colors={theme.colors.gradients.card as [string, string, ...string[]]}
+          <FluidGradient
+            variant="gaming"
+            animated
+            speed="slow"
+            style={StyleSheet.absoluteFillObject}
+            opacity={0.1}
+          />
+          <GlassView
+            borderRadius={theme.borderRadius.xl}
+            blurIntensity={20}
             style={{
               padding: theme.spacing.lg,
             }}
           >
-            <Text
+            <GradientTitle
+              animated
               style={{
                 fontSize: theme.typography.fontSize.xxl,
                 fontWeight: theme.typography.fontWeight.bold,
-                color: theme.colors.text,
                 marginBottom: theme.spacing.sm,
               }}
             >
               Game Information
-            </Text>
+            </GradientTitle>
 
             <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
-              <Text
+              <GlowText
                 style={{
                   fontSize: theme.typography.fontSize.md,
                   fontWeight: theme.typography.fontWeight.medium,
@@ -205,8 +274,10 @@ export default function GameDetailScreen() {
                 }}
               >
                 System:
-              </Text>
-              <Text
+              </GlowText>
+              <TypewriterText
+                animated
+                delay={800}
                 style={{
                   fontSize: theme.typography.fontSize.md,
                   color: theme.colors.text,
@@ -214,11 +285,11 @@ export default function GameDetailScreen() {
                 }}
               >
                 {gameQuery.data?.system?.name || 'Unknown'}
-              </Text>
+              </TypewriterText>
             </View>
 
             <View style={{ flexDirection: 'row', marginBottom: theme.spacing.md }}>
-              <Text
+              <GlowText
                 style={{
                   fontSize: theme.typography.fontSize.md,
                   fontWeight: theme.typography.fontWeight.medium,
@@ -227,42 +298,49 @@ export default function GameDetailScreen() {
                 }}
               >
                 Status:
-              </Text>
-              <View
-                style={{
-                  backgroundColor: theme.colors.successLight,
-                  paddingHorizontal: theme.spacing.sm,
-                  paddingVertical: theme.spacing.xs,
-                  borderRadius: theme.borderRadius.sm,
-                }}
-              >
-                <Text
+              </GlowText>
+              <FloatingElement intensity={1} duration={2000}>
+                <MagneticView
+                  borderRadius={theme.borderRadius.sm}
                   style={{
-                    fontSize: theme.typography.fontSize.sm,
-                    fontWeight: theme.typography.fontWeight.medium,
-                    color: theme.colors.success,
+                    backgroundColor: theme.colors.successLight,
+                    paddingHorizontal: theme.spacing.sm,
+                    paddingVertical: theme.spacing.xs,
                   }}
                 >
-                  Approved
-                </Text>
-              </View>
+                  <GlowText
+                    style={{
+                      fontSize: theme.typography.fontSize.sm,
+                      fontWeight: theme.typography.fontWeight.medium,
+                      color: theme.colors.success,
+                    }}
+                  >
+                    Approved
+                  </GlowText>
+                </MagneticView>
+              </FloatingElement>
             </View>
-          </LinearGradient>
-        </Card>
+          </GlassView>
+        </HolographicView>
       </Animated.View>
 
-      {/* Performance Stats */}
+      {/* Performance Stats - Enhanced with holographic effects */}
       <Animated.View
         entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
       >
-        <Card style={{ marginBottom: theme.spacing.lg }}>
+        <HolographicView
+          morphing
+          borderRadius={theme.borderRadius.xl}
+          style={{ marginBottom: theme.spacing.lg }}
+        >
           <LinearGradient
-            colors={theme.colors.gradients.primary as [string, string, ...string[]]}
+            colors={theme.colors.gradients.primary}
             style={{
               padding: theme.spacing.lg,
             }}
           >
-            <Text
+            <GradientTitle
+              animated
               style={{
                 fontSize: theme.typography.fontSize.xl,
                 fontWeight: theme.typography.fontWeight.bold,
@@ -271,49 +349,61 @@ export default function GameDetailScreen() {
               }}
             >
               Performance Overview
-            </Text>
+            </GradientTitle>
 
-            <View
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: theme.borderRadius.md,
-                padding: theme.spacing.md,
-              }}
-            >
-              <Text
+            <FloatingElement intensity={2} duration={3000}>
+              <MagneticView
+                borderRadius={theme.borderRadius.md}
                 style={{
-                  fontSize: theme.typography.fontSize.lg,
-                  fontWeight: theme.typography.fontWeight.semibold,
-                  color: theme.colors.textInverse,
-                  textAlign: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  padding: theme.spacing.md,
                 }}
               >
-                {listingsQuery.data?.length || 0} Performance Reports
-              </Text>
-            </View>
+                <GlowText
+                  style={{
+                    fontSize: theme.typography.fontSize.lg,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                    color: theme.colors.textInverse,
+                    textAlign: 'center',
+                  }}
+                >
+                  {listingsQuery.data?.length || 0} Performance Reports
+                </GlowText>
+              </MagneticView>
+            </FloatingElement>
           </LinearGradient>
-        </Card>
+        </HolographicView>
       </Animated.View>
 
-      {/* Emulator Launch Options */}
+      {/* Emulator Launch Options - Enhanced for Gamepad */}
       {Platform.OS === 'android' && (
         <Animated.View
           entering={FadeInUp.delay(getBaseDelay('normal')).duration(ANIMATION_CONFIG.timing.fast)}
         >
-          <Card style={{ marginBottom: theme.spacing.lg }}>
-            <View style={{ padding: theme.spacing.lg }}>
-              <Text
+          <HolographicView
+            morphing
+            borderRadius={theme.borderRadius.xl}
+            style={{ marginBottom: theme.spacing.lg }}
+          >
+            <GlassView
+              borderRadius={theme.borderRadius.xl}
+              blurIntensity={20}
+              style={{ padding: theme.spacing.lg }}
+            >
+              <GradientTitle
+                animated
                 style={{
                   fontSize: theme.typography.fontSize.xl,
                   fontWeight: theme.typography.fontWeight.bold,
-                  color: theme.colors.text,
                   marginBottom: theme.spacing.sm,
                 }}
               >
                 Launch with Eden Emulator
-              </Text>
+              </GradientTitle>
 
-              <Text
+              <TypewriterText
+                animated
+                delay={600}
                 style={{
                   fontSize: theme.typography.fontSize.md,
                   color: theme.colors.textMuted,
@@ -322,7 +412,7 @@ export default function GameDetailScreen() {
               >
                 Launch this game directly with optimized settings using the Eden Nintendo Switch
                 emulator (requires Eden emulator APK to be installed)
-              </Text>
+              </TypewriterText>
 
               {EMULATOR_PRESETS.map((preset, index) => (
                 <Animated.View
@@ -332,22 +422,56 @@ export default function GameDetailScreen() {
                   )}
                   style={{ marginBottom: theme.spacing.sm }}
                 >
-                  <Button
-                    title={preset.name}
-                    subtitle={preset.description}
-                    onPress={() => handleLaunchEmulator(preset.name)}
-                    variant="secondary"
-                    icon="play"
-                    style={{
-                      backgroundColor: theme.colors.surface,
-                      borderWidth: 1,
-                      borderColor: theme.colors.border,
+                  <AnimatedPressable
+                    onPress={() => {
+                      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+                      handleLaunchEmulator(preset.name)
                     }}
-                  />
+                  >
+                    <MagneticView
+                      borderRadius={theme.borderRadius.lg}
+                      style={{
+                        backgroundColor: theme.colors.surface,
+                        borderWidth: 1,
+                        borderColor: theme.colors.border,
+                        padding: theme.spacing.md,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: theme.spacing.sm,
+                      }}
+                    >
+                      <FloatingElement intensity={1} duration={2000}>
+                        <Ionicons name="play" size={24} color={theme.colors.primary} />
+                      </FloatingElement>
+                      <View style={{ flex: 1 }}>
+                        <GlowText
+                          style={{
+                            fontSize: theme.typography.fontSize.md,
+                            fontWeight: theme.typography.fontWeight.semibold,
+                            color: theme.colors.text,
+                            marginBottom: 2,
+                          }}
+                        >
+                          {preset.name}
+                        </GlowText>
+                        <TypewriterText
+                          animated
+                          delay={700 + index * 100}
+                          style={{
+                            fontSize: theme.typography.fontSize.sm,
+                            color: theme.colors.textMuted,
+                          }}
+                        >
+                          {preset.description}
+                        </TypewriterText>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color={theme.colors.textMuted} />
+                    </MagneticView>
+                  </AnimatedPressable>
                 </Animated.View>
               ))}
-            </View>
-          </Card>
+            </GlassView>
+          </HolographicView>
         </Animated.View>
       )}
 
@@ -381,17 +505,24 @@ export default function GameDetailScreen() {
             )}
             style={{ marginBottom: theme.spacing.md }}
           >
-            <ListingCard listing={listing} onPress={() => router.push(`/listing/${listing.id}`)} />
+            <FloatingElement intensity={1} duration={3000 + index * 200}>
+              <ListingCard
+                listing={listing}
+                onPress={() => router.push(`/listing/${listing.id}`)}
+              />
+            </FloatingElement>
           </Animated.View>
         ))
       ) : (
-        <EmptyState
-          icon="game-controller"
-          title="No Performance Reports"
-          subtitle="Be the first to share how this game runs on your device!"
-          actionLabel="Create Report"
-          onAction={() => router.push('/(tabs)/create')}
-        />
+        <HolographicView morphing borderRadius={theme.borderRadius.xl}>
+          <EmptyState
+            icon="game-controller"
+            title="No Performance Reports"
+            subtitle="Be the first to share how this game runs on your device!"
+            actionLabel="Create Report"
+            onAction={() => router.push('/(tabs)/create')}
+          />
+        </HolographicView>
       )}
     </View>
   )
@@ -401,19 +532,25 @@ export default function GameDetailScreen() {
       <Animated.View
         entering={FadeInUp.delay(getBaseDelay('fast')).duration(ANIMATION_CONFIG.timing.fast)}
       >
-        <Card>
-          <View style={{ padding: theme.spacing.lg }}>
-            <Text
+        <HolographicView morphing borderRadius={theme.borderRadius.xl}>
+          <GlassView
+            borderRadius={theme.borderRadius.xl}
+            blurIntensity={20}
+            style={{ padding: theme.spacing.lg }}
+          >
+            <GradientTitle
+              animated
               style={{
                 fontSize: theme.typography.fontSize.xl,
                 fontWeight: theme.typography.fontWeight.bold,
-                color: theme.colors.text,
                 textAlign: 'center',
               }}
             >
               Game Statistics
-            </Text>
-            <Text
+            </GradientTitle>
+            <TypewriterText
+              animated
+              delay={500}
               style={{
                 fontSize: theme.typography.fontSize.md,
                 color: theme.colors.textMuted,
@@ -422,9 +559,9 @@ export default function GameDetailScreen() {
               }}
             >
               Coming soon...
-            </Text>
-          </View>
-        </Card>
+            </TypewriterText>
+          </GlassView>
+        </HolographicView>
       </Animated.View>
     </View>
   )
@@ -524,11 +661,93 @@ export default function GameDetailScreen() {
 
   const game = gameQuery.data
 
+  // Animated styles for cosmic background
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
+      },
+    ],
+  }))
+
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+
+  const gameFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: gameFloat.value }],
+  }))
+
+  const coverScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: coverScale.value }],
+  }))
+
+  const statsFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: statsFloat.value }],
+  }))
+
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          particleFlow.value,
+          [0, 1],
+          [-200, SCREEN_WIDTH + 200],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
+  }))
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Parallax Header */}
+      {/* Revolutionary Cosmic Background */}
+      <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
+        <FluidGradient
+          variant="cosmic"
+          animated
+          speed="slow"
+          style={StyleSheet.absoluteFillObject}
+          opacity={0.3}
+        />
+      </Animated.View>
+
+      {/* Floating Particles */}
+      <Animated.View style={[{ position: 'absolute', top: '20%' }, particleFlowStyle]}>
+        <View
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: 6,
+            backgroundColor: `${theme.colors.primary}40`,
+          }}
+        />
+      </Animated.View>
+      <Animated.View style={[{ position: 'absolute', top: '50%' }, particleFlowStyle]}>
+        <View
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: `${theme.colors.secondary}40`,
+          }}
+        />
+      </Animated.View>
+      <Animated.View style={[{ position: 'absolute', top: '80%' }, particleFlowStyle]}>
+        <View
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: `${theme.colors.accent}40`,
+          }}
+        />
+      </Animated.View>
+
+      {/* Enhanced Parallax Header with Holographic Effects */}
       <Animated.View
         style={[
           {
@@ -542,17 +761,31 @@ export default function GameDetailScreen() {
           headerAnimatedStyle,
         ]}
       >
-        <CachedImage
-          source={{
-            uri: game?.coverImageUrl || game?.boxArtUrl || 'https://via.placeholder.com/400x600',
-          }}
-          style={{
-            width: '100%',
-            height: '100%',
-          }}
-        />
+        <FloatingElement intensity={2} duration={4000}>
+          <Animated.View style={coverScaleStyle}>
+            <HolographicView
+              morphing
+              borderRadius={0}
+              style={{
+                width: '100%',
+                height: '100%',
+              }}
+            >
+              <CachedImage
+                source={{
+                  uri:
+                    game?.coverImageUrl || game?.boxArtUrl || 'https://via.placeholder.com/400x600',
+                }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+            </HolographicView>
+          </Animated.View>
+        </FloatingElement>
 
-        {/* Gradient Overlay */}
+        {/* Enhanced Gradient Overlay with Glow */}
         <Animated.View
           style={[
             {
@@ -574,6 +807,16 @@ export default function GameDetailScreen() {
             ]}
             style={{ flex: 1 }}
           />
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFillObject,
+              heroGlowStyle,
+              {
+                backgroundColor: theme.colors.primary,
+                opacity: 0.1,
+              },
+            ]}
+          />
         </Animated.View>
       </Animated.View>
 
@@ -590,34 +833,46 @@ export default function GameDetailScreen() {
             paddingVertical: theme.spacing.md,
           }}
         >
-          <Pressable
-            onPress={() => router.back()}
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              backgroundColor: theme.colors.glass,
-              alignItems: 'center',
-              justifyContent: 'center',
+          <AnimatedPressable
+            onPress={() => {
+              runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+              router.back()
             }}
           >
-            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-          </Pressable>
-
-          <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-            <Pressable
-              onPress={handleShare}
+            <MagneticView
+              borderRadius={22}
               style={{
                 width: 44,
                 height: 44,
-                borderRadius: 22,
                 backgroundColor: theme.colors.glass,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="share" size={20} color={theme.colors.text} />
-            </Pressable>
+              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+            </MagneticView>
+          </AnimatedPressable>
+
+          <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+            <AnimatedPressable
+              onPress={() => {
+                runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+                handleShare()
+              }}
+            >
+              <MagneticView
+                borderRadius={22}
+                style={{
+                  width: 44,
+                  height: 44,
+                  backgroundColor: theme.colors.glass,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons name="share" size={20} color={theme.colors.text} />
+              </MagneticView>
+            </AnimatedPressable>
           </View>
         </BlurView>
       </SafeAreaView>
@@ -639,27 +894,30 @@ export default function GameDetailScreen() {
           paddingTop: HEADER_HEIGHT - theme.spacing.xxl,
         }}
       >
-        {/* Game Title Section */}
+        {/* Enhanced Game Title Section with Animations */}
         <Animated.View
           entering={FadeInDown.delay(getBaseDelay('instant')).duration(
             ANIMATION_CONFIG.timing.fast,
           )}
-          style={{
-            padding: theme.spacing.lg,
-            paddingBottom: 0,
-          }}
+          style={[
+            {
+              padding: theme.spacing.lg,
+              paddingBottom: 0,
+            },
+            gameFloatStyle,
+          ]}
         >
-          <Text
+          <GradientTitle
+            animated
             style={{
               fontSize: theme.typography.fontSize.xxxl,
               fontWeight: theme.typography.fontWeight.extrabold,
-              color: theme.colors.text,
               marginBottom: theme.spacing.sm,
               lineHeight: theme.typography.lineHeight.tight * theme.typography.fontSize.xxxl,
             }}
           >
             {game?.title}
-          </Text>
+          </GradientTitle>
 
           {game?.system && (
             <View
@@ -669,30 +927,32 @@ export default function GameDetailScreen() {
                 marginBottom: theme.spacing.lg,
               }}
             >
-              <View
-                style={{
-                  backgroundColor: theme.colors.primary,
-                  paddingHorizontal: theme.spacing.md,
-                  paddingVertical: theme.spacing.xs,
-                  borderRadius: theme.borderRadius.lg,
-                  marginRight: theme.spacing.sm,
-                }}
-              >
-                <Text
+              <FloatingElement intensity={1} duration={2500}>
+                <MagneticView
+                  borderRadius={theme.borderRadius.lg}
                   style={{
-                    fontSize: theme.typography.fontSize.sm,
-                    fontWeight: theme.typography.fontWeight.semibold,
-                    color: theme.colors.textInverse,
+                    backgroundColor: theme.colors.primary,
+                    paddingHorizontal: theme.spacing.md,
+                    paddingVertical: theme.spacing.xs,
+                    marginRight: theme.spacing.sm,
                   }}
                 >
-                  {game.system.name}
-                </Text>
-              </View>
+                  <GlowText
+                    style={{
+                      fontSize: theme.typography.fontSize.sm,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                      color: theme.colors.textInverse,
+                    }}
+                  >
+                    {game.system.name}
+                  </GlowText>
+                </MagneticView>
+              </FloatingElement>
             </View>
           )}
         </Animated.View>
 
-        {/* Tab Navigation */}
+        {/* Enhanced Tab Navigation - Gamepad Optimized */}
         <Animated.View
           entering={FadeInUp.delay(300).springify()}
           style={{
@@ -700,11 +960,12 @@ export default function GameDetailScreen() {
             marginBottom: theme.spacing.lg,
           }}
         >
-          <View
+          <GlassView
+            borderRadius={theme.borderRadius.xl}
+            blurIntensity={30}
             style={{
               flexDirection: 'row',
-              backgroundColor: theme.colors.surface,
-              borderRadius: theme.borderRadius.xl,
+              backgroundColor: theme.colors.glass,
               padding: theme.spacing.xs,
             }}
           >
@@ -717,41 +978,59 @@ export default function GameDetailScreen() {
               { key: 'listings', label: 'Reports', icon: 'list' },
               { key: 'stats', label: 'Stats', icon: 'stats-chart' },
             ].map((tab) => (
-              <Pressable
+              <AnimatedPressable
                 key={tab.key}
-                onPress={() => setSelectedTab(tab.key as any)}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: theme.spacing.md,
-                  paddingHorizontal: theme.spacing.sm,
-                  borderRadius: theme.borderRadius.lg,
-                  backgroundColor: selectedTab === tab.key ? theme.colors.primary : 'transparent',
+                onPress={() => {
+                  runOnJS(Haptics.selectionAsync)()
+                  tabScale.value = withSequence(
+                    withSpring(0.95, MICRO_SPRING_CONFIG.instant),
+                    withSpring(1, MICRO_SPRING_CONFIG.bouncy),
+                  )
+                  setSelectedTab(tab.key as any)
                 }}
               >
-                <Ionicons
-                  name={tab.icon as any}
-                  size={16}
-                  color={
-                    selectedTab === tab.key ? theme.colors.textInverse : theme.colors.textMuted
-                  }
-                  style={{ marginRight: theme.spacing.xs }}
-                />
-                <Text
+                <MagneticView
+                  borderRadius={theme.borderRadius.lg}
                   style={{
-                    fontSize: theme.typography.fontSize.sm,
-                    fontWeight: theme.typography.fontWeight.semibold,
-                    color:
-                      selectedTab === tab.key ? theme.colors.textInverse : theme.colors.textMuted,
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: theme.spacing.md,
+                    paddingHorizontal: theme.spacing.sm,
+                    backgroundColor: selectedTab === tab.key ? theme.colors.primary : 'transparent',
                   }}
                 >
-                  {tab.label}
-                </Text>
-              </Pressable>
+                  {selectedTab === tab.key && (
+                    <LinearGradient
+                      colors={theme.colors.gradients.primary}
+                      style={[StyleSheet.absoluteFillObject, { opacity: 0.9 }]}
+                    />
+                  )}
+                  <FloatingElement intensity={0.5} duration={2000}>
+                    <Ionicons
+                      name={tab.icon as any}
+                      size={16}
+                      color={
+                        selectedTab === tab.key ? theme.colors.textInverse : theme.colors.textMuted
+                      }
+                      style={{ marginRight: theme.spacing.xs }}
+                    />
+                  </FloatingElement>
+                  <GlowText
+                    style={{
+                      fontSize: theme.typography.fontSize.sm,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                      color:
+                        selectedTab === tab.key ? theme.colors.textInverse : theme.colors.textMuted,
+                    }}
+                  >
+                    {tab.label}
+                  </GlowText>
+                </MagneticView>
+              </AnimatedPressable>
             ))}
-          </View>
+          </GlassView>
         </Animated.View>
 
         {/* Tab Content */}

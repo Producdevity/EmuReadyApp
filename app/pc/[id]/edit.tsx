@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react'
-import { View, Text, ScrollView, TextInput, ActivityIndicator, Alert } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useLocalSearchParams, router } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
-  usePcListingById,
-  useGames,
   useCpusForMobile,
+  useGames,
   useGpusForMobile,
+  usePcListingById,
   usePerformanceScales,
   useUpdatePcListing,
 } from '@/lib/api/hooks'
-import Button from '@/components/ui/Button'
-import Card from '@/components/ui/Card'
+import { Ionicons } from '@expo/vector-icons'
 import { Picker } from '@react-native-picker/picker'
+import { router, useLocalSearchParams } from 'expo-router'
+import React, { useEffect, useState } from 'react'
+import { ActivityIndicator, Alert, ScrollView, Text, TextInput, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function EditPCListingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()

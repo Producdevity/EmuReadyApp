@@ -1,15 +1,15 @@
-import React from 'react'
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Platform,
-  type ViewStyle,
-  SafeAreaView,
-  Dimensions,
-} from 'react-native'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useOrientationOptimized } from '@/hooks/useGamepadNavigation'
+import React from 'react'
+import {
+  Dimensions,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from 'react-native'
 
 interface LandscapeContainerProps {
   children: React.ReactNode

@@ -1,7 +1,7 @@
+import { CONFIG } from '@/lib/constants/config'
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { Platform } from 'react-native'
 import { deserialize, type SuperJSONResult } from 'superjson'
-import { CONFIG } from '@/lib/constants/config'
 
 // Response unwrapping utilities
 

@@ -1,19 +1,19 @@
-import React, { useState } from 'react'
-import { View, Text, ScrollView, TextInput, ActivityIndicator, Alert } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { router } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
-import { useTheme } from '@/contexts/ThemeContext'
-import {
-  useGames,
-  useCpusForMobile,
-  useGpusForMobile,
-  usePerformanceScales,
-  useCreatePcListing,
-} from '@/lib/api/hooks'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import { useTheme } from '@/contexts/ThemeContext'
+import {
+  useCpusForMobile,
+  useCreatePcListing,
+  useGames,
+  useGpusForMobile,
+  usePerformanceScales,
+} from '@/lib/api/hooks'
+import { Ionicons } from '@expo/vector-icons'
 import { Picker } from '@react-native-picker/picker'
+import { router } from 'expo-router'
+import React, { useState } from 'react'
+import { ActivityIndicator, Alert, ScrollView, Text, TextInput, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function CreatePCListingScreen() {
   const { theme } = useTheme()

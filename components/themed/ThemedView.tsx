@@ -1,23 +1,23 @@
-import React, { useEffect } from 'react'
-import { View, type ViewProps, StyleSheet, Platform } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withSequence,
-  withRepeat,
-  interpolate,
-  runOnJS,
-  Extrapolation,
-} from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
 import { BlurView } from 'expo-blur'
 import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import React, { useEffect } from 'react'
+import { Platform, StyleSheet, View, type ViewProps } from 'react-native'
+import Animated, {
+  Extrapolation,
+  interpolate,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 
-import { useThemeColor } from '@/hooks/useThemeColor'
+import { AnimatedPressable, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
-import { MICRO_SPRING_CONFIG, AnimatedPressable } from '@/components/ui/MicroInteractions'
+import { useThemeColor } from '@/hooks/useThemeColor'
 
 export type ThemedViewProps = ViewProps & {
   lightColor?: string
@@ -43,10 +43,10 @@ export type ThemedViewProps = ViewProps & {
 const AnimatedView = Animated.createAnimatedComponent(View)
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
 
-export function ThemedView({ 
-  style, 
-  lightColor, 
-  darkColor, 
+export function ThemedView({
+  style,
+  lightColor,
+  darkColor,
   variant = 'default',
   animated = false,
   interactive = false,
@@ -64,11 +64,11 @@ export function ThemedView({
   particleEffect = false,
   delay = 0,
   children,
-  ...otherProps 
+  ...otherProps
 }: ThemedViewProps) {
   const { theme } = useTheme()
   const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background')
-  
+
   // Animation values
   const scale = useSharedValue(1)
   const opacity = useSharedValue(animated ? 0 : 1)
@@ -84,10 +84,10 @@ export function ThemedView({
   // Get gradient colors based on variant
   const getGradientColors = () => {
     if (customGradient) return customGradient
-    
+
     switch (variant) {
       case 'glass':
-        return theme.isDark 
+        return theme.isDark
           ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']
           : ['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.02)', 'rgba(0,0,0,0.01)']
       case 'gradient':
@@ -95,7 +95,7 @@ export function ThemedView({
       case 'holographic':
         return ['#667eea', '#764ba2', '#f093fb', '#f5576c']
       case 'neon':
-        return theme.isDark 
+        return theme.isDark
           ? [theme.colors.primary, theme.colors.accent, theme.colors.primaryLight]
           : [theme.colors.primaryLight, theme.colors.primary, theme.colors.accent]
       default:
@@ -110,88 +110,73 @@ export function ThemedView({
     if (animated) {
       opacity.value = withTiming(1, { duration: 600 + delay })
       translateY.value = withSpring(0, { ...MICRO_SPRING_CONFIG.smooth, duration: 800 + delay })
-      
+
       if (variant === 'floating') {
         translateY.value = withRepeat(
-          withSequence(
-            withTiming(-5, { duration: 2000 }),
-            withTiming(5, { duration: 2000 })
-          ),
+          withSequence(withTiming(-5, { duration: 2000 }), withTiming(5, { duration: 2000 })),
           -1,
-          true
+          true,
         )
       }
     }
-    
+
     if (morphing) {
       morphValue.value = withRepeat(
-        withSequence(
-          withTiming(1, { duration: 3000 }),
-          withTiming(0, { duration: 3000 })
-        ),
+        withSequence(withTiming(1, { duration: 3000 }), withTiming(0, { duration: 3000 })),
         -1,
-        true
+        true,
       )
-      
+
       rotateZ.value = withRepeat(
-        withSequence(
-          withTiming(2, { duration: 6000 }),
-          withTiming(-2, { duration: 6000 })
-        ),
+        withSequence(withTiming(2, { duration: 6000 }), withTiming(-2, { duration: 6000 })),
         -1,
-        true
+        true,
       )
     }
-    
+
     if (pulsing) {
       pulseScale.value = withRepeat(
         withSequence(
           withTiming(1.02 * intensity, { duration: 1500 }),
-          withTiming(1, { duration: 1500 })
+          withTiming(1, { duration: 1500 }),
         ),
         -1,
-        true
+        true,
       )
-      
+
       glowOpacity.value = withRepeat(
-        withSequence(
-          withTiming(0.8, { duration: 1500 }),
-          withTiming(0.3, { duration: 1500 })
-        ),
+        withSequence(withTiming(0.8, { duration: 1500 }), withTiming(0.3, { duration: 1500 })),
         -1,
-        true
+        true,
       )
     }
-    
+
     if (borderGlow) {
       borderGlowOpacity.value = withRepeat(
-        withSequence(
-          withTiming(1, { duration: 2000 }),
-          withTiming(0.4, { duration: 2000 })
-        ),
+        withSequence(withTiming(1, { duration: 2000 }), withTiming(0.4, { duration: 2000 })),
         -1,
-        true
+        true,
       )
     }
   }, [animated, morphing, pulsing, borderGlow, delay, intensity, variant])
 
   // Animated styles
   const animatedStyle = useAnimatedStyle(() => {
-    const scaleValue = morphing 
+    const scaleValue = morphing
       ? interpolate(morphValue.value, [0, 1], [1, 1.01 * intensity], Extrapolation.CLAMP)
       : scale.value * pulseScale.value * hoverScale.value
-      
+
     return {
       opacity: opacity.value,
       transform: [
         { scale: scaleValue },
         { translateY: translateY.value },
-        { rotateZ: `${rotateZ.value}deg` }
+        { rotateZ: `${rotateZ.value}deg` },
       ],
-      shadowOpacity: pulsing 
+      shadowOpacity: pulsing
         ? interpolate(glowOpacity.value, [0, 1], [0.1, 0.4], Extrapolation.CLAMP)
         : 0.1,
-      shadowRadius: pulsing 
+      shadowRadius: pulsing
         ? interpolate(glowOpacity.value, [0, 1], [4, 20], Extrapolation.CLAMP)
         : 8,
       elevation: elevationValue.value,
@@ -210,7 +195,7 @@ export function ThemedView({
     if (interactive && onPress) {
       scale.value = withSequence(
         withSpring(0.98, MICRO_SPRING_CONFIG.instant),
-        withSpring(1, MICRO_SPRING_CONFIG.bouncy)
+        withSpring(1, MICRO_SPRING_CONFIG.bouncy),
       )
       runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
       onPress()
@@ -237,7 +222,7 @@ export function ThemedView({
       borderRadius,
       overflow: 'hidden' as const,
     }
-    
+
     switch (variant) {
       case 'glass':
         return {
@@ -299,32 +284,26 @@ export function ThemedView({
             tint={theme.isDark ? 'dark' : 'light'}
             style={StyleSheet.absoluteFillObject}
           />
-          
+
           <LinearGradient
             colors={gradientColors}
             style={StyleSheet.absoluteFillObject}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           />
-          
+
           {borderGlow && (
             <Animated.View style={[styles.borderGlow, borderGlowStyle]}>
               <LinearGradient
-                colors={[
-                  'transparent',
-                  glowColor || theme.colors.primary,
-                  'transparent'
-                ]}
+                colors={['transparent', glowColor || theme.colors.primary, 'transparent']}
                 style={StyleSheet.absoluteFillObject}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               />
             </Animated.View>
           )}
-          
-          <View style={styles.contentContainer}>
-            {children}
-          </View>
+
+          <View style={styles.contentContainer}>{children}</View>
         </AnimatedView>
       )
     }
@@ -338,7 +317,7 @@ export function ThemedView({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           />
-          
+
           {variant === 'holographic' && (
             <LinearGradient
               colors={['rgba(255,255,255,0.1)', 'transparent', 'rgba(255,255,255,0.1)']}
@@ -347,17 +326,15 @@ export function ThemedView({
               end={{ x: 1, y: 0 }}
             />
           )}
-          
-          <View style={styles.contentContainer}>
-            {children}
-          </View>
+
+          <View style={styles.contentContainer}>{children}</View>
         </AnimatedView>
       )
     }
 
     if (variant === 'magnetic') {
       return (
-        <AnimatedView 
+        <AnimatedView
           style={[containerStyle, style, animatedStyle]}
           onTouchStart={handleHoverIn}
           onTouchEnd={handleHoverOut}
@@ -372,11 +349,7 @@ export function ThemedView({
   }
 
   if (interactive) {
-    return (
-      <AnimatedPressable onPress={handlePress}>
-        {renderContent()}
-      </AnimatedPressable>
-    )
+    return <AnimatedPressable onPress={handlePress}>{renderContent()}</AnimatedPressable>
   }
 
   if (hoverable) {
@@ -411,86 +384,47 @@ const styles = StyleSheet.create({
 
 // Enhanced view components with 2025 design patterns
 export const GlassView = ({ children, ...props }: Omit<ThemedViewProps, 'variant'>) => (
-  <ThemedView 
-    variant="glass" 
-    animated 
-    borderRadius={16} 
-    blurIntensity={25} 
-    {...props}
-  >
+  <ThemedView variant="glass" animated borderRadius={16} blurIntensity={25} {...props}>
     {children}
   </ThemedView>
 )
 
 export const FloatingView = ({ children, ...props }: Omit<ThemedViewProps, 'variant'>) => (
-  <ThemedView 
-    variant="floating" 
-    animated 
-    elevation={8} 
-    borderRadius={12} 
-    {...props}
-  >
+  <ThemedView variant="floating" animated elevation={8} borderRadius={12} {...props}>
     {children}
   </ThemedView>
 )
 
 export const HolographicView = ({ children, ...props }: Omit<ThemedViewProps, 'variant'>) => (
-  <ThemedView 
-    variant="holographic" 
-    animated 
-    morphing 
-    borderRadius={20} 
-    {...props}
-  >
+  <ThemedView variant="holographic" animated morphing borderRadius={20} {...props}>
     {children}
   </ThemedView>
 )
 
 export const NeonView = ({ children, ...props }: Omit<ThemedViewProps, 'variant'>) => (
-  <ThemedView 
-    variant="neon" 
-    pulsing 
-    borderGlow 
-    borderRadius={12} 
-    {...props}
-  >
+  <ThemedView variant="neon" pulsing borderGlow borderRadius={12} {...props}>
     {children}
   </ThemedView>
 )
 
 export const MagneticView = ({ children, ...props }: Omit<ThemedViewProps, 'variant'>) => (
-  <ThemedView 
-    variant="magnetic" 
-    hoverable 
-    animated 
-    borderRadius={16} 
-    elevation={4} 
-    {...props}
-  >
+  <ThemedView variant="magnetic" hoverable animated borderRadius={16} elevation={4} {...props}>
     {children}
   </ThemedView>
 )
 
-export const InteractiveView = ({ children, onPress, ...props }: Omit<ThemedViewProps, 'interactive'>) => (
-  <ThemedView 
-    interactive 
-    onPress={onPress} 
-    animated 
-    elevation={2} 
-    borderRadius={12} 
-    {...props}
-  >
+export const InteractiveView = ({
+  children,
+  onPress,
+  ...props
+}: Omit<ThemedViewProps, 'interactive'>) => (
+  <ThemedView interactive onPress={onPress} animated elevation={2} borderRadius={12} {...props}>
     {children}
   </ThemedView>
 )
 
 export const PulsingView = ({ children, ...props }: Omit<ThemedViewProps, 'pulsing'>) => (
-  <ThemedView 
-    pulsing 
-    animated 
-    borderRadius={16} 
-    {...props}
-  >
+  <ThemedView pulsing animated borderRadius={16} {...props}>
     {children}
   </ThemedView>
 )

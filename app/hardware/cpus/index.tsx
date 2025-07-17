@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
-import { View, Text, TextInput, ActivityIndicator } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Ionicons } from '@expo/vector-icons'
-import { FlashList } from '@shopify/flash-list'
-import { useTheme } from '@/contexts/ThemeContext'
-import { useCpus } from '@/lib/api/hooks'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useCpus } from '@/lib/api/hooks'
+import { Ionicons } from '@expo/vector-icons'
+import { FlashList } from '@shopify/flash-list'
 import { router } from 'expo-router'
+import React, { useState } from 'react'
+import { ActivityIndicator, Text, TextInput, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function CPUsScreen() {
   const { theme } = useTheme()

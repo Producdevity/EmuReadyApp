@@ -1,11 +1,11 @@
-import React, { type ErrorInfo, type ReactNode } from 'react'
-import { View, Text, StyleSheet, Alert, Pressable } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import Animated, { FadeInUp, SlideInDown } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/contexts/ThemeContext'
-import { Button, Card } from './ui'
+import { Ionicons } from '@expo/vector-icons'
 import * as Linking from 'expo-linking'
+import React, { type ErrorInfo, type ReactNode } from 'react'
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
+import Animated, { FadeInUp, SlideInDown } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { Button, Card } from './ui'
 // Note: Install expo-mail-composer if you want to use email functionality
 // import * as MailComposer from 'expo-mail-composer'
 

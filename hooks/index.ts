@@ -1,11 +1,11 @@
-export { default as useScrollHeaderAnimation } from './useScrollHeaderAnimation'
-export { default as useRefreshableQuery, useRefreshableState } from './useRefreshableQuery'
 export {
+  createStaggeredAnimation,
+  useCardGridAnimation,
   default as useEntranceAnimation,
   useListAnimation,
-  useCardGridAnimation,
-  useSlideInAnimation,
   useQuickAnimation,
-  createStaggeredAnimation,
+  useSlideInAnimation,
 } from './useEntranceAnimation'
 export { default as useOfflineMode } from './useOfflineMode'
+export { default as useRefreshableQuery, useRefreshableState } from './useRefreshableQuery'
+export { default as useScrollHeaderAnimation } from './useScrollHeaderAnimation'

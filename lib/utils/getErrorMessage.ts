@@ -1,4 +1,4 @@
-import { isString, isObjectType } from 'remeda'
+import { isObjectType, isString } from 'remeda'
 
 export function getErrorMessage(error: unknown, fallback?: string): string {
   const fallbackMessage = fallback || 'An unknown error occurred'

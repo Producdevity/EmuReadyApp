@@ -1,31 +1,31 @@
+import { Ionicons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import * as Sharing from 'expo-sharing'
 import React, { useState } from 'react'
 import {
+  Alert,
+  Pressable,
+  RefreshControl,
   SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
-  Alert,
-  Pressable,
-  ScrollView,
-  RefreshControl,
-  StatusBar,
 } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { LinearGradient } from 'expo-linear-gradient'
 import Animated, {
-  FadeInUp,
+  Extrapolation,
   FadeInDown,
-  useSharedValue,
+  FadeInUp,
+  interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  interpolate,
-  Extrapolation,
+  useSharedValue,
 } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import * as Sharing from 'expo-sharing'
 // TODO: Update to use new hooks when implementing emulator details
-import { Button, Card, SkeletonLoader, SkeletonListingCard } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
+import { Button, Card, SkeletonListingCard, SkeletonLoader } from '@/components/ui'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
 

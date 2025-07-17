@@ -1,6 +1,6 @@
-import { Platform, Linking } from 'react-native'
-import * as IntentLauncher from 'expo-intent-launcher'
 import { getErrorMessage } from '@/lib/utils'
+import * as IntentLauncher from 'expo-intent-launcher'
+import { Linking, Platform } from 'react-native'
 
 // Eden emulator package name
 const EDEN_PACKAGE = 'dev.eden.eden_emulator'
@@ -345,12 +345,12 @@ export class EmulatorService {
       // Pass empty string for custom_settings to indicate no custom config
       const intentExtras = {
         title_id: titleId,
-        custom_settings: "", // Empty string instead of null or omitting
+        custom_settings: '', // Empty string instead of null or omitting
       }
-      
+
       // Explicitly log what we're sending to diagnose the issue
       console.log('Intent extras being sent:', JSON.stringify(intentExtras, null, 2))
-      
+
       // Try without specifying className to let Android resolve the correct activity
       await IntentLauncher.startActivityAsync(launchAction, {
         packageName,
@@ -362,7 +362,7 @@ export class EmulatorService {
       console.log('Title-only launch successful!')
     } catch (error) {
       console.error('Title-only launch failed:', error)
-      
+
       throw new Error(
         `Failed to launch emulator (${packageName}) with title only.
         

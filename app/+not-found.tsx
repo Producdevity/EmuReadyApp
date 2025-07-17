@@ -1,38 +1,41 @@
-import React, { useEffect } from 'react'
-import { Link, Stack, useRouter } from 'expo-router'
-import { StyleSheet, View, Dimensions, StatusBar } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Stack, useRouter } from 'expo-router'
+import React, { useEffect } from 'react'
+import { Dimensions, StatusBar, StyleSheet, View } from 'react-native'
 import Animated, {
-  FadeInDown,
-  SlideInUp,
   BounceIn,
-  useSharedValue,
+  Extrapolation,
+  FadeInDown,
+  interpolate,
+  SlideInUp,
   useAnimatedStyle,
-  withSpring,
-  withTiming,
+  useSharedValue,
   withRepeat,
   withSequence,
-  interpolate,
-  Extrapolation,
+  withSpring,
+  withTiming,
 } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import * as Haptics from 'expo-haptics'
 
-import { ThemedText, ThemedView } from '@/components/themed'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
-import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
-import { FluidGradient } from '@/components/ui/FluidGradient'
+import { ThemedView } from '@/components/themed'
+import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
+import { HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import FluidGradient from '@/components/ui/FluidGradient'
+import {
+  AnimatedPressable,
+  FloatingElement,
+  MICRO_SPRING_CONFIG,
+} from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
-const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
 
 export default function NotFoundScreen() {
   const router = useRouter()
   const { theme } = useTheme()
-  
+
   // Enhanced 2025 animation values
   const glitchOffset = useSharedValue(0)
   const buttonPulse = useSharedValue(1)
@@ -40,7 +43,7 @@ export default function NotFoundScreen() {
   const errorFloat = useSharedValue(0)
   const particleFlow = useSharedValue(0)
   const iconRotate = useSharedValue(0)
-  
+
   useEffect(() => {
     // Initialize glitch effect
     glitchOffset.value = withRepeat(
@@ -49,60 +52,46 @@ export default function NotFoundScreen() {
         withTiming(-5, { duration: 100 }),
         withTiming(0, { duration: 100 }),
         withTiming(3, { duration: 100 }),
-        withTiming(0, { duration: 1000 })
+        withTiming(0, { duration: 1000 }),
       ),
       -1,
-      false
+      false,
     )
-    
+
     // Background shift animation
     backgroundShift.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 15000 }),
-        withTiming(0, { duration: 15000 })
-      ),
+      withSequence(withTiming(1, { duration: 15000 }), withTiming(0, { duration: 15000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Error floating animation
     errorFloat.value = withRepeat(
-      withSequence(
-        withTiming(15, { duration: 6000 }),
-        withTiming(-15, { duration: 6000 })
-      ),
+      withSequence(withTiming(15, { duration: 6000 }), withTiming(-15, { duration: 6000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Button pulse animation
     buttonPulse.value = withRepeat(
       withSequence(
         withSpring(1.05, MICRO_SPRING_CONFIG.bouncy),
-        withSpring(1, MICRO_SPRING_CONFIG.smooth)
+        withSpring(1, MICRO_SPRING_CONFIG.smooth),
       ),
       -1,
-      true
+      true,
     )
-    
+
     // Particle flow animation
-    particleFlow.value = withRepeat(
-      withTiming(1, { duration: 10000 }),
-      -1,
-      false
-    )
-    
+    particleFlow.value = withRepeat(withTiming(1, { duration: 10000 }), -1, false)
+
     // Icon rotation animation
-    iconRotate.value = withRepeat(
-      withTiming(360, { duration: 20000 }),
-      -1,
-      false
-    )
-    
+    iconRotate.value = withRepeat(withTiming(360, { duration: 20000 }), -1, false)
+
     // Trigger haptic feedback
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
   }, [])
-  
+
   // Animated styles
   const glitchStyle = useAnimatedStyle(() => ({
     transform: [
@@ -111,32 +100,27 @@ export default function NotFoundScreen() {
       },
     ],
   }))
-  
+
   const backgroundAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateX: interpolate(
-          backgroundShift.value,
-          [0, 1],
-          [-100, 100],
-          Extrapolation.CLAMP
-        ),
+        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
       },
     ],
   }))
-  
+
   const errorFloatStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: errorFloat.value }],
   }))
-  
+
   const buttonPulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonPulse.value }],
   }))
-  
+
   const iconRotateStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${iconRotate.value}deg` }],
   }))
-  
+
   const particleFlowStyle = useAnimatedStyle(() => ({
     transform: [
       {
@@ -144,28 +128,19 @@ export default function NotFoundScreen() {
           particleFlow.value,
           [0, 1],
           [-200, SCREEN_WIDTH + 200],
-          Extrapolation.CLAMP
+          Extrapolation.CLAMP,
         ),
       },
     ],
-    opacity: interpolate(
-      particleFlow.value,
-      [0, 0.2, 0.8, 1],
-      [0, 1, 1, 0],
-      Extrapolation.CLAMP
-    ),
+    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
   }))
-  
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor="transparent"
-          translucent
-        />
-        
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+
         {/* Revolutionary Cosmic Background */}
         <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
           <FluidGradient
@@ -176,13 +151,13 @@ export default function NotFoundScreen() {
             opacity={0.5}
           />
         </Animated.View>
-        
+
         {/* Enhanced Gradient Overlay */}
         <LinearGradient
           colors={['rgba(239, 68, 68, 0.8)', 'rgba(17, 24, 39, 0.95)']}
           style={StyleSheet.absoluteFillObject}
         />
-        
+
         {/* Floating Particles */}
         <Animated.View style={[styles.particle, { top: '20%', left: '10%' }, particleFlowStyle]}>
           <View style={[styles.particleDot, { backgroundColor: '#ef4444' }]} />
@@ -193,79 +168,56 @@ export default function NotFoundScreen() {
         <Animated.View style={[styles.particle, { top: '80%', left: '15%' }, particleFlowStyle]}>
           <View style={[styles.particleDot, { backgroundColor: '#fca5a5' }]} />
         </Animated.View>
-        
+
         {/* 404 Content */}
         <ThemedView style={styles.content}>
-          <Animated.View 
+          <Animated.View
             entering={SlideInUp.delay(200).springify().damping(15)}
             style={errorFloatStyle}
           >
             <FloatingElement intensity={4} duration={3000}>
-              <MagneticView 
-                borderRadius={80}
-                style={styles.iconContainer}
-              >
+              <MagneticView borderRadius={80} style={styles.iconContainer}>
                 <LinearGradient
                   colors={['rgba(239, 68, 68, 0.3)', 'rgba(239, 68, 68, 0.1)']}
                   style={StyleSheet.absoluteFillObject}
                 />
-                <BlurView
-                  intensity={40}
-                  tint="dark"
-                  style={StyleSheet.absoluteFillObject}
-                />
+                <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFillObject} />
                 <Animated.View style={iconRotateStyle}>
                   <Ionicons name="game-controller-outline" size={80} color="#ef4444" />
                 </Animated.View>
               </MagneticView>
             </FloatingElement>
           </Animated.View>
-          
-          <Animated.View 
+
+          <Animated.View
             entering={FadeInDown.delay(400).springify()}
             style={[styles.textContainer, glitchStyle]}
           >
-            <GradientTitle 
-              gradient 
-              animated 
-              variant="bounce"
-              style={styles.errorCode}
-            >
+            <GradientTitle animated style={styles.errorCode}>
               404
             </GradientTitle>
-            
-            <TypewriterText 
-              animated 
-              delay={600}
-              style={styles.errorTitle}
-            >
+
+            <TypewriterText animated delay={600} style={styles.errorTitle}>
               Level Not Found
             </TypewriterText>
-            
-            <GlowText 
-              glow 
-              style={styles.errorMessage}
-            >
+
+            <GlowText style={styles.errorMessage}>
               Looks like this screen got lost in the digital void
             </GlowText>
           </Animated.View>
-          
-          <Animated.View 
+
+          <Animated.View
             entering={BounceIn.delay(800).springify().damping(12)}
             style={[styles.buttonContainer, buttonPulseStyle]}
           >
-            <AnimatedPressable 
+            <AnimatedPressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                 router.replace('/')
               }}
               style={styles.homeButtonWrapper}
             >
-              <HolographicView 
-                morphing 
-                borderRadius={24}
-                style={styles.homeButton}
-              >
+              <HolographicView morphing borderRadius={24} style={styles.homeButton}>
                 <LinearGradient
                   colors={theme.colors.gradients.primary}
                   style={StyleSheet.absoluteFillObject}
@@ -276,8 +228,8 @@ export default function NotFoundScreen() {
                 </View>
               </HolographicView>
             </AnimatedPressable>
-            
-            <AnimatedPressable 
+
+            <AnimatedPressable
               onPress={() => {
                 Haptics.selectionAsync()
                 router.back()

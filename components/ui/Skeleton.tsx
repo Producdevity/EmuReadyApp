@@ -1,15 +1,15 @@
+import { useTheme } from '@/contexts/ThemeContext'
+import { LinearGradient } from 'expo-linear-gradient'
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import Animated, {
-  useSharedValue,
+  interpolate,
   useAnimatedStyle,
-  withTiming,
+  useSharedValue,
   withRepeat,
   withSequence,
-  interpolate,
+  withTiming,
 } from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
-import { useTheme } from '@/contexts/ThemeContext'
 
 interface SkeletonProps {
   width?: number | string
@@ -31,10 +31,7 @@ export function Skeleton({
 
   React.useEffect(() => {
     shimmerValue.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 1000 }), 
-        withTiming(0, { duration: 1000 })
-      ),
+      withSequence(withTiming(1, { duration: 1000 }), withTiming(0, { duration: 1000 })),
       -1,
       false,
     )

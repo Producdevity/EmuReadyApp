@@ -1,44 +1,44 @@
-import React, { useState, useEffect } from 'react'
+import { useAuth } from '@clerk/clerk-expo'
+import { Ionicons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useRouter } from 'expo-router'
+import React, { useEffect, useState } from 'react'
 import {
   Alert,
+  Dimensions,
+  Pressable,
   SafeAreaView,
   ScrollView,
-  Text,
-  View,
-  TextInput,
   StatusBar,
-  Pressable,
-  Dimensions,
   StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native'
-import { useAuth } from '@clerk/clerk-expo'
-import { useRouter } from 'expo-router'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
 import Animated, {
+  BounceIn,
+  Extrapolation,
   FadeInUp,
   SlideInLeft,
-  BounceIn,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withSequence,
-  withTiming,
-  withRepeat,
+  SlideInRight,
+  ZoomIn,
   interpolate,
-  Extrapolation,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
 } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import * as Haptics from 'expo-haptics'
 
+import { GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
+import { HolographicView } from '@/components/themed/ThemedView'
 import { Button, Card, SkeletonLoader } from '@/components/ui'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
+import FluidGradient from '@/components/ui/FluidGradient'
+import { FloatingElement } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useGames, useDevices, useEmulators, useCreateListing } from '@/lib/api/hooks'
-import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
-import { FluidGradient } from '@/components/ui/FluidGradient'
-import type { Game, Device } from '@/types'
+import { useCreateListing, useDevices, useEmulators, useGames } from '@/lib/api/hooks'
+import type { Device, Game } from '@/types'
 
 interface FormData {
   gameId: string | null
@@ -74,58 +74,34 @@ export default function CreateScreen() {
   const fadeAnim = useSharedValue(1)
   const progressAnim = useSharedValue(0.2)
   const heroGlow = useSharedValue(0)
-  const progressPulse = useSharedValue(1)
   const backgroundShift = useSharedValue(0)
   const stepFloat = useSharedValue(0)
   const particleFlow = useSharedValue(0)
-  
+
   useEffect(() => {
     // Initialize cosmic background animation
     backgroundShift.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 12000 }),
-        withTiming(0, { duration: 12000 })
-      ),
+      withSequence(withTiming(1, { duration: 12000 }), withTiming(0, { duration: 12000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Hero glow animation
     heroGlow.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2500 }),
-        withTiming(0.4, { duration: 2500 })
-      ),
+      withSequence(withTiming(1, { duration: 2500 }), withTiming(0.4, { duration: 2500 })),
       -1,
-      true
+      true,
     )
-    
-    // Progress pulse animation
-    progressPulse.value = withRepeat(
-      withSequence(
-        withSpring(1.05, MICRO_SPRING_CONFIG.bouncy),
-        withSpring(1, MICRO_SPRING_CONFIG.smooth)
-      ),
-      -1,
-      true
-    )
-    
+
     // Step floating animation
     stepFloat.value = withRepeat(
-      withSequence(
-        withTiming(8, { duration: 5000 }),
-        withTiming(-8, { duration: 5000 })
-      ),
+      withSequence(withTiming(8, { duration: 5000 }), withTiming(-8, { duration: 5000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Particle flow animation
-    particleFlow.value = withRepeat(
-      withTiming(1, { duration: 8000 }),
-      -1,
-      false
-    )
+    particleFlow.value = withRepeat(withTiming(1, { duration: 8000 }), -1, false)
   }, [])
 
   const steps = [
@@ -798,7 +774,7 @@ export default function CreateScreen() {
 
             <Card style={{ overflow: 'hidden' }}>
               <LinearGradient
-                colors={theme.colors.gradients.card as [string, string, ...string[]]}
+                colors={theme.colors.gradients.card}
                 style={{ padding: theme.spacing.lg }}
               >
                 <Text
@@ -928,6 +904,32 @@ export default function CreateScreen() {
     }
   }
 
+  // Animated styles - must be defined before any conditional returns
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(backgroundShift.value, [0, 1], [-30, 30], Extrapolation.CLAMP),
+      },
+    ],
+  }))
+
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+
+  const stepFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: stepFloat.value }],
+  }))
+
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(particleFlow.value, [0, 1], [-150, 400], Extrapolation.CLAMP),
+      },
+    ],
+    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
+  }))
+
   if (!isSignedIn) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -947,7 +949,7 @@ export default function CreateScreen() {
           <Animated.View entering={ZoomIn.springify()}>
             <Card style={{ overflow: 'hidden', width: '100%' }}>
               <LinearGradient
-                colors={theme.colors.gradients.primary as [string, string, ...string[]]}
+                colors={theme.colors.gradients.primary}
                 style={{
                   padding: theme.spacing.xxl,
                   alignItems: 'center',
@@ -1006,51 +1008,6 @@ export default function CreateScreen() {
     )
   }
 
-  // Animated styles
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(
-          backgroundShift.value,
-          [0, 1],
-          [-30, 30],
-          Extrapolation.CLAMP
-        ),
-      },
-    ],
-  }))
-  
-  const heroGlowStyle = useAnimatedStyle(() => ({
-    opacity: heroGlow.value,
-  }))
-  
-  const progressPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: progressPulse.value }],
-  }))
-  
-  const stepFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: stepFloat.value }],
-  }))
-  
-  const particleFlowStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(
-          particleFlow.value,
-          [0, 1],
-          [-150, 400],
-          Extrapolation.CLAMP
-        ),
-      },
-    ],
-    opacity: interpolate(
-      particleFlow.value,
-      [0, 0.2, 0.8, 1],
-      [0, 1, 1, 0],
-      Extrapolation.CLAMP
-    ),
-  }))
-
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <StatusBar
@@ -1069,10 +1026,10 @@ export default function CreateScreen() {
           opacity={0.2}
         />
       </Animated.View>
-      
+
       {/* Enhanced Gradient Overlay */}
       <LinearGradient
-        colors={theme.colors.gradients.hero as [string, string, ...string[]]}
+        colors={theme.colors.gradients.hero}
         style={{
           position: 'absolute',
           top: 0,
@@ -1082,7 +1039,7 @@ export default function CreateScreen() {
           opacity: 0.8,
         }}
       />
-      
+
       {/* Floating Particles */}
       <Animated.View style={[styles.particle, { top: '15%' }, particleFlowStyle]}>
         <View style={[styles.particleDot, { backgroundColor: `${theme.colors.primary}50` }]} />
@@ -1095,258 +1052,210 @@ export default function CreateScreen() {
       </Animated.View>
 
       <SafeAreaView style={{ flex: 1 }}>
-
-      <ScrollView
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: theme.spacing.xxxl }}
-      >
-        {/* Revolutionary Hero Header */}
-        <FloatingElement intensity={4} duration={5000}>
-          <View style={styles.headerContainer}>
-            {/* Hero glow effect */}
-            <Animated.View style={[styles.headerGlow, heroGlowStyle]}>
-              <LinearGradient
-                colors={[
-                  'transparent',
-                  `${theme.colors.primary}40`,
-                  'transparent'
-                ]}
-                style={StyleSheet.absoluteFillObject}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-              />
-            </Animated.View>
-            
-            <Animated.View entering={SlideInLeft.delay(200).springify().damping(15)}>
-              <GradientTitle 
-                gradient 
-                animated 
-                variant="bounce"
-                style={styles.heroTitle}
-              >
-                Create Listing
-              </GradientTitle>
-              
-              <TypewriterText 
-                animated 
-                delay={300}
-                style={styles.heroSubtitle}
-              >
-                Share your emulation performance data with the community using next-gen precision
-              </TypewriterText>
-            </Animated.View>
-          </View>
-        </FloatingElement>
-
-        {/* Revolutionary Progress Section */}
-        <Animated.View
-          entering={BounceIn.delay(400).springify().damping(12)}
-          style={stepFloatStyle}
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: theme.spacing.xxxl }}
         >
-          <FloatingElement intensity={2} duration={6000}>
-            <View style={styles.progressContainer}>
-              <HolographicView 
-                morphing 
-                borderRadius={24}
-                style={styles.progressCard}
-              >
-                <FluidGradient
-                  variant="aurora"
-                  borderRadius={24}
-                  animated
-                  speed="normal"
+          {/* Revolutionary Hero Header */}
+          <FloatingElement intensity={4} duration={5000}>
+            <View style={styles.headerContainer}>
+              {/* Hero glow effect */}
+              <Animated.View style={[styles.headerGlow, heroGlowStyle]}>
+                <LinearGradient
+                  colors={['transparent', `${theme.colors.primary}40`, 'transparent']}
                   style={StyleSheet.absoluteFillObject}
-                  opacity={0.15}
-                />
-                
-                <View style={styles.progressContent}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                marginBottom: theme.spacing.md,
-              }}
-            >
-              {steps.map((step) => (
-                <View
-                  key={step.step}
-                  style={{
-                    alignItems: 'center',
-                    flex: 1,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 24,
-                      backgroundColor:
-                        currentStep >= step.step
-                          ? theme.colors.primary
-                          : currentStep === step.step
-                            ? theme.colors.primary
-                            : theme.colors.surface,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: theme.spacing.sm,
-                      borderWidth: 2,
-                      borderColor:
-                        currentStep >= step.step ? theme.colors.primary : theme.colors.border,
-                    }}
-                  >
-                    <Ionicons
-                      name={step.icon as any}
-                      size={20}
-                      color={
-                        currentStep >= step.step ? theme.colors.textInverse : theme.colors.textMuted
-                      }
-                    />
-                  </View>
-                  <Text
-                    style={{
-                      fontSize: theme.typography.fontSize.xs,
-                      fontWeight:
-                        currentStep === step.step
-                          ? theme.typography.fontWeight.semibold
-                          : theme.typography.fontWeight.medium,
-                      color: currentStep === step.step ? theme.colors.text : theme.colors.textMuted,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {step.title}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Progress Line */}
-            <View
-              style={{
-                height: 4,
-                backgroundColor: theme.colors.surface,
-                borderRadius: 2,
-                overflow: 'hidden',
-              }}
-            >
-              <Animated.View
-                style={[
-                  {
-                    height: '100%',
-                    backgroundColor: theme.colors.primary,
-                    borderRadius: 2,
-                  },
-                  progressAnimatedStyle,
-                ]}
-              />
-                  </View>
-                </View>
-              </HolographicView>
-            </View>
-          </FloatingElement>
-        </Animated.View>
-
-        {/* Form Content */}
-        <Animated.View
-          style={[
-            {
-              paddingHorizontal: theme.spacing.lg,
-              marginBottom: theme.spacing.xl,
-            },
-            fadeAnimatedStyle,
-          ]}
-        >
-          <Card style={{ overflow: 'hidden' }}>
-            <View style={{ padding: theme.spacing.lg }}>{renderStepContent()}</View>
-          </Card>
-        </Animated.View>
-
-        {/* Navigation */}
-        <View
-          style={{
-            paddingHorizontal: theme.spacing.lg,
-            marginBottom: theme.spacing.xl,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: 'row',
-              gap: theme.spacing.md,
-            }}
-          >
-            {currentStep > 1 && (
-              <Animated.View style={{ flex: 1 }} entering={SlideInLeft.springify()}>
-                <Button
-                  title="Back"
-                  variant="outline"
-                  onPress={handleBack}
-                  leftIcon={<Ionicons name="arrow-back" size={16} color={theme.colors.primary} />}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
                 />
               </Animated.View>
-            )}
 
-            <Animated.View style={{ flex: 1 }} entering={SlideInRight.springify()}>
-              {currentStep < 5 ? (
-                <Pressable
-                  onPress={handleNext}
-                  disabled={!canProceed()}
-                  style={({ pressed }) => [
-                    {
-                      borderRadius: theme.borderRadius.lg,
-                      opacity: !canProceed() ? 0.5 : pressed ? 0.8 : 1,
-                      transform: [{ scale: pressed ? 0.98 : 1 }],
-                      overflow: 'hidden',
-                    },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={theme.colors.gradients.primary as [string, string, ...string[]]}
-                    style={{
-                      paddingVertical: theme.spacing.md,
-                      paddingHorizontal: theme.spacing.lg,
-                      alignItems: 'center',
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      gap: theme.spacing.sm,
-                    }}
-                  >
-                    <Text
+              <Animated.View entering={SlideInLeft.delay(200).springify().damping(15)}>
+                <GradientTitle animated style={styles.heroTitle}>
+                  Create Listing
+                </GradientTitle>
+
+                <TypewriterText animated delay={300} style={styles.heroSubtitle}>
+                  Share your emulation performance data with the community using next-gen precision
+                </TypewriterText>
+              </Animated.View>
+            </View>
+          </FloatingElement>
+
+          {/* Revolutionary Progress Section */}
+          <Animated.View
+            entering={BounceIn.delay(400).springify().damping(12)}
+            style={stepFloatStyle}
+          >
+            <FloatingElement intensity={2} duration={6000}>
+              <View style={styles.progressContainer}>
+                <HolographicView morphing borderRadius={24} style={styles.progressCard}>
+                  <FluidGradient
+                    variant="aurora"
+                    borderRadius={24}
+                    animated
+                    speed="normal"
+                    style={StyleSheet.absoluteFillObject}
+                    opacity={0.15}
+                  />
+
+                  <View style={styles.progressContent}>
+                    <View
                       style={{
-                        fontSize: theme.typography.fontSize.md,
-                        fontWeight: theme.typography.fontWeight.semibold,
-                        color: theme.colors.textInverse,
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        marginBottom: theme.spacing.md,
                       }}
                     >
-                      Next
-                    </Text>
-                    <Ionicons name="arrow-forward" size={16} color={theme.colors.textInverse} />
-                  </LinearGradient>
-                </Pressable>
-              ) : (
-                <Pressable
-                  onPress={handleSubmit}
-                  disabled={createListingMutation.isPending}
-                  style={({ pressed }) => [
-                    {
-                      borderRadius: theme.borderRadius.lg,
-                      opacity: createListingMutation.isPending ? 0.5 : pressed ? 0.8 : 1,
-                      transform: [{ scale: pressed ? 0.98 : 1 }],
-                      overflow: 'hidden',
-                    },
-                  ]}
-                >
-                  <LinearGradient
-                    colors={theme.colors.gradients.gaming as [string, string, ...string[]]}
-                    style={{
-                      paddingVertical: theme.spacing.md,
-                      paddingHorizontal: theme.spacing.lg,
-                      alignItems: 'center',
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      gap: theme.spacing.sm,
-                    }}
+                      {steps.map((step) => (
+                        <View
+                          key={step.step}
+                          style={{
+                            alignItems: 'center',
+                            flex: 1,
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: 48,
+                              height: 48,
+                              borderRadius: 24,
+                              backgroundColor:
+                                currentStep >= step.step
+                                  ? theme.colors.primary
+                                  : currentStep === step.step
+                                    ? theme.colors.primary
+                                    : theme.colors.surface,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginBottom: theme.spacing.sm,
+                              borderWidth: 2,
+                              borderColor:
+                                currentStep >= step.step
+                                  ? theme.colors.primary
+                                  : theme.colors.border,
+                            }}
+                          >
+                            <Ionicons
+                              name={step.icon as any}
+                              size={20}
+                              color={
+                                currentStep >= step.step
+                                  ? theme.colors.textInverse
+                                  : theme.colors.textMuted
+                              }
+                            />
+                          </View>
+                          <Text
+                            style={{
+                              fontSize: theme.typography.fontSize.xs,
+                              fontWeight:
+                                currentStep === step.step
+                                  ? theme.typography.fontWeight.semibold
+                                  : theme.typography.fontWeight.medium,
+                              color:
+                                currentStep === step.step
+                                  ? theme.colors.text
+                                  : theme.colors.textMuted,
+                              textAlign: 'center',
+                            }}
+                          >
+                            {step.title}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+
+                    {/* Progress Line */}
+                    <View
+                      style={{
+                        height: 4,
+                        backgroundColor: theme.colors.surface,
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <Animated.View
+                        style={[
+                          {
+                            height: '100%',
+                            backgroundColor: theme.colors.primary,
+                            borderRadius: 2,
+                          },
+                          progressAnimatedStyle,
+                        ]}
+                      />
+                    </View>
+                  </View>
+                </HolographicView>
+              </View>
+            </FloatingElement>
+          </Animated.View>
+
+          {/* Form Content */}
+          <Animated.View
+            style={[
+              {
+                paddingHorizontal: theme.spacing.lg,
+                marginBottom: theme.spacing.xl,
+              },
+              fadeAnimatedStyle,
+            ]}
+          >
+            <Card style={{ overflow: 'hidden' }}>
+              <View style={{ padding: theme.spacing.lg }}>{renderStepContent()}</View>
+            </Card>
+          </Animated.View>
+
+          {/* Navigation */}
+          <View
+            style={{
+              paddingHorizontal: theme.spacing.lg,
+              marginBottom: theme.spacing.xl,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                gap: theme.spacing.md,
+              }}
+            >
+              {currentStep > 1 && (
+                <Animated.View style={{ flex: 1 }} entering={SlideInLeft.springify()}>
+                  <Button
+                    title="Back"
+                    variant="outline"
+                    onPress={handleBack}
+                    leftIcon={<Ionicons name="arrow-back" size={16} color={theme.colors.primary} />}
+                  />
+                </Animated.View>
+              )}
+
+              <Animated.View style={{ flex: 1 }} entering={SlideInRight.springify()}>
+                {currentStep < 5 ? (
+                  <Pressable
+                    onPress={handleNext}
+                    disabled={!canProceed()}
+                    style={({ pressed }) => [
+                      {
+                        borderRadius: theme.borderRadius.lg,
+                        opacity: !canProceed() ? 0.5 : pressed ? 0.8 : 1,
+                        transform: [{ scale: pressed ? 0.98 : 1 }],
+                        overflow: 'hidden',
+                      },
+                    ]}
                   >
-                    {createListingMutation.isPending ? (
+                    <LinearGradient
+                      colors={theme.colors.gradients.primary}
+                      style={{
+                        paddingVertical: theme.spacing.md,
+                        paddingHorizontal: theme.spacing.lg,
+                        alignItems: 'center',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        gap: theme.spacing.sm,
+                      }}
+                    >
                       <Text
                         style={{
                           fontSize: theme.typography.fontSize.md,
@@ -1354,15 +1263,36 @@ export default function CreateScreen() {
                           color: theme.colors.textInverse,
                         }}
                       >
-                        Creating...
+                        Next
                       </Text>
-                    ) : (
-                      <>
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={20}
-                          color={theme.colors.textInverse}
-                        />
+                      <Ionicons name="arrow-forward" size={16} color={theme.colors.textInverse} />
+                    </LinearGradient>
+                  </Pressable>
+                ) : (
+                  <Pressable
+                    onPress={handleSubmit}
+                    disabled={createListingMutation.isPending}
+                    style={({ pressed }) => [
+                      {
+                        borderRadius: theme.borderRadius.lg,
+                        opacity: createListingMutation.isPending ? 0.5 : pressed ? 0.8 : 1,
+                        transform: [{ scale: pressed ? 0.98 : 1 }],
+                        overflow: 'hidden',
+                      },
+                    ]}
+                  >
+                    <LinearGradient
+                      colors={theme.colors.gradients.gaming}
+                      style={{
+                        paddingVertical: theme.spacing.md,
+                        paddingHorizontal: theme.spacing.lg,
+                        alignItems: 'center',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        gap: theme.spacing.sm,
+                      }}
+                    >
+                      {createListingMutation.isPending ? (
                         <Text
                           style={{
                             fontSize: theme.typography.fontSize.md,
@@ -1370,18 +1300,35 @@ export default function CreateScreen() {
                             color: theme.colors.textInverse,
                           }}
                         >
-                          Create Listing
+                          Creating...
                         </Text>
-                      </>
-                    )}
-                  </LinearGradient>
-                </Pressable>
-              )}
-            </Animated.View>
+                      ) : (
+                        <>
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={20}
+                            color={theme.colors.textInverse}
+                          />
+                          <Text
+                            style={{
+                              fontSize: theme.typography.fontSize.md,
+                              fontWeight: theme.typography.fontWeight.semibold,
+                              color: theme.colors.textInverse,
+                            }}
+                          >
+                            Create Listing
+                          </Text>
+                        </>
+                      )}
+                    </LinearGradient>
+                  </Pressable>
+                )}
+              </Animated.View>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   )
 }
 

@@ -1,6 +1,6 @@
-import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import React from 'react'
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Card from './Card'
 
 interface SearchSuggestionsProps {

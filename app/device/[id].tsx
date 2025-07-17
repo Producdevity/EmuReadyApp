@@ -1,47 +1,37 @@
-import React, { useState, useEffect } from 'react'
+import { Ionicons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import * as Sharing from 'expo-sharing'
+import React, { useEffect, useState } from 'react'
 import {
+  Alert,
+  Dimensions,
+  Pressable,
+  RefreshControl,
   SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
-  Alert,
-  Pressable,
-  ScrollView,
-  RefreshControl,
-  StatusBar,
-  Dimensions,
-  ActivityIndicator,
 } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
 import Animated, {
-  FadeInUp,
+  Extrapolation,
   FadeInDown,
-  SlideInRight,
-  BounceIn,
-  ZoomIn,
-  useSharedValue,
+  FadeInUp,
+  interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  withSpring,
-  withTiming,
+  useSharedValue,
   withRepeat,
   withSequence,
-  interpolate,
-  runOnJS,
-  Extrapolation,
+  withSpring,
+  withTiming,
 } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import * as Sharing from 'expo-sharing'
-import * as Haptics from 'expo-haptics'
 // TODO: Update to use new hooks when implementing device details
-import { Button, Card, SkeletonLoader, SkeletonListingCard } from '@/components/ui'
 import { ListingCard } from '@/components/cards'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
-import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
-import { FluidGradient } from '@/components/ui/FluidGradient'
+import { Button, Card, SkeletonListingCard, SkeletonLoader } from '@/components/ui'
+import { MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
 
@@ -56,7 +46,7 @@ export default function DeviceDetailScreen() {
   const [selectedTab, setSelectedTab] = useState<'overview' | 'listings'>('overview')
   const [refreshing, setRefreshing] = useState(false)
   const scrollY = useSharedValue(0)
-  
+
   // Enhanced 2025 animation values
   const heroGlow = useSharedValue(0)
   const deviceFloat = useSharedValue(0)
@@ -64,54 +54,41 @@ export default function DeviceDetailScreen() {
   const tabScale = useSharedValue(1)
   const specPulse = useSharedValue(1)
   const particleFlow = useSharedValue(0)
-  
+
   useEffect(() => {
     // Initialize cosmic background animation
     backgroundShift.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 20000 }),
-        withTiming(0, { duration: 20000 })
-      ),
+      withSequence(withTiming(1, { duration: 20000 }), withTiming(0, { duration: 20000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Hero glow animation
     heroGlow.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 3000 }),
-        withTiming(0.3, { duration: 3000 })
-      ),
+      withSequence(withTiming(1, { duration: 3000 }), withTiming(0.3, { duration: 3000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Device floating animation
     deviceFloat.value = withRepeat(
-      withSequence(
-        withTiming(10, { duration: 5000 }),
-        withTiming(-10, { duration: 5000 })
-      ),
+      withSequence(withTiming(10, { duration: 5000 }), withTiming(-10, { duration: 5000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Spec pulse animation
     specPulse.value = withRepeat(
       withSequence(
         withSpring(1.02, MICRO_SPRING_CONFIG.bouncy),
-        withSpring(1, MICRO_SPRING_CONFIG.smooth)
+        withSpring(1, MICRO_SPRING_CONFIG.smooth),
       ),
       -1,
-      true
+      true,
     )
-    
+
     // Particle flow animation
-    particleFlow.value = withRepeat(
-      withTiming(1, { duration: 12000 }),
-      -1,
-      false
-    )
+    particleFlow.value = withRepeat(withTiming(1, { duration: 12000 }), -1, false)
   }, [])
 
   // TODO: Replace with proper API hooks
@@ -157,48 +134,38 @@ export default function DeviceDetailScreen() {
       Extrapolation.CLAMP,
     )
 
-    const scale = interpolate(
-      scrollY.value,
-      [0, HEADER_HEIGHT],
-      [1, 0.9],
-      Extrapolation.CLAMP,
-    )
+    const scale = interpolate(scrollY.value, [0, HEADER_HEIGHT], [1, 0.9], Extrapolation.CLAMP)
 
     return {
       opacity,
       transform: [{ translateY }, { scale }],
     }
   })
-  
+
   const backgroundAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
-        translateX: interpolate(
-          backgroundShift.value,
-          [0, 1],
-          [-80, 80],
-          Extrapolation.CLAMP
-        ),
+        translateX: interpolate(backgroundShift.value, [0, 1], [-80, 80], Extrapolation.CLAMP),
       },
     ],
   }))
-  
+
   const heroGlowStyle = useAnimatedStyle(() => ({
     opacity: heroGlow.value,
   }))
-  
+
   const deviceFloatStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: deviceFloat.value }],
   }))
-  
+
   const tabScaleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: tabScale.value }],
   }))
-  
+
   const specPulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: specPulse.value }],
   }))
-  
+
   const particleFlowStyle = useAnimatedStyle(() => ({
     transform: [
       {
@@ -206,16 +173,11 @@ export default function DeviceDetailScreen() {
           particleFlow.value,
           [0, 1],
           [-200, SCREEN_WIDTH + 200],
-          Extrapolation.CLAMP
+          Extrapolation.CLAMP,
         ),
       },
     ],
-    opacity: interpolate(
-      particleFlow.value,
-      [0, 0.2, 0.8, 1],
-      [0, 1, 1, 0],
-      Extrapolation.CLAMP
-    ),
+    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
   }))
 
   const onRefresh = async () => {

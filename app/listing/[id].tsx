@@ -1,47 +1,64 @@
-import React, { useState } from 'react'
-import {
-  View,
-  Text,
-  ScrollView,
-  RefreshControl,
-  StatusBar,
-  Pressable,
-  Dimensions,
-  Share,
-  Alert,
-  TextInput,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import React, { useEffect, useState } from 'react'
+import {
+  Alert,
+  Dimensions,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Share,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 import Animated, {
+  Extrapolation,
   FadeInDown,
   FadeInUp,
-  useSharedValue,
+  interpolate,
+  runOnJS,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  interpolate,
-  Extrapolation,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
   ZoomIn,
 } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { useTheme } from '@/contexts/ThemeContext'
-import { useAuth } from '@/lib/auth/clerk'
+import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
+import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import { Button, CachedImage, Card, EmptyState, SkeletonLoader } from '@/components/ui'
+import FluidGradient from '@/components/ui/FluidGradient'
 import {
+  AnimatedPressable,
+  FloatingElement,
+  MICRO_SPRING_CONFIG,
+} from '@/components/ui/MicroInteractions'
+import ReportButton from '@/components/ui/ReportButton'
+import { useTheme } from '@/contexts/ThemeContext'
+import { getStaggerDelay } from '@/lib/animation/config'
+import {
+  useCreateComment,
   useListingById,
   useListingComments,
-  useVoteListing,
-  useCreateComment,
   useUserVote,
+  useVoteListing,
 } from '@/lib/api/hooks'
-import { CachedImage, Button, Card, EmptyState, SkeletonLoader } from '@/components/ui'
-import ReportButton from '@/components/ui/ReportButton'
+import { useAuth } from '@/lib/auth/clerk'
 import type { Comment } from '@/types'
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.4
+const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
 
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -55,12 +72,61 @@ export default function ListingDetailScreen() {
 
   const scrollY = useSharedValue(0)
 
+  // Enhanced 2025 animation values
+  const heroGlow = useSharedValue(0)
+  const listingFloat = useSharedValue(0)
+  const backgroundShift = useSharedValue(0)
+  const voteScale = useSharedValue(1)
+  const statsFloat = useSharedValue(0)
+  const particleFlow = useSharedValue(0)
+  const performanceGlow = useSharedValue(0)
+
   // API hooks
   const listingQuery = useListingById({ id: id! }, { enabled: !!id })
   const commentsQuery = useListingComments({ listingId: id! }, { enabled: !!id })
   const userVoteQuery = useUserVote({ listingId: id! }, { enabled: !!id && isSignedIn })
   const voteMutation = useVoteListing()
   const addCommentMutation = useCreateComment()
+
+  useEffect(() => {
+    // Initialize cosmic background animation
+    backgroundShift.value = withRepeat(
+      withSequence(withTiming(1, { duration: 18000 }), withTiming(0, { duration: 18000 })),
+      -1,
+      true,
+    )
+
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(withTiming(1, { duration: 3500 }), withTiming(0.3, { duration: 3500 })),
+      -1,
+      true,
+    )
+
+    // Listing floating animation
+    listingFloat.value = withRepeat(
+      withSequence(withTiming(15, { duration: 5500 }), withTiming(-15, { duration: 5500 })),
+      -1,
+      true,
+    )
+
+    // Stats floating animation
+    statsFloat.value = withRepeat(
+      withSequence(withTiming(8, { duration: 4500 }), withTiming(-8, { duration: 4500 })),
+      -1,
+      true,
+    )
+
+    // Particle flow animation
+    particleFlow.value = withRepeat(withTiming(1, { duration: 15000 }), -1, false)
+
+    // Performance glow animation
+    performanceGlow.value = withRepeat(
+      withSequence(withTiming(1, { duration: 2000 }), withTiming(0.5, { duration: 2000 })),
+      -1,
+      true,
+    )
+  }, [])
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -252,9 +318,95 @@ export default function ListingDetailScreen() {
 
   const listing = listingQuery.data
 
+  // Animated styles for cosmic background
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
+      },
+    ],
+  }))
+
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+
+  const listingFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: listingFloat.value }],
+  }))
+
+  const voteScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: voteScale.value }],
+  }))
+
+  const statsFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: statsFloat.value }],
+  }))
+
+  const performanceGlowStyle = useAnimatedStyle(() => ({
+    opacity: performanceGlow.value,
+  }))
+
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          particleFlow.value,
+          [0, 1],
+          [-200, SCREEN_WIDTH + 200],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
+  }))
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+
+      {/* Revolutionary Cosmic Background */}
+      <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
+        <FluidGradient
+          variant="aurora"
+          animated
+          speed="slow"
+          style={StyleSheet.absoluteFillObject}
+          opacity={0.3}
+        />
+      </Animated.View>
+
+      {/* Floating Particles */}
+      <Animated.View style={[{ position: 'absolute', top: '25%' }, particleFlowStyle]}>
+        <View
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: 7,
+            backgroundColor: `${theme.colors.primary}30`,
+          }}
+        />
+      </Animated.View>
+      <Animated.View style={[{ position: 'absolute', top: '55%' }, particleFlowStyle]}>
+        <View
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: `${theme.colors.secondary}30`,
+          }}
+        />
+      </Animated.View>
+      <Animated.View style={[{ position: 'absolute', top: '85%' }, particleFlowStyle]}>
+        <View
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: 6,
+            backgroundColor: `${theme.colors.accent}30`,
+          }}
+        />
+      </Animated.View>
 
       {/* Hero Header */}
       <Animated.View
@@ -465,7 +617,7 @@ export default function ListingDetailScreen() {
         >
           <Card style={{ marginBottom: theme.spacing.lg, overflow: 'hidden' }}>
             <LinearGradient
-              colors={theme.colors.gradients.card as [string, string, ...string[]]}
+              colors={theme.colors.gradients.card}
               style={{ padding: theme.spacing.lg }}
             >
               <Text
@@ -555,21 +707,31 @@ export default function ListingDetailScreen() {
             </LinearGradient>
           </Card>
 
-          {/* Performance Notes */}
+          {/* Enhanced Performance Notes */}
           {listing?.notes && (
-            <Card style={{ marginBottom: theme.spacing.lg }}>
-              <View style={{ padding: theme.spacing.lg }}>
-                <Text
+            <HolographicView
+              morphing
+              borderRadius={theme.borderRadius.xl}
+              style={{ marginBottom: theme.spacing.lg }}
+            >
+              <GlassView
+                borderRadius={theme.borderRadius.xl}
+                blurIntensity={20}
+                style={{ padding: theme.spacing.lg }}
+              >
+                <GradientTitle
+                  animated
                   style={{
                     fontSize: theme.typography.fontSize.xl,
                     fontWeight: theme.typography.fontWeight.bold,
-                    color: theme.colors.text,
                     marginBottom: theme.spacing.md,
                   }}
                 >
                   Performance Notes
-                </Text>
-                <Text
+                </GradientTitle>
+                <TypewriterText
+                  animated
+                  delay={700}
                   style={{
                     fontSize: theme.typography.fontSize.md,
                     color: theme.colors.textSecondary,
@@ -577,18 +739,23 @@ export default function ListingDetailScreen() {
                   }}
                 >
                   {listing.notes}
-                </Text>
-              </View>
-            </Card>
+                </TypewriterText>
+              </GlassView>
+            </HolographicView>
           )}
 
-          {/* Voting Section */}
-          <Card style={{ marginBottom: theme.spacing.lg, overflow: 'hidden' }}>
+          {/* Enhanced Voting Section - Gamepad Optimized */}
+          <HolographicView
+            morphing
+            borderRadius={theme.borderRadius.xl}
+            style={{ marginBottom: theme.spacing.lg, overflow: 'hidden' }}
+          >
             <LinearGradient
-              colors={theme.colors.gradients.primary as [string, string, ...string[]]}
+              colors={theme.colors.gradients.primary}
               style={{ padding: theme.spacing.lg }}
             >
-              <Text
+              <GradientTitle
+                animated
                 style={{
                   fontSize: theme.typography.fontSize.xl,
                   fontWeight: theme.typography.fontWeight.bold,
@@ -598,7 +765,7 @@ export default function ListingDetailScreen() {
                 }}
               >
                 Was this helpful?
-              </Text>
+              </GradientTitle>
 
               <View
                 style={{
@@ -607,72 +774,106 @@ export default function ListingDetailScreen() {
                   alignItems: 'center',
                 }}
               >
-                <Pressable
-                  onPress={() => handleVote(true)}
-                  disabled={voteMutation.isPending}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    paddingHorizontal: theme.spacing.lg,
-                    paddingVertical: theme.spacing.md,
-                    borderRadius: theme.borderRadius.lg,
-                    opacity: userVoteQuery.data === true ? 1 : 0.7,
+                <AnimatedPressable
+                  onPress={() => {
+                    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+                    voteScale.value = withSequence(
+                      withSpring(0.95, MICRO_SPRING_CONFIG.instant),
+                      withSpring(1, MICRO_SPRING_CONFIG.bouncy),
+                    )
+                    handleVote(true)
                   }}
+                  disabled={voteMutation.isPending}
                 >
-                  <Ionicons
-                    name={userVoteQuery.data === true ? 'thumbs-up' : 'thumbs-up-outline'}
-                    size={24}
-                    color={theme.colors.textInverse}
-                  />
-                  <Text
-                    style={{
-                      fontSize: theme.typography.fontSize.lg,
-                      fontWeight: theme.typography.fontWeight.semibold,
-                      color: theme.colors.textInverse,
-                      marginLeft: theme.spacing.sm,
-                    }}
-                  >
-                    {listing?.upVotes || 0}
-                  </Text>
-                </Pressable>
+                  <Animated.View style={voteScaleStyle}>
+                    <MagneticView
+                      borderRadius={theme.borderRadius.lg}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        paddingHorizontal: theme.spacing.lg,
+                        paddingVertical: theme.spacing.md,
+                        opacity: userVoteQuery.data === true ? 1 : 0.7,
+                      }}
+                    >
+                      <FloatingElement intensity={1} duration={2000}>
+                        <Ionicons
+                          name={userVoteQuery.data === true ? 'thumbs-up' : 'thumbs-up-outline'}
+                          size={24}
+                          color={theme.colors.textInverse}
+                        />
+                      </FloatingElement>
+                      <GlowText
+                        style={{
+                          fontSize: theme.typography.fontSize.lg,
+                          fontWeight: theme.typography.fontWeight.semibold,
+                          color: theme.colors.textInverse,
+                          marginLeft: theme.spacing.sm,
+                        }}
+                      >
+                        {listing?.upVotes || 0}
+                      </GlowText>
+                    </MagneticView>
+                  </Animated.View>
+                </AnimatedPressable>
 
-                <Pressable
-                  onPress={() => handleVote(false)}
-                  disabled={voteMutation.isPending}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    paddingHorizontal: theme.spacing.lg,
-                    paddingVertical: theme.spacing.md,
-                    borderRadius: theme.borderRadius.lg,
-                    opacity: userVoteQuery.data === false ? 1 : 0.7,
+                <AnimatedPressable
+                  onPress={() => {
+                    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+                    voteScale.value = withSequence(
+                      withSpring(0.95, MICRO_SPRING_CONFIG.instant),
+                      withSpring(1, MICRO_SPRING_CONFIG.bouncy),
+                    )
+                    handleVote(false)
                   }}
+                  disabled={voteMutation.isPending}
                 >
-                  <Ionicons
-                    name={userVoteQuery.data === false ? 'thumbs-down' : 'thumbs-down-outline'}
-                    size={24}
-                    color={theme.colors.textInverse}
-                  />
-                  <Text
-                    style={{
-                      fontSize: theme.typography.fontSize.lg,
-                      fontWeight: theme.typography.fontWeight.semibold,
-                      color: theme.colors.textInverse,
-                      marginLeft: theme.spacing.sm,
-                    }}
-                  >
-                    {listing?.downVotes || 0}
-                  </Text>
-                </Pressable>
+                  <Animated.View style={voteScaleStyle}>
+                    <MagneticView
+                      borderRadius={theme.borderRadius.lg}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        paddingHorizontal: theme.spacing.lg,
+                        paddingVertical: theme.spacing.md,
+                        opacity: userVoteQuery.data === false ? 1 : 0.7,
+                      }}
+                    >
+                      <FloatingElement intensity={1} duration={2000}>
+                        <Ionicons
+                          name={
+                            userVoteQuery.data === false ? 'thumbs-down' : 'thumbs-down-outline'
+                          }
+                          size={24}
+                          color={theme.colors.textInverse}
+                        />
+                      </FloatingElement>
+                      <GlowText
+                        style={{
+                          fontSize: theme.typography.fontSize.lg,
+                          fontWeight: theme.typography.fontWeight.semibold,
+                          color: theme.colors.textInverse,
+                          marginLeft: theme.spacing.sm,
+                        }}
+                      >
+                        {listing?.downVotes || 0}
+                      </GlowText>
+                    </MagneticView>
+                  </Animated.View>
+                </AnimatedPressable>
               </View>
             </LinearGradient>
-          </Card>
+          </HolographicView>
 
-          {/* Comments Section */}
-          <Card>
-            <View style={{ padding: theme.spacing.lg }}>
+          {/* Enhanced Comments Section */}
+          <HolographicView morphing borderRadius={theme.borderRadius.xl}>
+            <GlassView
+              borderRadius={theme.borderRadius.xl}
+              blurIntensity={20}
+              style={{ padding: theme.spacing.lg }}
+            >
               <View
                 style={{
                   flexDirection: 'row',
@@ -681,15 +882,15 @@ export default function ListingDetailScreen() {
                   marginBottom: theme.spacing.lg,
                 }}
               >
-                <Text
+                <GradientTitle
+                  animated
                   style={{
                     fontSize: theme.typography.fontSize.xl,
                     fontWeight: theme.typography.fontWeight.bold,
-                    color: theme.colors.text,
                   }}
                 >
                   Comments ({commentsQuery.data?.length || 0})
-                </Text>
+                </GradientTitle>
 
                 {isSignedIn && (
                   <Button
@@ -770,69 +971,80 @@ export default function ListingDetailScreen() {
                 commentsQuery.data.map((comment: Comment, index: number) => (
                   <Animated.View
                     key={comment.id}
-                    entering={FadeInUp.delay(index * 100).springify()}
-                    style={{
-                      backgroundColor: theme.colors.surface,
-                      borderRadius: theme.borderRadius.md,
-                      padding: theme.spacing.md,
-                      marginBottom: theme.spacing.md,
-                    }}
+                    entering={FadeInUp.delay(getStaggerDelay(index, 'fast', 'fast')).springify()}
+                    style={{ marginBottom: theme.spacing.md }}
                   >
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: theme.spacing.sm,
-                      }}
-                    >
-                      <Text
+                    <FloatingElement intensity={1} duration={3000 + index * 200}>
+                      <MagneticView
+                        borderRadius={theme.borderRadius.md}
                         style={{
-                          fontSize: theme.typography.fontSize.sm,
-                          fontWeight: theme.typography.fontWeight.semibold,
-                          color: theme.colors.primary,
+                          backgroundColor: theme.colors.surface,
+                          padding: theme.spacing.md,
                         }}
                       >
-                        {(comment as any).author?.name || 'Anonymous'}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: theme.typography.fontSize.xs,
-                          color: theme.colors.textMuted,
-                        }}
-                      >
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </Text>
-                    </View>
-                    <Text
-                      style={{
-                        fontSize: theme.typography.fontSize.md,
-                        color: theme.colors.text,
-                        lineHeight:
-                          theme.typography.lineHeight.normal * theme.typography.fontSize.md,
-                      }}
-                    >
-                      {comment.content}
-                    </Text>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: theme.spacing.sm,
+                          }}
+                        >
+                          <GlowText
+                            style={{
+                              fontSize: theme.typography.fontSize.sm,
+                              fontWeight: theme.typography.fontWeight.semibold,
+                              color: theme.colors.primary,
+                            }}
+                          >
+                            {(comment as any).author?.name || 'Anonymous'}
+                          </GlowText>
+                          <TypewriterText
+                            animated
+                            delay={800 + index * 100}
+                            style={{
+                              fontSize: theme.typography.fontSize.xs,
+                              color: theme.colors.textMuted,
+                            }}
+                          >
+                            {new Date(comment.createdAt).toLocaleDateString()}
+                          </TypewriterText>
+                        </View>
+                        <TypewriterText
+                          animated
+                          delay={900 + index * 100}
+                          style={{
+                            fontSize: theme.typography.fontSize.md,
+                            color: theme.colors.text,
+                            lineHeight:
+                              theme.typography.lineHeight.normal * theme.typography.fontSize.md,
+                          }}
+                        >
+                          {comment.content}
+                        </TypewriterText>
+                      </MagneticView>
+                    </FloatingElement>
                   </Animated.View>
                 ))
               ) : (
-                <EmptyState
-                  icon="chatbubble"
-                  title="No Comments Yet"
-                  subtitle="Be the first to share your thoughts!"
-                  actionLabel={isSignedIn ? 'Add Comment' : 'Sign In to Comment'}
-                  onAction={() => {
-                    if (isSignedIn) {
-                      setShowCommentForm(true)
-                    } else {
-                      router.push('/(auth)/sign-in')
-                    }
-                  }}
-                />
+                <HolographicView morphing borderRadius={theme.borderRadius.xl}>
+                  <EmptyState
+                    icon="chatbubble"
+                    title="No Comments Yet"
+                    subtitle="Be the first to share your thoughts!"
+                    actionLabel={isSignedIn ? 'Add Comment' : 'Sign In to Comment'}
+                    onAction={() => {
+                      if (isSignedIn) {
+                        setShowCommentForm(true)
+                      } else {
+                        router.push('/(auth)/sign-in')
+                      }
+                    }}
+                  />
+                </HolographicView>
               )}
-            </View>
-          </Card>
+            </GlassView>
+          </HolographicView>
         </Animated.View>
       </Animated.ScrollView>
     </View>

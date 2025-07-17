@@ -1,7 +1,7 @@
 /**
  * Resources
  */
-import type { NotificationType, CustomFieldType, ApprovalStatus, Role } from '@/types'
+import type { ApprovalStatus, CustomFieldType, NotificationType, Role } from '@/types'
 
 /**
  * Represents a generic API resource interface that defines the structure of an API result.

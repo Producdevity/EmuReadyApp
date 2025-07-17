@@ -1,10 +1,10 @@
-import React from 'react'
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Ionicons } from '@expo/vector-icons'
+import Card from '@/components/ui/Card'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useCheckUserHasReports } from '@/lib/api/hooks'
-import Card from '@/components/ui/Card'
+import { Ionicons } from '@expo/vector-icons'
+import React from 'react'
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function ReportsScreen() {
   const { theme } = useTheme()

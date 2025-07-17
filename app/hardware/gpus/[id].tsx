@@ -1,12 +1,12 @@
-import React from 'react'
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useLocalSearchParams, router } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
-import { useTheme } from '@/contexts/ThemeContext'
-import { useGpuById } from '@/lib/api/hooks'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useGpuById } from '@/lib/api/hooks'
+import { Ionicons } from '@expo/vector-icons'
+import { router, useLocalSearchParams } from 'expo-router'
+import React from 'react'
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function GPUDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()

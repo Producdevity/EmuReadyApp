@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { networkUtils, queryClient } from '@/lib/api/client'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { networkUtils , queryClient } from '@/lib/api/client'
+import { useEffect, useState } from 'react'
 
 // AsyncStorage-based storage implementation for offline functionality
 const storage = {
@@ -183,7 +183,11 @@ const useOfflineMode = () => {
     }
   }
 
-  const addToOfflineQueue = async (endpoint: string, data: Record<string, unknown>, type: 'mutation' = 'mutation') => {
+  const addToOfflineQueue = async (
+    endpoint: string,
+    data: Record<string, unknown>,
+    type: 'mutation' = 'mutation',
+  ) => {
     const queueItem: OfflineQueue = {
       id: `${Date.now()}_${Math.random()}`,
       type,

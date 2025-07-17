@@ -1,17 +1,17 @@
+import { useTheme } from '@/contexts/ThemeContext'
+import { LinearGradient } from 'expo-linear-gradient'
 import React, { useEffect, useRef } from 'react'
 import { StyleSheet } from 'react-native'
 import Animated, {
-  useSharedValue,
+  Extrapolation,
+  interpolate,
   useAnimatedStyle,
-  withTiming,
+  useDerivedValue,
+  useSharedValue,
   withRepeat,
   withSequence,
-  interpolate,
-  Extrapolation,
-  useDerivedValue,
+  withTiming,
 } from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
-import { useTheme } from '@/contexts/ThemeContext'
 
 interface FluidGradientProps {
   children?: React.ReactNode
@@ -54,11 +54,7 @@ export default function FluidGradient({
 
   // Gradient variants with multiple color sets for animation
   const getGradientVariants = () => {
-    if (customColors) {
-      return {
-        custom: [customColors],
-      }
-    }
+    if (customColors) return { custom: [customColors] }
 
     return {
       aurora: [
@@ -113,20 +109,16 @@ export default function FluidGradient({
   useEffect(() => {
     if (animated) {
       // Animate through different color sets
-      animationValue.value = withRepeat(
-        withTiming(1, { duration: speedConfig[speed] }),
-        -1,
-        false
-      )
+      animationValue.value = withRepeat(withTiming(1, { duration: speedConfig[speed] }), -1, false)
 
       // Change color sets periodically
       const colorAnimation = withRepeat(
         withSequence(
           withTiming(0, { duration: 0 }),
-          withTiming(colorSets.length - 1, { duration: speedConfig[speed] * colorSets.length })
+          withTiming(colorSets.length - 1, { duration: speedConfig[speed] * colorSets.length }),
         ),
         -1,
-        false
+        false,
       )
       colorIndex.value = colorAnimation
     }
@@ -170,25 +162,12 @@ export default function FluidGradient({
   const animatedStyle = useAnimatedStyle(() => {
     if (!animated) return { opacity }
 
-    const scale = interpolate(
-      animationValue.value,
-      [0, 0.5, 1],
-      [1, 1.02, 1],
-      Extrapolation.CLAMP
-    )
+    const scale = interpolate(animationValue.value, [0, 0.5, 1], [1, 1.02, 1], Extrapolation.CLAMP)
 
-    const rotation = interpolate(
-      animationValue.value,
-      [0, 1],
-      [0, 5],
-      Extrapolation.CLAMP
-    )
+    const rotation = interpolate(animationValue.value, [0, 1], [0, 5], Extrapolation.CLAMP)
 
     return {
-      transform: [
-        { scale },
-        { rotate: `${rotation}deg` }
-      ],
+      transform: [{ scale }, { rotate: `${rotation}deg` }],
       opacity,
     }
   })
@@ -198,7 +177,7 @@ export default function FluidGradient({
     if (!animated) {
       return colorSets[0]
     }
-    return colorSets[0] // Simplified for now
+    return colorSets[0] // Simplified for now TODO: fix this, this shouldn't be "simplified"
   }
 
   const currentColors = getCurrentColors()
@@ -215,15 +194,12 @@ export default function FluidGradient({
       <LinearGradient
         ref={gradientRef}
         colors={currentColors}
-        style={[
-          StyleSheet.absoluteFillObject,
-          { borderRadius }
-        ]}
+        style={[StyleSheet.absoluteFillObject, { borderRadius }]}
         start={gradientPoints.start}
         end={gradientPoints.end}
         locations={direction === 'radial' ? [0, 0.6, 1] : undefined}
       />
-      
+
       {/* Blend mode overlay for special effects */}
       {blendMode !== 'normal' && (
         <Animated.View
@@ -232,17 +208,13 @@ export default function FluidGradient({
             {
               backgroundColor: theme.isDark ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',
               borderRadius,
-            }
+            },
           ]}
         />
       )}
 
       {/* Content container */}
-      {children && (
-        <Animated.View style={styles.content}>
-          {children}
-        </Animated.View>
-      )}
+      {children && <Animated.View style={styles.content}>{children}</Animated.View>}
     </Animated.View>
   )
 }

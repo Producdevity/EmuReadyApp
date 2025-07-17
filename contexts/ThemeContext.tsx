@@ -1,11 +1,11 @@
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import React, {
   createContext,
   useContext,
-  useState,
   useEffect,
+  useState,
   type PropsWithChildren,
 } from 'react'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useColorScheme as useSystemColorScheme } from 'react-native'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -69,11 +69,11 @@ export interface Theme {
 
     // Gradients
     gradients: {
-      primary: string[]
-      secondary: string[]
-      card: string[]
-      hero: string[]
-      gaming: string[]
+      primary: readonly [string, string, ...string[]]
+      secondary: readonly [string, string, ...string[]]
+      card: readonly [string, string, ...string[]]
+      hero: readonly [string, string, ...string[]]
+      gaming: readonly [string, string, ...string[]]
     }
   }
   spacing: {
@@ -194,11 +194,11 @@ const lightTheme: Theme = {
 
     // Enhanced modern gradients
     gradients: {
-      primary: ['#7c3aed', '#5b21b6'],
-      secondary: ['#06b6d4', '#0891b2'],
-      card: ['#ffffff', '#fafbfc'],
-      hero: ['#7c3aed', '#5b21b6', '#4c1d95'],
-      gaming: ['#8b5cf6', '#7c3aed', '#06b6d4'],
+      primary: ['#7c3aed', '#5b21b6'] as const,
+      secondary: ['#06b6d4', '#0891b2'] as const,
+      card: ['#ffffff', '#fafbfc'] as const,
+      hero: ['#7c3aed', '#5b21b6', '#4c1d95'] as const,
+      gaming: ['#8b5cf6', '#7c3aed', '#06b6d4'] as const,
     },
   },
   spacing: {
@@ -302,11 +302,11 @@ const darkTheme: Theme = {
 
     // Vibrant dark gradients
     gradients: {
-      primary: ['#7c3aed', '#5b21b6'],
-      secondary: ['#06b6d4', '#0891b2'],
-      card: ['#1f1f1f', '#2a2a2a'],
-      hero: ['#0a0a0a', '#5b21b6', '#7c3aed'],
-      gaming: ['#141414', '#7c3aed', '#06b6d4'],
+      primary: ['#7c3aed', '#5b21b6'] as const,
+      secondary: ['#06b6d4', '#0891b2'] as const,
+      card: ['#1f1f1f', '#2a2a2a'] as const,
+      hero: ['#0a0a0a', '#5b21b6', '#7c3aed'] as const,
+      gaming: ['#141414', '#7c3aed', '#06b6d4'] as const,
     },
   },
 }

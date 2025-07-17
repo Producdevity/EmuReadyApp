@@ -1,4 +1,4 @@
-import { isString, isBoolean, isNumber, isNullish } from 'remeda'
+import { isBoolean, isNullish, isNumber, isString } from 'remeda'
 
 /**
  * Checks if the value is a JSON primitive.

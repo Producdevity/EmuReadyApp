@@ -1,29 +1,29 @@
-import React, { useState, useEffect } from 'react'
-import { View, Text, TouchableOpacity, Image, ScrollView, StyleSheet } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withSequence,
-  withTiming,
-  withRepeat,
-  interpolate,
-  runOnJS,
-  Extrapolation,
-} from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
+import React, { memo, useEffect, useState } from 'react'
+import { Image, ScrollView, StyleSheet, View } from 'react-native'
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 
+import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
+import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import FluidGradient from '@/components/ui/FluidGradient'
+import {
+  AnimatedPressable,
+  FloatingElement,
+  MICRO_SPRING_CONFIG,
+} from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useRawgSearchGameImages, useTgdbSearchGameImages } from '@/lib/api/hooks'
-import { GlassView, MagneticView, HolographicView } from '@/components/themed/ThemedView'
-import { GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
-import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
-import { FluidGradient } from '@/components/ui/FluidGradient'
-import { MorphingSkeleton } from '@/components/ui/MorphingSkeleton'
 
 interface GameMediaSectionProps {
   gameName: string
@@ -40,33 +40,26 @@ export default function GameMediaSection({
 }: GameMediaSectionProps) {
   const { theme } = useTheme()
   const [selectedSource, setSelectedSource] = useState<'rawg' | 'tgdb'>('rawg')
-  
+
   // Animation values
   const headerGlow = useSharedValue(0)
   const selectorScale = useSharedValue(1)
   const mediaScale = useSharedValue(0.95)
   const mediaOpacity = useSharedValue(0)
   const shimmerX = useSharedValue(-200)
-  
+
   useEffect(() => {
     // Initialize entrance animations
     headerGlow.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 2000 }),
-        withTiming(0.3, { duration: 2000 })
-      ),
+      withSequence(withTiming(1, { duration: 2000 }), withTiming(0.3, { duration: 2000 })),
       -1,
-      true
+      true,
     )
-    
+
     mediaScale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
     mediaOpacity.value = withTiming(1, { duration: 600 })
-    
-    shimmerX.value = withRepeat(
-      withTiming(400, { duration: 3000 }),
-      -1,
-      false
-    )
+
+    shimmerX.value = withRepeat(withTiming(400, { duration: 3000 }), -1, false)
   }, [])
 
   // Fetch media from both sources
@@ -92,12 +85,12 @@ export default function GameMediaSection({
     runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
     router.push(`/media?search=${encodeURIComponent(gameName)}&source=${selectedSource}`)
   }
-  
+
   const handleSourceChange = (source: 'rawg' | 'tgdb') => {
     runOnJS(Haptics.selectionAsync)()
     selectorScale.value = withSequence(
       withSpring(0.95, MICRO_SPRING_CONFIG.instant),
-      withSpring(1, MICRO_SPRING_CONFIG.bouncy)
+      withSpring(1, MICRO_SPRING_CONFIG.bouncy),
     )
     setSelectedSource(source)
   }
@@ -109,24 +102,24 @@ export default function GameMediaSection({
   const headerGlowStyle = useAnimatedStyle(() => ({
     opacity: headerGlow.value,
   }))
-  
+
   const selectorAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: selectorScale.value }],
   }))
-  
+
   const mediaContainerStyle = useAnimatedStyle(() => ({
     opacity: mediaOpacity.value,
     transform: [{ scale: mediaScale.value }],
   }))
-  
+
   const shimmerStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: shimmerX.value }],
   }))
 
   return (
     <FloatingElement intensity={2} duration={4000}>
-      <GlassView 
-        borderRadius={20} 
+      <GlassView
+        borderRadius={20}
         blurIntensity={25}
         style={{ marginBottom: compact ? theme.spacing.md : theme.spacing.lg }}
       >
@@ -139,46 +132,27 @@ export default function GameMediaSection({
           style={StyleSheet.absoluteFillObject}
           opacity={0.05}
         />
-        
+
         <View style={styles.content}>
           <View style={styles.header}>
             {/* Header glow effect */}
             <Animated.View style={[styles.headerGlow, headerGlowStyle]}>
               <LinearGradient
-                colors={[
-                  'transparent',
-                  `${theme.colors.primary}20`,
-                  'transparent'
-                ]}
+                colors={['transparent', `${theme.colors.primary}20`, 'transparent']}
                 style={StyleSheet.absoluteFillObject}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               />
             </Animated.View>
-            
-            <GradientTitle 
-              type="subtitle" 
-              gradient 
-              animated 
-              variant="scale"
-              style={styles.headerTitle}
-            >
+
+            <GradientTitle animated variant="scale" style={styles.headerTitle}>
               Game Media
             </GradientTitle>
 
             {!compact && (
               <AnimatedPressable onPress={handleViewAllPress}>
-                <MagneticView 
-                  borderRadius={12} 
-                  style={styles.viewAllButton}
-                >
-                  <GlowText 
-                    type="caption" 
-                    glow 
-                    style={styles.viewAllText}
-                  >
-                    View All
-                  </GlowText>
+                <MagneticView borderRadius={12} style={styles.viewAllButton}>
+                  <GlowText style={styles.viewAllText}>View All</GlowText>
                 </MagneticView>
               </AnimatedPressable>
             )}
@@ -187,27 +161,24 @@ export default function GameMediaSection({
           {/* Enhanced Source Selector */}
           {!compact && (
             <Animated.View style={selectorAnimatedStyle}>
-              <HolographicView 
-                morphing 
-                borderRadius={16}
-                style={styles.sourceSelector}
-              >
+              <HolographicView morphing borderRadius={16} style={styles.sourceSelector}>
                 <AnimatedPressable onPress={() => handleSourceChange('rawg')}>
-                  <View style={[
-                    styles.sourceButton,
-                    selectedSource === 'rawg' && styles.sourceButtonActive
-                  ]}>
+                  <View
+                    style={[
+                      styles.sourceButton,
+                      selectedSource === 'rawg' && styles.sourceButtonActive,
+                    ]}
+                  >
                     {selectedSource === 'rawg' && (
                       <LinearGradient
                         colors={theme.colors.gradients.primary}
                         style={StyleSheet.absoluteFillObject}
                       />
                     )}
-                    <GlowText 
-                      glow={selectedSource === 'rawg'}
+                    <GlowText
                       style={[
                         styles.sourceButtonText,
-                        selectedSource === 'rawg' && styles.sourceButtonTextActive
+                        selectedSource === 'rawg' && styles.sourceButtonTextActive,
                       ]}
                     >
                       RAWG
@@ -216,21 +187,22 @@ export default function GameMediaSection({
                 </AnimatedPressable>
 
                 <AnimatedPressable onPress={() => handleSourceChange('tgdb')}>
-                  <View style={[
-                    styles.sourceButton,
-                    selectedSource === 'tgdb' && styles.sourceButtonActive
-                  ]}>
+                  <View
+                    style={[
+                      styles.sourceButton,
+                      selectedSource === 'tgdb' && styles.sourceButtonActive,
+                    ]}
+                  >
                     {selectedSource === 'tgdb' && (
                       <LinearGradient
                         colors={theme.colors.gradients.secondary}
                         style={StyleSheet.absoluteFillObject}
                       />
                     )}
-                    <GlowText 
-                      glow={selectedSource === 'tgdb'}
+                    <GlowText
                       style={[
                         styles.sourceButtonText,
-                        selectedSource === 'tgdb' && styles.sourceButtonTextActive
+                        selectedSource === 'tgdb' && styles.sourceButtonTextActive,
                       ]}
                     >
                       TGDB
@@ -244,11 +216,11 @@ export default function GameMediaSection({
           {/* Enhanced Media Grid */}
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <MorphingSkeleton 
-                variant="pulse" 
-                speed="fast" 
-                width={80} 
-                height={16} 
+              <MorphingSkeleton
+                variant="pulse"
+                speed="fast"
+                width={80}
+                height={16}
                 borderRadius={8}
               />
             </View>
@@ -286,7 +258,7 @@ export default function GameMediaSection({
                           {
                             width: compact ? 100 : 120,
                             height: compact ? 60 : 80,
-                          }
+                          },
                         ]}
                       >
                         <FluidGradient
@@ -297,14 +269,14 @@ export default function GameMediaSection({
                           style={StyleSheet.absoluteFillObject}
                           opacity={0.1}
                         />
-                        
+
                         <FloatingElement intensity={3} duration={2000}>
                           <Ionicons name="add" size={24} color={theme.colors.primary} />
                         </FloatingElement>
-                        
-                        <TypewriterText 
-                          type="caption" 
-                          animated 
+
+                        <TypewriterText
+                          type="caption"
+                          animated
                           delay={200}
                           style={styles.viewMoreText}
                         >
@@ -317,10 +289,7 @@ export default function GameMediaSection({
               </ScrollView>
             </Animated.View>
           ) : (
-            <GlassView 
-              borderRadius={16} 
-              style={styles.emptyState}
-            >
+            <GlassView borderRadius={16} style={styles.emptyState}>
               <FloatingElement intensity={4} duration={3000}>
                 <View style={styles.emptyIconContainer}>
                   <LinearGradient
@@ -331,12 +300,8 @@ export default function GameMediaSection({
                   </LinearGradient>
                 </View>
               </FloatingElement>
-              
-              <TypewriterText 
-                animated 
-                delay={300}
-                style={styles.emptyText}
-              >
+
+              <TypewriterText animated delay={300} style={styles.emptyText}>
                 No media found
               </TypewriterText>
             </GlassView>
@@ -344,25 +309,12 @@ export default function GameMediaSection({
 
           {/* Enhanced Media Stats */}
           {data && data.length > 0 && !compact && (
-            <HolographicView 
-              borderRadius={12}
-              style={styles.statsContainer}
-            >
-              <TypewriterText 
-                type="caption" 
-                animated 
-                delay={500}
-                style={styles.statsText}
-              >
+            <HolographicView borderRadius={12} style={styles.statsContainer}>
+              <TypewriterText type="caption" animated delay={500} style={styles.statsText}>
                 {data.length} images available
               </TypewriterText>
-              
-              <TypewriterText 
-                type="caption" 
-                animated 
-                delay={600}
-                style={styles.statsText}
-              >
+
+              <TypewriterText type="caption" animated delay={600} style={styles.statsText}>
                 Source: {selectedSource.toUpperCase()}
               </TypewriterText>
             </HolographicView>
@@ -392,25 +344,22 @@ const MediaImageCard = memo(function MediaImageCard({
   const scale = useSharedValue(0.9)
   const opacity = useSharedValue(0)
   const rotateY = useSharedValue(10)
-  
+
   useEffect(() => {
     const delay = index * 100
-    
+
     setTimeout(() => {
       scale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
       opacity.value = withTiming(1, { duration: 400 })
       rotateY.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
     }, delay)
   }, [index])
-  
+
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    transform: [
-      { scale: scale.value },
-      { rotateY: `${rotateY.value}deg` }
-    ],
+    transform: [{ scale: scale.value }, { rotateY: `${rotateY.value}deg` }],
   }))
-  
+
   return (
     <AnimatedPressable onPress={onPress} style={styles.mediaCard}>
       <Animated.View style={animatedStyle}>
@@ -423,7 +372,7 @@ const MediaImageCard = memo(function MediaImageCard({
             {
               width: compact ? 100 : 120,
               height: compact ? 60 : 80,
-            }
+            },
           ]}
         >
           {imageUrl ? (
@@ -433,7 +382,7 @@ const MediaImageCard = memo(function MediaImageCard({
                 style={styles.mediaImage}
                 resizeMode="cover"
               />
-              
+
               {/* Image overlay */}
               <LinearGradient
                 colors={['transparent', 'rgba(0,0,0,0.3)']}
@@ -441,10 +390,7 @@ const MediaImageCard = memo(function MediaImageCard({
               />
             </>
           ) : (
-            <GlassView 
-              borderRadius={16} 
-              style={styles.placeholderContainer}
-            >
+            <GlassView borderRadius={16} style={styles.placeholderContainer}>
               <FloatingElement intensity={2} duration={2000}>
                 <Ionicons name="image-outline" size={24} color={theme.colors.textMuted} />
               </FloatingElement>
@@ -453,14 +399,11 @@ const MediaImageCard = memo(function MediaImageCard({
         </MagneticView>
 
         {!compact && (
-          <TypewriterText 
-            type="caption" 
-            animated 
+          <TypewriterText
+            type="caption"
+            animated
             delay={index * 50 + 200}
-            style={[
-              styles.mediaTitle,
-              { width: 120 }
-            ]}
+            style={[styles.mediaTitle, { width: 120 }]}
             numberOfLines={1}
           >
             {item.name}

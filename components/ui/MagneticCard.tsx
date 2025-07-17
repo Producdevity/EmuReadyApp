@@ -1,20 +1,20 @@
-import React, { useCallback } from 'react'
-import { View, StyleSheet, Platform } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  useAnimatedGestureHandler,
-  withSpring,
-  withTiming,
-  interpolate,
-  Extrapolation,
-  runOnJS,
-} from 'react-native-reanimated'
-import { PanGestureHandler, TapGestureHandler } from 'react-native-gesture-handler'
-import { LinearGradient } from 'expo-linear-gradient'
+import { useTheme } from '@/contexts/ThemeContext'
 import { BlurView } from 'expo-blur'
 import * as Haptics from 'expo-haptics'
-import { useTheme } from '@/contexts/ThemeContext'
+import { LinearGradient } from 'expo-linear-gradient'
+import React, { useCallback } from 'react'
+import { Platform, StyleSheet } from 'react-native'
+import { PanGestureHandler, TapGestureHandler } from 'react-native-gesture-handler'
+import Animated, {
+  Extrapolation,
+  interpolate,
+  runOnJS,
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 
 interface MagneticCardProps {
   children: React.ReactNode
@@ -69,12 +69,12 @@ export default function MagneticCard({
   const panGestureHandler = useAnimatedGestureHandler({
     onStart: () => {
       if (disabled) return
-      
+
       elevation.value = withSpring(hoverElevation, {
         damping: 20,
         stiffness: 300,
       })
-      
+
       if (glowEffect) {
         glowOpacity.value = withTiming(0.6, { duration: 200 })
       }
@@ -91,33 +91,33 @@ export default function MagneticCard({
       const cardCenterY = absoluteY
 
       // Magnetic attraction effect
-      translateX.value = withSpring(
-        (cardCenterX - 100) * magneticStrength * 0.1,
-        { damping: 15, stiffness: 200 }
-      )
-      translateY.value = withSpring(
-        (cardCenterY - 100) * magneticStrength * 0.1,
-        { damping: 15, stiffness: 200 }
-      )
+      translateX.value = withSpring((cardCenterX - 100) * magneticStrength * 0.1, {
+        damping: 15,
+        stiffness: 200,
+      })
+      translateY.value = withSpring((cardCenterY - 100) * magneticStrength * 0.1, {
+        damping: 15,
+        stiffness: 200,
+      })
 
       // 3D rotation based on position
       if (rotationEnabled) {
-        rotateX.value = withSpring(
-          (cardCenterY - 100) * magneticStrength * 0.05,
-          { damping: 15, stiffness: 200 }
-        )
-        rotateY.value = withSpring(
-          (cardCenterX - 100) * magneticStrength * 0.05,
-          { damping: 15, stiffness: 200 }
-        )
+        rotateX.value = withSpring((cardCenterY - 100) * magneticStrength * 0.05, {
+          damping: 15,
+          stiffness: 200,
+        })
+        rotateY.value = withSpring((cardCenterX - 100) * magneticStrength * 0.05, {
+          damping: 15,
+          stiffness: 200,
+        })
       }
 
       // Parallax effect for children
       if (parallaxChildren) {
-        childrenParallax.value = withSpring(
-          (cardCenterX - 100) * 0.02,
-          { damping: 15, stiffness: 200 }
-        )
+        childrenParallax.value = withSpring((cardCenterX - 100) * 0.02, {
+          damping: 15,
+          stiffness: 200,
+        })
       }
     },
     onEnd: () => {
@@ -127,7 +127,7 @@ export default function MagneticCard({
       translateX.value = withSpring(0, { damping: 20, stiffness: 300 })
       translateY.value = withSpring(0, { damping: 20, stiffness: 300 })
       elevation.value = withSpring(2, { damping: 20, stiffness: 300 })
-      
+
       if (rotationEnabled) {
         rotateX.value = withSpring(0, { damping: 20, stiffness: 300 })
         rotateY.value = withSpring(0, { damping: 20, stiffness: 300 })
@@ -147,7 +147,7 @@ export default function MagneticCard({
   const tapGestureHandler = useAnimatedGestureHandler({
     onStart: () => {
       if (disabled) return
-      
+
       scale.value = withSpring(pressScale, {
         damping: 30,
         stiffness: 400,
@@ -159,7 +159,7 @@ export default function MagneticCard({
     },
     onEnd: () => {
       if (disabled) return
-      
+
       scale.value = withSpring(1, {
         damping: 25,
         stiffness: 350,
@@ -174,11 +174,11 @@ export default function MagneticCard({
   // Long press handler
   const handleLongPress = useCallback(() => {
     if (disabled || !onLongPress) return
-    
+
     if (hapticFeedback) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     }
-    
+
     onLongPress()
   }, [disabled, onLongPress, hapticFeedback])
 
@@ -229,14 +229,14 @@ export default function MagneticCard({
       elevation.value,
       [2, hoverElevation],
       [0.1 * shadowIntensity, 0.25 * shadowIntensity],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
 
     const shadowRadius = interpolate(
       elevation.value,
       [2, hoverElevation],
       [4, 20],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
 
     return {
@@ -261,16 +261,12 @@ export default function MagneticCard({
   // Glow effect animation
   const glowStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value,
-    transform: [
-      { scale: interpolate(glowOpacity.value, [0, 1], [0.8, 1.2]) }
-    ],
+    transform: [{ scale: interpolate(glowOpacity.value, [0, 1], [0.8, 1.2]) }],
   }))
 
   // Children parallax animation
   const childrenStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: childrenParallax.value },
-    ],
+    transform: [{ translateX: childrenParallax.value }],
   }))
 
   return (
@@ -338,12 +334,7 @@ export default function MagneticCard({
             )}
 
             {/* Content */}
-            <Animated.View
-              style={[
-                styles.content,
-                parallaxChildren && childrenStyle,
-              ]}
-            >
+            <Animated.View style={[styles.content, parallaxChildren && childrenStyle]}>
               {children}
             </Animated.View>
 
@@ -390,7 +381,10 @@ export const MagneticGlassCard = ({ children, ...props }: Omit<MagneticCardProps
   </MagneticCard>
 )
 
-export const MagneticGradientCard = ({ children, ...props }: Omit<MagneticCardProps, 'variant'>) => (
+export const MagneticGradientCard = ({
+  children,
+  ...props
+}: Omit<MagneticCardProps, 'variant'>) => (
   <MagneticCard variant="gradient" hoverElevation={12} {...props}>
     {children}
   </MagneticCard>
@@ -402,7 +396,10 @@ export const MagneticNeonCard = ({ children, ...props }: Omit<MagneticCardProps,
   </MagneticCard>
 )
 
-export const MagneticHolographicCard = ({ children, ...props }: Omit<MagneticCardProps, 'variant'>) => (
+export const MagneticHolographicCard = ({
+  children,
+  ...props
+}: Omit<MagneticCardProps, 'variant'>) => (
   <MagneticCard variant="holographic" rotationEnabled={true} parallaxChildren={true} {...props}>
     {children}
   </MagneticCard>

@@ -1,21 +1,24 @@
+import { useTheme } from '@/contexts/ThemeContext'
+import { ANIMATION_CONFIG } from '@/lib/animation/config'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
 import React, { type ReactNode } from 'react'
 import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
   ActivityIndicator,
-  type ViewStyle,
-  type TextStyle,
-  View,
   Platform,
+  StyleSheet,
+  Text,
+  type TextStyle,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
 } from 'react-native'
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
-import * as Haptics from 'expo-haptics'
-import { useTheme } from '@/contexts/ThemeContext'
-import {
-  ANIMATION_CONFIG,
-} from '@/lib/animation/config'
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 
 interface ButtonProps {
   title: string
@@ -75,11 +78,11 @@ export default function Button({
       scale.value = withSpring(0.97, {
         damping: 30,
         stiffness: 400,
-        mass: 0.8
+        mass: 0.8,
       })
       backgroundOpacity.value = withTiming(0.9, {
         duration: 100,
-        easing: ANIMATION_CONFIG.easing.out
+        easing: ANIMATION_CONFIG.easing.out,
       })
     }
   }
@@ -89,11 +92,11 @@ export default function Button({
       scale.value = withSpring(1, {
         damping: 25,
         stiffness: 350,
-        mass: 0.7
+        mass: 0.7,
       })
       backgroundOpacity.value = withTiming(1, {
         duration: 150,
-        easing: ANIMATION_CONFIG.easing.out
+        easing: ANIMATION_CONFIG.easing.out,
       })
     }
   }

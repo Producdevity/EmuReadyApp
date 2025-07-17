@@ -1,14 +1,14 @@
-import React, { useState } from 'react'
-import { View, Text, TextInput } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Ionicons } from '@expo/vector-icons'
-import { FlashList } from '@shopify/flash-list'
-import { useTheme } from '@/contexts/ThemeContext'
-import { usePcListings } from '@/lib/api/hooks'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import { SkeletonCard } from '@/components/ui/Skeleton'
+import { useTheme } from '@/contexts/ThemeContext'
+import { usePcListings } from '@/lib/api/hooks'
+import { Ionicons } from '@expo/vector-icons'
+import { FlashList } from '@shopify/flash-list'
 import { router } from 'expo-router'
+import React, { useState } from 'react'
+import { Text, TextInput, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function PCListingsScreen() {
   const { theme } = useTheme()
@@ -94,9 +94,14 @@ export default function PCListingsScreen() {
         PC Gaming Coming Soon
       </Text>
       <Text className="text-center mb-6" style={{ color: theme.colors.textSecondary }}>
-        This feature is currently under development. Check back soon for PC gaming performance tracking!
+        This feature is currently under development. Check back soon for PC gaming performance
+        tracking!
       </Text>
-      <Button title="Browse Mobile Listings" onPress={() => router.push('/browse')} variant="primary" />
+      <Button
+        title="Browse Mobile Listings"
+        onPress={() => router.push('/browse')}
+        variant="primary"
+      />
     </View>
   )
 

@@ -1,16 +1,16 @@
+import { useTheme } from '@/contexts/ThemeContext'
+import { LinearGradient } from 'expo-linear-gradient'
 import React, { useEffect } from 'react'
-import { View, StyleSheet, Dimensions } from 'react-native'
+import { Dimensions, StyleSheet, View } from 'react-native'
 import Animated, {
-  useSharedValue,
+  Extrapolation,
+  interpolate,
   useAnimatedStyle,
-  withTiming,
+  useSharedValue,
   withRepeat,
   withSequence,
-  interpolate,
-  Extrapolation,
+  withTiming,
 } from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
-import { useTheme } from '@/contexts/ThemeContext'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
@@ -78,21 +78,17 @@ export default function MorphingSkeleton({
     const duration = speedConfig[speed]
 
     // Main animation loop
-    animationValue.value = withRepeat(
-      withTiming(1, { duration }),
-      -1,
-      false
-    )
+    animationValue.value = withRepeat(withTiming(1, { duration }), -1, false)
 
     // Morphing animation (for shape changes)
     if (variant === 'morph' && morphShapes.length > 1) {
       morphValue.value = withRepeat(
         withSequence(
           withTiming(1, { duration: duration * 2 }),
-          withTiming(0, { duration: duration * 2 })
+          withTiming(0, { duration: duration * 2 }),
         ),
         -1,
-        false
+        false,
       )
     }
 
@@ -101,10 +97,10 @@ export default function MorphingSkeleton({
       scaleValue.value = withRepeat(
         withSequence(
           withTiming(1.02 * intensity, { duration: duration / 2 }),
-          withTiming(1, { duration: duration / 2 })
+          withTiming(1, { duration: duration / 2 }),
         ),
         -1,
-        false
+        false,
       )
     }
 
@@ -113,10 +109,10 @@ export default function MorphingSkeleton({
       opacityValue.value = withRepeat(
         withSequence(
           withTiming(0.3, { duration: duration / 2 }),
-          withTiming(0.8, { duration: duration / 2 })
+          withTiming(0.8, { duration: duration / 2 }),
         ),
         -1,
-        false
+        false,
       )
     }
   }, [animated, speed, variant, intensity, morphShapes.length])
@@ -134,30 +130,20 @@ export default function MorphingSkeleton({
           animationValue.value,
           [0, 1],
           [-SCREEN_WIDTH, SCREEN_WIDTH],
-          Extrapolation.CLAMP
+          Extrapolation.CLAMP,
         )
         break
       case 'vertical':
-        translateY = interpolate(
-          animationValue.value,
-          [0, 1],
-          [-200, 200],
-          Extrapolation.CLAMP
-        )
+        translateY = interpolate(animationValue.value, [0, 1], [-200, 200], Extrapolation.CLAMP)
         break
       case 'diagonal':
         translateX = interpolate(
           animationValue.value,
           [0, 1],
           [-SCREEN_WIDTH * 0.7, SCREEN_WIDTH * 0.7],
-          Extrapolation.CLAMP
+          Extrapolation.CLAMP,
         )
-        translateY = interpolate(
-          animationValue.value,
-          [0, 1],
-          [-100, 100],
-          Extrapolation.CLAMP
-        )
+        translateY = interpolate(animationValue.value, [0, 1], [-100, 100], Extrapolation.CLAMP)
         break
     }
 
@@ -174,7 +160,7 @@ export default function MorphingSkeleton({
       animationValue.value,
       [0, 1],
       [0, Math.PI * 2],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
 
     const scale = 1 + Math.sin(waveOffset) * 0.1 * intensity
@@ -192,7 +178,7 @@ export default function MorphingSkeleton({
       morphValue.value,
       [0, 1],
       [borderRadius, typeof height === 'number' ? height / 2 : 20],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     )
 
     return {
@@ -293,7 +279,13 @@ export default function MorphingSkeleton({
             colors={
               variant === 'wave'
                 ? ['transparent', 'rgba(255,255,255,0.4)', 'transparent']
-                : ['transparent', 'rgba(255,255,255,0.3)', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.3)', 'transparent']
+                : [
+                    'transparent',
+                    'rgba(255,255,255,0.3)',
+                    'rgba(255,255,255,0.6)',
+                    'rgba(255,255,255,0.3)',
+                    'transparent',
+                  ]
             }
             style={StyleSheet.absoluteFillObject}
             start={gradientConfig.start}
@@ -307,28 +299,43 @@ export default function MorphingSkeleton({
 }
 
 // Predefined skeleton components with enhanced animations
-export const ShimmerSkeleton = ({ children, ...props }: Omit<MorphingSkeletonProps, 'variant'> & { children?: React.ReactNode }) => (
+export const ShimmerSkeleton = ({
+  children,
+  ...props
+}: Omit<MorphingSkeletonProps, 'variant'> & { children?: React.ReactNode }) => (
   <MorphingSkeleton variant="shimmer" speed="normal" direction="horizontal" {...props} />
 )
 
-export const WaveSkeleton = ({ children, ...props }: Omit<MorphingSkeletonProps, 'variant'> & { children?: React.ReactNode }) => (
+export const WaveSkeleton = ({
+  children,
+  ...props
+}: Omit<MorphingSkeletonProps, 'variant'> & { children?: React.ReactNode }) => (
   <MorphingSkeleton variant="wave" speed="fast" intensity={1.5} {...props} />
 )
 
-export const PulseSkeleton = ({ children, ...props }: Omit<MorphingSkeletonProps, 'variant'> & { children?: React.ReactNode }) => (
+export const PulseSkeleton = ({
+  children,
+  ...props
+}: Omit<MorphingSkeletonProps, 'variant'> & { children?: React.ReactNode }) => (
   <MorphingSkeleton variant="pulse" speed="slow" {...props} />
 )
 
-export const BreatheSkeleton = ({ children, ...props }: Omit<MorphingSkeletonProps, 'variant'> & { children?: React.ReactNode }) => (
+export const BreatheSkeleton = ({
+  children,
+  ...props
+}: Omit<MorphingSkeletonProps, 'variant'> & { children?: React.ReactNode }) => (
   <MorphingSkeleton variant="breathe" speed="slow" intensity={1.2} {...props} />
 )
 
-export const MorphSkeleton = ({ children, ...props }: Omit<MorphingSkeletonProps, 'variant'> & { children?: React.ReactNode }) => (
-  <MorphingSkeleton 
-    variant="morph" 
-    speed="normal" 
-    morphShapes={['rectangle', 'rounded', 'circle']} 
-    {...props} 
+export const MorphSkeleton = ({
+  children,
+  ...props
+}: Omit<MorphingSkeletonProps, 'variant'> & { children?: React.ReactNode }) => (
+  <MorphingSkeleton
+    variant="morph"
+    speed="normal"
+    morphShapes={['rectangle', 'rounded', 'circle']}
+    {...props}
   />
 )
 
@@ -352,7 +359,12 @@ export const EnhancedSkeletonCard: React.FC<SkeletonCardProps> = ({
         {/* Header */}
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
-            <ShimmerSkeleton height={18} width="80%" style={{ marginBottom: 8 }} animated={animated} />
+            <ShimmerSkeleton
+              height={18}
+              width="80%"
+              style={{ marginBottom: 8 }}
+              animated={animated}
+            />
             <ShimmerSkeleton height={14} width="60%" animated={animated} />
           </View>
           <WaveSkeleton height={32} width={80} borderRadius={16} animated={animated} />
@@ -368,7 +380,12 @@ export const EnhancedSkeletonCard: React.FC<SkeletonCardProps> = ({
         <View style={styles.cardStats}>
           {Array.from({ length: 3 }).map((_, index) => (
             <View key={index} style={styles.statItem}>
-              <BreatheSkeleton height={20} width={40} style={{ marginBottom: 4 }} animated={animated} />
+              <BreatheSkeleton
+                height={20}
+                width={40}
+                style={{ marginBottom: 4 }}
+                animated={animated}
+              />
               <ShimmerSkeleton height={12} width={50} animated={animated} />
             </View>
           ))}
@@ -377,11 +394,22 @@ export const EnhancedSkeletonCard: React.FC<SkeletonCardProps> = ({
         {/* Footer */}
         <View style={styles.cardFooter}>
           <View style={{ flex: 1 }}>
-            <ShimmerSkeleton height={12} width="50%" style={{ marginBottom: 4 }} animated={animated} />
+            <ShimmerSkeleton
+              height={12}
+              width="50%"
+              style={{ marginBottom: 4 }}
+              animated={animated}
+            />
             <ShimmerSkeleton height={12} width="40%" animated={animated} />
           </View>
           <View style={styles.voteButtons}>
-            <MorphSkeleton height={32} width={60} borderRadius={8} style={{ marginRight: 8 }} animated={animated} />
+            <MorphSkeleton
+              height={32}
+              width={60}
+              borderRadius={8}
+              style={{ marginRight: 8 }}
+              animated={animated}
+            />
             <MorphSkeleton height={32} width={60} borderRadius={8} animated={animated} />
           </View>
         </View>
@@ -389,27 +417,47 @@ export const EnhancedSkeletonCard: React.FC<SkeletonCardProps> = ({
     ),
     game: (
       <View style={[styles.gameCard, { backgroundColor: theme.colors.card }, style]}>
-        <WaveSkeleton height={120} borderRadius={8} style={{ marginBottom: 8 }} animated={animated} />
+        <WaveSkeleton
+          height={120}
+          borderRadius={8}
+          style={{ marginBottom: 8 }}
+          animated={animated}
+        />
         <ShimmerSkeleton height={16} width="90%" style={{ marginBottom: 4 }} animated={animated} />
         <PulseSkeleton height={12} width="70%" animated={animated} />
       </View>
     ),
     profile: (
       <View style={[styles.profileCard, { backgroundColor: theme.colors.surface }, style]}>
-        <BreatheSkeleton 
-          height={100} 
-          width={100} 
-          borderRadius={50} 
-          style={{ marginBottom: 16, alignSelf: 'center' }} 
-          animated={animated} 
+        <BreatheSkeleton
+          height={100}
+          width={100}
+          borderRadius={50}
+          style={{ marginBottom: 16, alignSelf: 'center' }}
+          animated={animated}
         />
-        <ShimmerSkeleton height={24} width="60%" style={{ marginBottom: 8, alignSelf: 'center' }} animated={animated} />
-        <PulseSkeleton height={16} width="40%" style={{ marginBottom: 16, alignSelf: 'center' }} animated={animated} />
-        
+        <ShimmerSkeleton
+          height={24}
+          width="60%"
+          style={{ marginBottom: 8, alignSelf: 'center' }}
+          animated={animated}
+        />
+        <PulseSkeleton
+          height={16}
+          width="40%"
+          style={{ marginBottom: 16, alignSelf: 'center' }}
+          animated={animated}
+        />
+
         <View style={styles.profileStats}>
           {Array.from({ length: 3 }).map((_, index) => (
             <View key={index} style={styles.profileStat}>
-              <WaveSkeleton height={20} width={30} style={{ marginBottom: 4 }} animated={animated} />
+              <WaveSkeleton
+                height={20}
+                width={30}
+                style={{ marginBottom: 4 }}
+                animated={animated}
+              />
               <ShimmerSkeleton height={12} width={50} animated={animated} />
             </View>
           ))}
@@ -424,15 +472,25 @@ export const EnhancedSkeletonCard: React.FC<SkeletonCardProps> = ({
         <View style={styles.statsGrid}>
           {Array.from({ length: 4 }).map((_, index) => (
             <View key={index} style={styles.statBox}>
-              <BreatheSkeleton 
-                height={40} 
-                width={40} 
-                borderRadius={20} 
-                style={{ marginBottom: 8, alignSelf: 'center' }} 
-                animated={animated} 
+              <BreatheSkeleton
+                height={40}
+                width={40}
+                borderRadius={20}
+                style={{ marginBottom: 8, alignSelf: 'center' }}
+                animated={animated}
               />
-              <WaveSkeleton height={16} width="80%" style={{ marginBottom: 4, alignSelf: 'center' }} animated={animated} />
-              <PulseSkeleton height={12} width="60%" style={{ alignSelf: 'center' }} animated={animated} />
+              <WaveSkeleton
+                height={16}
+                width="80%"
+                style={{ marginBottom: 4, alignSelf: 'center' }}
+                animated={animated}
+              />
+              <PulseSkeleton
+                height={12}
+                width="60%"
+                style={{ alignSelf: 'center' }}
+                animated={animated}
+              />
             </View>
           ))}
         </View>

@@ -1,28 +1,41 @@
-import React, { useEffect, useState, useMemo } from 'react'
-import { StatusBar, StyleSheet, Text, View, Alert, Pressable, Animated } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
+import { ListingCard } from '@/components/cards'
+import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
+import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import { Button, Card } from '@/components/ui'
+import FluidGradient from '@/components/ui/FluidGradient'
+import {
+  AnimatedPressable,
+  FloatingElement,
+  MICRO_SPRING_CONFIG,
+} from '@/components/ui/MicroInteractions'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useUserListings, useUserProfile } from '@/lib/api/hooks'
+import type { Listing } from '@/types'
 import { useAuth } from '@clerk/clerk-expo'
-import * as Sharing from 'expo-sharing'
-import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import * as Sharing from 'expo-sharing'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Alert, Animated, Dimensions, StatusBar, StyleSheet, Text, View } from 'react-native'
 import RNAnimated, {
-  FadeInUp,
+  Extrapolation,
   FadeInDown,
+  FadeInUp,
   SlideInRight,
-  useSharedValue,
+  interpolate,
+  runOnJS,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  interpolate,
-  Extrapolation,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
 } from 'react-native-reanimated'
-import * as Haptics from 'expo-haptics'
-import { useTheme } from '@/contexts/ThemeContext'
-import { Button, Card } from '@/components/ui'
-import { ListingCard } from '@/components/cards'
-import { useUserProfile, useUserListings } from '@/lib/api/hooks'
-import type { Listing } from '@/types'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface TabData {
   key: 'listings' | 'activity' | 'stats'
@@ -31,8 +44,10 @@ interface TabData {
   icon: string
 }
 
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = 120
 const PROFILE_HEIGHT = 200
+const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
 
 export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -44,6 +59,15 @@ export default function UserProfileScreen() {
   const fadeAnim = useMemo(() => new Animated.Value(0), [])
   const slideAnim = useMemo(() => new Animated.Value(50), [])
 
+  // Enhanced 2025 animation values
+  const heroGlow = useSharedValue(0)
+  const profileFloat = useSharedValue(0)
+  const backgroundShift = useSharedValue(0)
+  const tabScale = useSharedValue(1)
+  const statsFloat = useSharedValue(0)
+  const particleFlow = useSharedValue(0)
+  const avatarScale = useSharedValue(0.9)
+
   // Fetch user profile data (always call hooks before conditionals)
   const userProfileQuery = useUserProfile({ userId: id || '' }, { enabled: !!id })
 
@@ -51,6 +75,42 @@ export default function UserProfileScreen() {
   const userListingsQuery = useUserListings({ userId: id || '' })
 
   const isOwnProfile = currentUserId === id
+
+  useEffect(() => {
+    // Initialize cosmic background animation
+    backgroundShift.value = withRepeat(
+      withSequence(withTiming(1, { duration: 20000 }), withTiming(0, { duration: 20000 })),
+      -1,
+      true,
+    )
+
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(withTiming(1, { duration: 4000 }), withTiming(0.3, { duration: 4000 })),
+      -1,
+      true,
+    )
+
+    // Profile floating animation
+    profileFloat.value = withRepeat(
+      withSequence(withTiming(10, { duration: 6000 }), withTiming(-10, { duration: 6000 })),
+      -1,
+      true,
+    )
+
+    // Stats floating animation
+    statsFloat.value = withRepeat(
+      withSequence(withTiming(5, { duration: 5000 }), withTiming(-5, { duration: 5000 })),
+      -1,
+      true,
+    )
+
+    // Particle flow animation
+    particleFlow.value = withRepeat(withTiming(1, { duration: 12000 }), -1, false)
+
+    // Avatar scale entrance
+    avatarScale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
+  }, [])
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -183,38 +243,48 @@ export default function UserProfileScreen() {
             ))}
             {userListingsQuery.data?.length === 0 && (
               <RNAnimated.View entering={FadeInUp.delay(200).springify()}>
-                <Card variant="glass" padding="lg" style={styles.emptyState}>
-                  <RNAnimated.View entering={FadeInDown.delay(400)}>
-                    <View
-                      style={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: 40,
-                        backgroundColor: `${theme.colors.primary}20`,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: 20,
-                      }}
-                    >
-                      <Ionicons name="list-outline" size={36} color={theme.colors.primary} />
-                    </View>
-                    <Text style={styles.emptyStateTitle}>No Listings Yet</Text>
-                    <Text style={styles.emptyStateText}>
-                      {isOwnProfile
-                        ? 'Start creating performance listings to share your emulation experiences!'
-                        : "This user hasn't created any listings yet."}
-                    </Text>
-                    {isOwnProfile && (
-                      <Button
-                        title="Create Your First Listing"
-                        variant="gradient"
-                        onPress={() => router.push('/(tabs)/create')}
-                        style={styles.emptyStateButton}
-                        leftIcon={<Ionicons name="add" size={16} color="#ffffff" />}
-                      />
-                    )}
-                  </RNAnimated.View>
-                </Card>
+                <HolographicView morphing borderRadius={20} style={styles.emptyState}>
+                  <GlassView
+                    borderRadius={20}
+                    blurIntensity={20}
+                    style={{ padding: theme.spacing.lg }}
+                  >
+                    <RNAnimated.View entering={FadeInDown.delay(400)}>
+                      <FloatingElement intensity={2} duration={3000}>
+                        <MagneticView
+                          borderRadius={40}
+                          style={{
+                            width: 80,
+                            height: 80,
+                            backgroundColor: `${theme.colors.primary}20`,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: 20,
+                          }}
+                        >
+                          <Ionicons name="list-outline" size={36} color={theme.colors.primary} />
+                        </MagneticView>
+                      </FloatingElement>
+                      <GradientTitle animated style={styles.emptyStateTitle}>
+                        No Listings Yet
+                      </GradientTitle>
+                      <TypewriterText animated delay={600} style={styles.emptyStateText}>
+                        {isOwnProfile
+                          ? 'Start creating performance listings to share your emulation experiences!'
+                          : "This user hasn't created any listings yet."}
+                      </TypewriterText>
+                      {isOwnProfile && (
+                        <Button
+                          title="Create Your First Listing"
+                          variant="gradient"
+                          onPress={() => router.push('/(tabs)/create')}
+                          style={styles.emptyStateButton}
+                          leftIcon={<Ionicons name="add" size={16} color="#ffffff" />}
+                        />
+                      )}
+                    </RNAnimated.View>
+                  </GlassView>
+                </HolographicView>
               </RNAnimated.View>
             )}
           </View>
@@ -246,17 +316,34 @@ export default function UserProfileScreen() {
           <View style={styles.tabContentContainer}>
             {activities.map((activity, index) => (
               <RNAnimated.View key={index} entering={SlideInRight.delay(index * 100).springify()}>
-                <Card variant="glass" padding="md" style={styles.activityCard}>
-                  <View style={styles.activityItem}>
-                    <View style={[styles.activityIcon, { backgroundColor: `${activity.color}20` }]}>
-                      <Ionicons name={activity.icon as any} size={18} color={activity.color} />
+                <HolographicView morphing borderRadius={16} style={styles.activityCard}>
+                  <GlassView
+                    borderRadius={16}
+                    blurIntensity={20}
+                    style={{ padding: theme.spacing.md }}
+                  >
+                    <View style={styles.activityItem}>
+                      <FloatingElement intensity={1} duration={2000 + index * 200}>
+                        <MagneticView
+                          borderRadius={22}
+                          style={[styles.activityIcon, { backgroundColor: `${activity.color}20` }]}
+                        >
+                          <Ionicons name={activity.icon as any} size={18} color={activity.color} />
+                        </MagneticView>
+                      </FloatingElement>
+                      <View style={styles.activityContent}>
+                        <GlowText style={styles.activityText}>{activity.text}</GlowText>
+                        <TypewriterText
+                          animated
+                          delay={600 + index * 100}
+                          style={styles.activityTime}
+                        >
+                          {activity.time}
+                        </TypewriterText>
+                      </View>
                     </View>
-                    <View style={styles.activityContent}>
-                      <Text style={styles.activityText}>{activity.text}</Text>
-                      <Text style={styles.activityTime}>{activity.time}</Text>
-                    </View>
-                  </View>
-                </Card>
+                  </GlassView>
+                </HolographicView>
               </RNAnimated.View>
             ))}
           </View>
@@ -378,19 +465,72 @@ export default function UserProfileScreen() {
     }
   }
 
+  // Animated styles for cosmic background
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
+      },
+    ],
+  }))
+
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+
+  const profileFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: profileFloat.value }],
+  }))
+
+  const tabScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: tabScale.value }],
+  }))
+
+  const statsFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: statsFloat.value }],
+  }))
+
+  const avatarScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: avatarScale.value }],
+  }))
+
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          particleFlow.value,
+          [0, 1],
+          [-200, SCREEN_WIDTH + 200],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
+  }))
+
   return (
     <View style={styles.container}>
-      <StatusBar
-        barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-        backgroundColor="transparent"
-        translucent
-      />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Gradient Background */}
+      {/* Revolutionary Cosmic Background */}
+      <RNAnimated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
+        <FluidGradient
+          variant="cosmic"
+          animated
+          speed="slow"
+          style={StyleSheet.absoluteFillObject}
+          opacity={0.3}
+        />
+      </RNAnimated.View>
+
+      {/* Enhanced Gradient Overlay */}
       <LinearGradient
-        colors={
-          theme.isDark ? ['#1e293b', '#0f172a', '#0f172a'] : ['#f8fafc', '#ffffff', '#ffffff']
-        }
+        colors={[
+          'transparent',
+          `${theme.colors.background}40`,
+          `${theme.colors.background}80`,
+          theme.colors.background,
+        ]}
         style={{
           position: 'absolute',
           top: 0,
@@ -400,6 +540,38 @@ export default function UserProfileScreen() {
         }}
       />
 
+      {/* Floating Particles */}
+      <RNAnimated.View style={[{ position: 'absolute', top: '20%' }, particleFlowStyle]}>
+        <View
+          style={{
+            width: 14,
+            height: 14,
+            borderRadius: 7,
+            backgroundColor: `${theme.colors.primary}40`,
+          }}
+        />
+      </RNAnimated.View>
+      <RNAnimated.View style={[{ position: 'absolute', top: '40%' }, particleFlowStyle]}>
+        <View
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: `${theme.colors.secondary}40`,
+          }}
+        />
+      </RNAnimated.View>
+      <RNAnimated.View style={[{ position: 'absolute', top: '60%' }, particleFlowStyle]}>
+        <View
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: 6,
+            backgroundColor: `${theme.colors.accent}40`,
+          }}
+        />
+      </RNAnimated.View>
+
       {/* Animated Header */}
       <RNAnimated.View style={[styles.fixedHeader, headerAnimatedStyle]}>
         <BlurView
@@ -408,21 +580,29 @@ export default function UserProfileScreen() {
           style={StyleSheet.absoluteFillObject}
         />
         <SafeAreaView style={styles.headerContent}>
-          <Pressable
+          <AnimatedPressable
             onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
               router.back()
             }}
-            style={styles.headerButton}
           >
-            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-          </Pressable>
+            <MagneticView borderRadius={20} style={styles.headerButton}>
+              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+            </MagneticView>
+          </AnimatedPressable>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {userProfileQuery.data?.name || 'User Profile'}
           </Text>
-          <Pressable onPress={handleShare} style={styles.headerButton}>
-            <Ionicons name="share-outline" size={24} color={theme.colors.text} />
-          </Pressable>
+          <AnimatedPressable
+            onPress={() => {
+              runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+              handleShare()
+            }}
+          >
+            <MagneticView borderRadius={20} style={styles.headerButton}>
+              <Ionicons name="share-outline" size={24} color={theme.colors.text} />
+            </MagneticView>
+          </AnimatedPressable>
         </SafeAreaView>
       </RNAnimated.View>
 
@@ -444,60 +624,86 @@ export default function UserProfileScreen() {
           <SafeAreaView style={{ paddingTop: HEADER_HEIGHT }}>
             <RNAnimated.View
               entering={FadeInDown.delay(200).springify()}
-              style={styles.avatarContainer}
+              style={[styles.avatarContainer, avatarScaleStyle]}
             >
-              <View style={styles.avatarWrapper}>
-                <LinearGradient
-                  colors={[theme.colors.primary, theme.colors.primaryDark]}
-                  style={styles.avatarGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Text style={styles.avatarText}>
-                    {userProfileQuery.data?.name?.[0]?.toUpperCase() || 'U'}
-                  </Text>
-                </LinearGradient>
-                <View style={styles.avatarBorder} />
-              </View>
+              <FloatingElement intensity={3} duration={4000}>
+                <MagneticView borderRadius={60} style={styles.avatarWrapper}>
+                  <HolographicView morphing borderRadius={60} style={styles.avatarGradient}>
+                    <LinearGradient
+                      colors={[theme.colors.primary, theme.colors.primaryDark]}
+                      style={StyleSheet.absoluteFillObject}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    />
+                    <GlowText style={styles.avatarText}>
+                      {userProfileQuery.data?.name?.[0]?.toUpperCase() || 'U'}
+                    </GlowText>
+                  </HolographicView>
+                  <View style={styles.avatarBorder} />
+                </MagneticView>
+              </FloatingElement>
             </RNAnimated.View>
 
-            <RNAnimated.View entering={FadeInUp.delay(400).springify()} style={styles.profileInfo}>
-              <Text style={styles.displayName}>
+            <RNAnimated.View
+              entering={FadeInUp.delay(400).springify()}
+              style={[styles.profileInfo, profileFloatStyle]}
+            >
+              <GradientTitle animated style={styles.displayName}>
                 {userProfileQuery.data?.name || 'Unknown User'}
-              </Text>
-              <Text style={styles.username}>
+              </GradientTitle>
+              <TypewriterText animated delay={600} style={styles.username}>
                 @{userProfileQuery.data?.email?.split('@')[0] || 'username'}
-              </Text>
+              </TypewriterText>
               {userProfileQuery.data?.bio && (
-                <Text style={styles.bio}>{userProfileQuery.data.bio}</Text>
+                <TypewriterText animated delay={700} style={styles.bio}>
+                  {userProfileQuery.data.bio}
+                </TypewriterText>
               )}
 
-              <Card variant="glass" padding="md" style={styles.quickStatsCard}>
-                <View style={styles.quickStats}>
-                  <View style={styles.quickStat}>
-                    <Text style={styles.quickStatValue}>
-                      {userProfileQuery.data?._count?.listings || 0}
-                    </Text>
-                    <Text style={styles.quickStatLabel}>Listings</Text>
-                  </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.quickStat}>
-                    <Text style={styles.quickStatValue}>
-                      {userProfileQuery.data?._count?.votes || 0}
-                    </Text>
-                    <Text style={styles.quickStatLabel}>Votes</Text>
-                  </View>
-                  <View style={styles.statDivider} />
-                  <View style={styles.quickStat}>
-                    <Text style={styles.quickStatValue}>
-                      {userProfileQuery.data?._count?.comments || 0}
-                    </Text>
-                    <Text style={styles.quickStatLabel}>Comments</Text>
-                  </View>
-                </View>
-              </Card>
+              <RNAnimated.View style={statsFloatStyle}>
+                <HolographicView
+                  morphing
+                  borderRadius={theme.borderRadius.xl}
+                  style={styles.quickStatsCard}
+                >
+                  <GlassView
+                    borderRadius={theme.borderRadius.xl}
+                    blurIntensity={20}
+                    style={{ padding: theme.spacing.md }}
+                  >
+                    <View style={styles.quickStats}>
+                      <FloatingElement intensity={1} duration={3000}>
+                        <View style={styles.quickStat}>
+                          <GlowText style={styles.quickStatValue}>
+                            {userProfileQuery.data?._count?.listings || 0}
+                          </GlowText>
+                          <GlowText style={styles.quickStatLabel}>Listings</GlowText>
+                        </View>
+                      </FloatingElement>
+                      <View style={styles.statDivider} />
+                      <FloatingElement intensity={1} duration={3500}>
+                        <View style={styles.quickStat}>
+                          <GlowText style={styles.quickStatValue}>
+                            {userProfileQuery.data?._count?.votes || 0}
+                          </GlowText>
+                          <GlowText style={styles.quickStatLabel}>Votes</GlowText>
+                        </View>
+                      </FloatingElement>
+                      <View style={styles.statDivider} />
+                      <FloatingElement intensity={1} duration={4000}>
+                        <View style={styles.quickStat}>
+                          <GlowText style={styles.quickStatValue}>
+                            {userProfileQuery.data?._count?.comments || 0}
+                          </GlowText>
+                          <GlowText style={styles.quickStatLabel}>Comments</GlowText>
+                        </View>
+                      </FloatingElement>
+                    </View>
+                  </GlassView>
+                </HolographicView>
+              </RNAnimated.View>
 
-              <Text style={styles.joinDate}>
+              <TypewriterText animated delay={800} style={styles.joinDate}>
                 🗓️ Joined{' '}
                 {userProfileQuery.data?.createdAt
                   ? new Date(userProfileQuery.data.createdAt).toLocaleDateString('en-US', {
@@ -506,7 +712,7 @@ export default function UserProfileScreen() {
                       day: 'numeric',
                     })
                   : 'Unknown'}
-              </Text>
+              </TypewriterText>
             </RNAnimated.View>
 
             {isOwnProfile && (
@@ -546,57 +752,75 @@ export default function UserProfileScreen() {
           </SafeAreaView>
         </RNAnimated.View>
 
-        {/* Tab Navigation */}
+        {/* Enhanced Tab Navigation - Gamepad Optimized */}
         <RNAnimated.View entering={FadeInUp.delay(800).springify()}>
-          <Card variant="glass" style={styles.tabContainer}>
-            <View style={styles.tabWrapper}>
-              {tabs.map((tab) => (
-                <Pressable
+          <HolographicView morphing borderRadius={16} style={styles.tabContainer}>
+            <GlassView borderRadius={16} blurIntensity={20} style={styles.tabWrapper}>
+              {tabs.map((tab, index) => (
+                <AnimatedPressable
                   key={tab.key}
-                  style={styles.tab}
                   onPress={() => {
-                    Haptics.selectionAsync()
+                    runOnJS(Haptics.selectionAsync)()
+                    tabScale.value = withSequence(
+                      withSpring(0.95, MICRO_SPRING_CONFIG.instant),
+                      withSpring(1, MICRO_SPRING_CONFIG.bouncy),
+                    )
                     setSelectedTab(tab.key)
                   }}
                 >
-                  <View style={styles.tabContentContainer}>
-                    <Ionicons
-                      name={tab.icon as any}
-                      size={18}
-                      color={
-                        selectedTab === tab.key ? theme.colors.primary : theme.colors.textMuted
-                      }
-                      style={{ marginBottom: 4 }}
-                    />
-                    <Text style={[styles.tabText, selectedTab === tab.key && styles.activeTabText]}>
-                      {tab.title}
-                    </Text>
-                    {tab.count !== undefined && (
-                      <View
-                        style={[
-                          styles.tabBadge,
-                          {
-                            backgroundColor:
-                              selectedTab === tab.key
-                                ? theme.colors.primary
-                                : theme.colors.textMuted,
-                          },
-                        ]}
+                  <RNAnimated.View
+                    entering={SlideInRight.delay(800 + index * 100).springify()}
+                    style={[styles.tab, tabScaleStyle]}
+                  >
+                    <MagneticView borderRadius={12} style={styles.tabContent}>
+                      {selectedTab === tab.key && (
+                        <LinearGradient
+                          colors={theme.colors.gradients.primary}
+                          style={[StyleSheet.absoluteFillObject, { opacity: 0.1 }]}
+                        />
+                      )}
+                      <FloatingElement intensity={0.5} duration={2000}>
+                        <Ionicons
+                          name={tab.icon as any}
+                          size={18}
+                          color={
+                            selectedTab === tab.key ? theme.colors.primary : theme.colors.textMuted
+                          }
+                          style={{ marginBottom: 4 }}
+                        />
+                      </FloatingElement>
+                      <GlowText
+                        style={[styles.tabText, selectedTab === tab.key && styles.activeTabText]}
                       >
-                        <Text style={styles.tabBadgeText}>{tab.count}</Text>
-                      </View>
+                        {tab.title}
+                      </GlowText>
+                      {tab.count !== undefined && (
+                        <View
+                          style={[
+                            styles.tabBadge,
+                            {
+                              backgroundColor:
+                                selectedTab === tab.key
+                                  ? theme.colors.primary
+                                  : theme.colors.textMuted,
+                            },
+                          ]}
+                        >
+                          <GlowText style={styles.tabBadgeText}>{tab.count}</GlowText>
+                        </View>
+                      )}
+                    </MagneticView>
+                    {selectedTab === tab.key && (
+                      <RNAnimated.View
+                        entering={FadeInUp.duration(200)}
+                        style={[styles.tabIndicator, { backgroundColor: theme.colors.primary }]}
+                      />
                     )}
-                  </View>
-                  {selectedTab === tab.key && (
-                    <RNAnimated.View
-                      entering={FadeInUp.duration(200)}
-                      style={[styles.tabIndicator, { backgroundColor: theme.colors.primary }]}
-                    />
-                  )}
-                </Pressable>
+                  </RNAnimated.View>
+                </AnimatedPressable>
               ))}
-            </View>
-          </Card>
+            </GlassView>
+          </HolographicView>
         </RNAnimated.View>
 
         {/* Tab Content */}
@@ -773,6 +997,8 @@ function createStyles(theme: any) {
       alignItems: 'center',
       minHeight: 70,
       justifyContent: 'center',
+      position: 'relative',
+      overflow: 'hidden',
     },
     tabText: {
       fontSize: 12,

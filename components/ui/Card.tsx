@@ -1,15 +1,15 @@
+import { useTheme } from '@/contexts/ThemeContext'
+import { ANIMATION_CONFIG } from '@/lib/animation/config'
+import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
 import React, { type ReactNode } from 'react'
-import { View, TouchableOpacity, StyleSheet, Platform, type ViewStyle } from 'react-native'
+import { Platform, StyleSheet, TouchableOpacity, View, type ViewStyle } from 'react-native'
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
-import { useTheme } from '@/contexts/ThemeContext'
-import { ANIMATION_CONFIG } from '@/lib/animation/config'
 
 interface CardProps {
   children?: ReactNode
@@ -60,14 +60,14 @@ export default function Card({
 
   const handlePressIn = () => {
     if (onPress && !disabled && !disableAnimations) {
-      scale.value = withSpring(0.98, { 
-        damping: 30, 
+      scale.value = withSpring(0.98, {
+        damping: 30,
         stiffness: 400,
-        mass: 0.8
+        mass: 0.8,
       })
-      opacity.value = withTiming(0.95, { 
+      opacity.value = withTiming(0.95, {
         duration: 100,
-        easing: ANIMATION_CONFIG.easing.out 
+        easing: ANIMATION_CONFIG.easing.out,
       })
     }
   }
@@ -77,11 +77,11 @@ export default function Card({
       scale.value = withSpring(1, {
         damping: 25,
         stiffness: 350,
-        mass: 0.7
+        mass: 0.7,
       })
-      opacity.value = withTiming(1, { 
+      opacity.value = withTiming(1, {
         duration: 150,
-        easing: ANIMATION_CONFIG.easing.out 
+        easing: ANIMATION_CONFIG.easing.out,
       })
     }
   }
@@ -164,13 +164,19 @@ export default function Card({
         <BlurView
           intensity={theme.isDark ? 30 : 25}
           tint={theme.isDark ? 'dark' : 'light'}
-          style={[StyleSheet.absoluteFillObject, { borderRadius: borderRadius || theme.borderRadius.lg }]}
+          style={[
+            StyleSheet.absoluteFillObject,
+            { borderRadius: borderRadius || theme.borderRadius.lg },
+          ]}
         />
       )}
       {variant === 'gradient' && (
         <LinearGradient
           colors={theme.colors.gradients.card as [string, string, ...string[]]}
-          style={[StyleSheet.absoluteFillObject, { borderRadius: borderRadius || theme.borderRadius.lg }]}
+          style={[
+            StyleSheet.absoluteFillObject,
+            { borderRadius: borderRadius || theme.borderRadius.lg },
+          ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         />

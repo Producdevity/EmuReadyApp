@@ -1,21 +1,21 @@
+import { useTheme } from '@/contexts/ThemeContext'
+import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, Text } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
+import { PanGestureHandler, TapGestureHandler } from 'react-native-gesture-handler'
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
+  Extrapolation,
+  interpolate,
+  runOnJS,
   useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
-  interpolate,
-  Extrapolation,
-  runOnJS,
 } from 'react-native-reanimated'
-import { PanGestureHandler, TapGestureHandler } from 'react-native-gesture-handler'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
-import { Ionicons } from '@expo/vector-icons'
-import * as Haptics from 'expo-haptics'
-import { useTheme } from '@/contexts/ThemeContext'
 
 interface FloatingAction {
   id: string
@@ -95,11 +95,11 @@ export default function FloatingActionButton({
       case 'top-left':
         return { top: offset + 50, left: offset }
       case 'center':
-        return { 
-          top: '50%', 
-          left: '50%', 
-          marginTop: -config.size / 2, 
-          marginLeft: -config.size / 2 
+        return {
+          top: '50%',
+          left: '50%',
+          marginTop: -config.size / 2,
+          marginLeft: -config.size / 2,
         }
       default:
         return { bottom: offset, right: offset }
@@ -112,7 +112,7 @@ export default function FloatingActionButton({
       if (!dragEnabled) return
       runOnJS(setIsDragging)(true)
       scale.value = withSpring(1.1, { damping: 15, stiffness: 300 })
-      
+
       if (hapticFeedback) {
         runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
       }
@@ -121,13 +121,13 @@ export default function FloatingActionButton({
       if (!dragEnabled) return
       translateX.value = event.translationX
       translateY.value = event.translationY
-      
+
       // Magnetic effect near edges
       if (magneticEffect) {
         const screenWidth = 400 // Approximate screen width
         const _screenHeight = 800 // Approximate screen height
         const magnetStrength = 20
-        
+
         if (Math.abs(event.absoluteX) < magnetStrength) {
           translateX.value = -event.absoluteX + magnetStrength
         } else if (Math.abs(event.absoluteX - screenWidth) < magnetStrength) {
@@ -138,7 +138,7 @@ export default function FloatingActionButton({
     onEnd: (event) => {
       if (!dragEnabled) return
       runOnJS(setIsDragging)(false)
-      
+
       // Snap to nearest edge or return to original position
       const threshold = 100
       if (Math.abs(event.translationX) > threshold || Math.abs(event.translationY) > threshold) {
@@ -149,7 +149,7 @@ export default function FloatingActionButton({
         translateX.value = withSpring(0, { damping: 20, stiffness: 300 })
         translateY.value = withSpring(0, { damping: 20, stiffness: 300 })
       }
-      
+
       scale.value = withSpring(1, { damping: 15, stiffness: 300 })
     },
   })
@@ -158,14 +158,14 @@ export default function FloatingActionButton({
   const tapGestureHandler = useAnimatedGestureHandler({
     onStart: () => {
       scale.value = withSpring(0.9, { damping: 15, stiffness: 400 })
-      
+
       if (hapticFeedback) {
         runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
       }
     },
     onEnd: () => {
       scale.value = withSpring(1, { damping: 15, stiffness: 300 })
-      
+
       if (actions.length > 0) {
         runOnJS(toggleExpansion)()
       } else if (onMainPress) {
@@ -176,7 +176,7 @@ export default function FloatingActionButton({
 
   const toggleExpansion = () => {
     setIsExpanded(!isExpanded)
-    
+
     if (hapticFeedback) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     }
@@ -188,12 +188,12 @@ export default function FloatingActionButton({
       damping: 20,
       stiffness: 300,
     })
-    
+
     rotation.value = withSpring(isExpanded ? 45 : 0, {
       damping: 20,
       stiffness: 300,
     })
-    
+
     if (glowEffect) {
       glowOpacity.value = withTiming(isExpanded ? 0.6 : 0, { duration: 300 })
     }
@@ -220,22 +220,15 @@ export default function FloatingActionButton({
       scale.value,
       [1, 1.1],
       [0.2 * shadowIntensity, 0.4 * shadowIntensity],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     ),
-    shadowRadius: interpolate(
-      scale.value,
-      [1, 1.1],
-      [8, 16],
-      Extrapolation.CLAMP
-    ),
+    shadowRadius: interpolate(scale.value, [1, 1.1], [8, 16], Extrapolation.CLAMP),
   }))
 
   // Glow effect style
   const glowStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value,
-    transform: [
-      { scale: interpolate(glowOpacity.value, [0, 1], [0.8, 1.3]) }
-    ],
+    transform: [{ scale: interpolate(glowOpacity.value, [0, 1], [0.8, 1.3]) }],
   }))
 
   // Action items animation
@@ -265,18 +258,13 @@ export default function FloatingActionButton({
           break
       }
 
-      const animatedScale = interpolate(
-        expandValue.value,
-        [0, 1],
-        [0, 1],
-        Extrapolation.CLAMP
-      )
+      const animatedScale = interpolate(expandValue.value, [0, 1], [0, 1], Extrapolation.CLAMP)
 
       const animatedOpacity = interpolate(
         expandValue.value,
         [0, 0.5, 1],
         [0, 0.5, 1],
-        Extrapolation.CLAMP
+        Extrapolation.CLAMP,
       )
 
       return {
@@ -355,14 +343,10 @@ export default function FloatingActionButton({
                 },
               ]}
             >
-              <Ionicons
-                name={action.icon}
-                size={config.iconSize * 0.8}
-                color="#ffffff"
-              />
+              <Ionicons name={action.icon} size={config.iconSize * 0.8} color="#ffffff" />
             </Animated.View>
           </TapGestureHandler>
-          
+
           {/* Action Label */}
           <View style={styles.actionLabel}>
             <Text style={[styles.actionLabelText, { color: theme.colors.text }]}>
@@ -512,14 +496,20 @@ const styles = StyleSheet.create({
 })
 
 // Predefined floating action button variants
-export const GlassFloatingActionButton = ({ ...props }: Omit<FloatingActionButtonProps, 'variant'>) => (
+export const GlassFloatingActionButton = ({
+  ...props
+}: Omit<FloatingActionButtonProps, 'variant'>) => (
   <FloatingActionButton variant="glass" glowEffect={true} {...props} />
 )
 
-export const NeonFloatingActionButton = ({ ...props }: Omit<FloatingActionButtonProps, 'variant'>) => (
+export const NeonFloatingActionButton = ({
+  ...props
+}: Omit<FloatingActionButtonProps, 'variant'>) => (
   <FloatingActionButton variant="neon" glowEffect={true} shadowIntensity={2} {...props} />
 )
 
-export const MinimalFloatingActionButton = ({ ...props }: Omit<FloatingActionButtonProps, 'variant'>) => (
+export const MinimalFloatingActionButton = ({
+  ...props
+}: Omit<FloatingActionButtonProps, 'variant'>) => (
   <FloatingActionButton variant="minimal" glowEffect={false} {...props} />
 )

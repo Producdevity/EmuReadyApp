@@ -1,5 +1,5 @@
-import React, { Component, type ComponentType, type PropsWithChildren, type ErrorInfo } from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import React, { Component, type ComponentType, type ErrorInfo, type PropsWithChildren } from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 import { Button } from './ui'
 
 interface Props extends PropsWithChildren {

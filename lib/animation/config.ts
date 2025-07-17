@@ -1,36 +1,36 @@
-import { withSpring, withTiming, Easing } from 'react-native-reanimated'
+import { Easing, withSpring, withTiming } from 'react-native-reanimated'
 
 // Ultra-smooth animation configuration for 120Hz displays
 export const ANIMATION_CONFIG = {
   // Timing presets - optimized for modern high-refresh displays
   timing: {
-    instant: 50,    // Ultra-fast for immediate feedback
-    fast: 100,      // Quick transitions
-    normal: 150,    // Standard transitions
-    slow: 200,      // Deliberate animations
+    instant: 50, // Ultra-fast for immediate feedback
+    fast: 100, // Quick transitions
+    normal: 150, // Standard transitions
+    slow: 200, // Deliberate animations
   },
 
   // Spring presets - physics-based for natural feel
   spring: {
-    snappy: { damping: 30, stiffness: 400, mass: 0.8 },   // iOS-like snappy
-    smooth: { damping: 35, stiffness: 350, mass: 0.9 },   // Smooth and controlled
-    bouncy: { damping: 25, stiffness: 300, mass: 1.0 },   // Playful with energy
-    gentle: { damping: 40, stiffness: 250, mass: 1.1 },   // Gentle and fluid
+    snappy: { damping: 30, stiffness: 400, mass: 0.8 }, // iOS-like snappy
+    smooth: { damping: 35, stiffness: 350, mass: 0.9 }, // Smooth and controlled
+    bouncy: { damping: 25, stiffness: 300, mass: 1.0 }, // Playful with energy
+    gentle: { damping: 40, stiffness: 250, mass: 1.1 }, // Gentle and fluid
   },
 
   // Stagger delays - optimized for fluid sequences
   stagger: {
-    fast: 8,        // Rapid-fire
-    normal: 12,     // Smooth cascade
-    slow: 16,       // Deliberate sequence
+    fast: 8, // Rapid-fire
+    normal: 12, // Smooth cascade
+    slow: 16, // Deliberate sequence
   },
 
   // Base delays - optimized for responsiveness
   baseDelay: {
-    instant: 0,     // No delay
-    fast: 25,       // Minimal delay
-    normal: 50,     // Brief pause
-    slow: 80,       // Noticeable but not slow
+    instant: 0, // No delay
+    fast: 25, // Minimal delay
+    normal: 50, // Brief pause
+    slow: 80, // Noticeable but not slow
   },
 
   // Scale presets for interactions
@@ -43,11 +43,11 @@ export const ANIMATION_CONFIG = {
 
   // Easing curves - optimized for modern UI feel
   easing: {
-    out: Easing.out(Easing.cubic),       // Smooth deceleration
-    inOut: Easing.inOut(Easing.cubic),   // Smooth bidirectional
-    elastic: Easing.elastic(1.2),        // Subtle bounce
-    linear: Easing.linear,               // Constant speed
-    back: Easing.back(1.7),             // Overshoot effect
+    out: Easing.out(Easing.cubic), // Smooth deceleration
+    inOut: Easing.inOut(Easing.cubic), // Smooth bidirectional
+    elastic: Easing.elastic(1.2), // Subtle bounce
+    linear: Easing.linear, // Constant speed
+    back: Easing.back(1.7), // Overshoot effect
   },
 }
 

@@ -11,8 +11,8 @@ export { default as VirtualizedListingsList } from './lists/VirtualizedListingsL
 export * from './themed'
 
 // Error Boundaries
-export { default as ErrorBoundary } from './ErrorBoundary'
 export { default as EnhancedErrorBoundary } from './EnhancedErrorBoundary'
+export { default as ErrorBoundary } from './ErrorBoundary'
 
 // Utility Components
 export { ExternalLink } from './ExternalLink'

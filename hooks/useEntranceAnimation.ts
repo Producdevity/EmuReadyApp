@@ -1,5 +1,5 @@
-import { FadeInUp, FadeInDown, SlideInRight, SlideInLeft } from 'react-native-reanimated'
-import { ANIMATION_CONFIG, getStaggerDelay, getBaseDelay } from '@/lib/animation/config'
+import { ANIMATION_CONFIG, getBaseDelay, getStaggerDelay } from '@/lib/animation/config'
+import { FadeInDown, FadeInUp, SlideInLeft, SlideInRight } from 'react-native-reanimated'
 
 type AnimationType = 'fadeUp' | 'fadeDown' | 'slideRight' | 'slideLeft'
 

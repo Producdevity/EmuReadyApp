@@ -2,14 +2,14 @@ import { Tabs } from 'expo-router'
 import React from 'react'
 import { Platform } from 'react-native'
 
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { HapticTab } from '@/components/HapticTab'
-import { IconSymbol } from '@/components/ui/IconSymbol'
-import TabBarBackground from '@/components/ui/TabBarBackground'
 import AnimatedTabBar from '@/components/ui/AnimatedTabBar'
 import GamepadTabBar from '@/components/ui/GamepadTabBar'
-import { useGamepadEventHandler, useOrientationOptimized } from '@/hooks/useGamepadNavigation'
+import { IconSymbol } from '@/components/ui/IconSymbol'
+import TabBarBackground from '@/components/ui/TabBarBackground'
 import { useTheme } from '@/contexts/ThemeContext'
-import ErrorBoundary from '@/components/ErrorBoundary'
+import { useGamepadEventHandler, useOrientationOptimized } from '@/hooks/useGamepadNavigation'
 
 export default function TabLayout() {
   const { theme } = useTheme()

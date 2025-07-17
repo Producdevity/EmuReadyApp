@@ -1,19 +1,19 @@
-import React, { useState } from 'react'
-import {
-  View,
-  Text,
-  TextInput,
-  Modal,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-} from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import { useTheme } from '@/contexts/ThemeContext'
-import { useCreateListingReport } from '@/lib/api/hooks'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
+import { useTheme } from '@/contexts/ThemeContext'
+import { useCreateListingReport } from '@/lib/api/hooks'
+import { Ionicons } from '@expo/vector-icons'
+import React, { useState } from 'react'
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 
 interface ReportListingModalProps {
   visible: boolean

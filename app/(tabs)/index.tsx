@@ -1,52 +1,55 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
+import { router } from 'expo-router'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
+  Dimensions,
+  Pressable,
+  RefreshControl,
   ScrollView,
-  View,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
-  RefreshControl,
-  StatusBar,
-  Pressable,
-  Dimensions,
-  StyleSheet,
+  View,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
 import Animated, {
-  FadeInUp,
-  FadeInDown,
-  ZoomIn,
-  SlideInLeft,
   BounceIn,
-  useSharedValue,
+  Extrapolation,
+  FadeInUp,
+  interpolate,
+  runOnJS,
+  SlideInLeft,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  interpolate,
-  withSpring,
-  withSequence,
-  withTiming,
+  useSharedValue,
   withRepeat,
-  runOnJS,
-  Extrapolation,
+  withSequence,
+  withSpring,
+  withTiming,
+  ZoomIn,
 } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import { router } from 'expo-router'
-import * as Haptics from 'expo-haptics'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { useTheme } from '@/contexts/ThemeContext'
-import { useAppStats, useFeaturedListings, usePopularGames } from '@/lib/api/hooks'
-import { Button, CachedImage } from '@/components/ui'
-import { GlassView, HolographicView, FloatingView, MagneticView } from '@/components/themed/ThemedView'
-import { HeroText, GradientTitle, TypewriterText, GlowText } from '@/components/themed/ThemedText'
-import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
-import { FluidGradient, AuroraGradient, CosmicGradient } from '@/components/ui/FluidGradient'
-import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
-import FloatingActionButton from '@/components/ui/FloatingActionButton'
 import { ListingCard } from '@/components/cards'
-import { getStaggerDelay, getBaseDelay, ANIMATION_CONFIG } from '@/lib/animation/config'
+import { GlowText, GradientTitle, HeroText, TypewriterText } from '@/components/themed/ThemedText'
+import { HolographicView, MagneticView } from '@/components/themed/ThemedView'
+import { Button, CachedImage, Card, SkeletonLoader } from '@/components/ui'
+import FloatingActionButton from '@/components/ui/FloatingActionButton'
+import FluidGradient, { AuroraGradient, CosmicGradient } from '@/components/ui/FluidGradient'
+import {
+  AnimatedPressable,
+  FloatingElement,
+  MICRO_SPRING_CONFIG,
+} from '@/components/ui/MicroInteractions'
+import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
+import { useTheme } from '@/contexts/ThemeContext'
 import { useOrientationOptimized } from '@/hooks/useGamepadNavigation'
-import type { Listing, Game } from '@/types'
+import { ANIMATION_CONFIG, getBaseDelay, getStaggerDelay } from '@/lib/animation/config'
+import { useAppStats, useFeaturedListings, usePopularGames } from '@/lib/api/hooks'
+import type { Game, Listing } from '@/types'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT_PORTRAIT = SCREEN_HEIGHT * 0.45
@@ -59,58 +62,41 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const scrollY = useSharedValue(0)
-  
+
   // Enhanced animation values for 2025 design
   const heroGlow = useSharedValue(0)
   const heroParticles = useSharedValue(0)
   const searchPulse = useSharedValue(1)
   const statsFloat = useSharedValue(0)
   const backgroundShift = useSharedValue(0)
-  
+
   useEffect(() => {
     // Hero section ambient animations
     heroGlow.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 3000 }),
-        withTiming(0.3, { duration: 3000 })
-      ),
+      withSequence(withTiming(1, { duration: 3000 }), withTiming(0.3, { duration: 3000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Particle movement
-    heroParticles.value = withRepeat(
-      withTiming(1, { duration: 8000 }),
-      -1,
-      false
-    )
-    
+    heroParticles.value = withRepeat(withTiming(1, { duration: 8000 }), -1, false)
+
     // Search bar pulse
     searchPulse.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 2000 }),
-        withTiming(1, { duration: 2000 })
-      ),
+      withSequence(withTiming(1.02, { duration: 2000 }), withTiming(1, { duration: 2000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Stats floating
     statsFloat.value = withRepeat(
-      withSequence(
-        withTiming(5, { duration: 4000 }),
-        withTiming(-5, { duration: 4000 })
-      ),
+      withSequence(withTiming(5, { duration: 4000 }), withTiming(-5, { duration: 4000 })),
       -1,
-      true
+      true,
     )
-    
+
     // Background color shift
-    backgroundShift.value = withRepeat(
-      withTiming(1, { duration: 12000 }),
-      -1,
-      true
-    )
+    backgroundShift.value = withRepeat(withTiming(1, { duration: 12000 }), -1, true)
   }, [])
 
   const statsQuery = useAppStats()
@@ -172,46 +158,39 @@ export default function HomeScreen() {
     router.push(`/listing/${listingId}`)
   }
 
-  const renderStatsCard = (
-    stat: { label: string; value: string; color: string; icon: string },
-    index: number,
-  ) => {
+  const StatsCard = ({
+    stat,
+    index,
+  }: {
+    stat: { label: string; value: string; color: string; icon: string }
+    index: number
+  }) => {
     const scale = useSharedValue(0.9)
     const glow = useSharedValue(0)
-    
+
     useEffect(() => {
       const delay = index * 200
       setTimeout(() => {
         scale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
         glow.value = withRepeat(
-          withSequence(
-            withTiming(1, { duration: 2000 }),
-            withTiming(0.4, { duration: 2000 })
-          ),
+          withSequence(withTiming(1, { duration: 2000 }), withTiming(0.4, { duration: 2000 })),
           -1,
-          true
+          true,
         )
       }, delay)
-    }, [])
-    
+    }, [index, scale, glow])
+
     const animatedStyle = useAnimatedStyle(() => ({
       transform: [{ scale: scale.value }, { translateY: statsFloat.value }],
     }))
-    
+
     const glowStyle = useAnimatedStyle(() => ({
       opacity: glow.value,
     }))
-    
+
     return (
-      <Animated.View
-        key={stat.label}
-        style={[styles.statsCard, animatedStyle]}
-      >
-        <HolographicView
-          morphing
-          borderRadius={20}
-          style={styles.statsCardContainer}
-        >
+      <Animated.View key={stat.label} style={[styles.statsCard, animatedStyle]}>
+        <HolographicView morphing borderRadius={20} style={styles.statsCardContainer}>
           {/* Glow effect */}
           <Animated.View style={[styles.statsGlow, glowStyle]}>
             <LinearGradient
@@ -219,7 +198,7 @@ export default function HomeScreen() {
               style={StyleSheet.absoluteFillObject}
             />
           </Animated.View>
-          
+
           <FluidGradient
             variant="aurora"
             borderRadius={20}
@@ -228,36 +207,34 @@ export default function HomeScreen() {
             style={StyleSheet.absoluteFillObject}
             opacity={0.05}
           />
-          
+
           <View style={styles.statsContent}>
             <FloatingElement intensity={3} duration={3000 + index * 500}>
-              <View style={[styles.statsIcon, { backgroundColor: `${stat.color}20`, borderColor: `${stat.color}30` }]}>
+              <View
+                style={[
+                  styles.statsIcon,
+                  { backgroundColor: `${stat.color}20`, borderColor: `${stat.color}30` },
+                ]}
+              >
                 <Text style={styles.statsEmoji}>{stat.icon}</Text>
               </View>
             </FloatingElement>
-            
-            <GlowText 
-              type="hero" 
-              glow 
-              style={[styles.statsValue, { color: theme.colors.text }]}
-            >
+
+            <GlowText style={[styles.statsValue, { color: theme.colors.text }]}>
               {stat.value}
             </GlowText>
-            
-            <TypewriterText 
-              type="caption" 
-              animated 
+
+            <TypewriterText
+              type="caption"
+              animated
               delay={index * 100 + 300}
               style={[styles.statsLabel, { color: stat.color }]}
             >
               {stat.label}
             </TypewriterText>
-            
+
             {/* Accent line */}
-            <LinearGradient
-              colors={[stat.color, `${stat.color}60`]}
-              style={styles.statsAccent}
-            />
+            <LinearGradient colors={[stat.color, `${stat.color}60`]} style={styles.statsAccent} />
           </View>
         </HolographicView>
       </Animated.View>
@@ -281,11 +258,11 @@ export default function HomeScreen() {
           },
         ]}
       >
-        <Card 
-          style={{ 
-            height: 240, 
+        <Card
+          style={{
+            height: 240,
             overflow: 'hidden',
-          }} 
+          }}
           variant="default"
           elevation={2}
           disableAnimations={true}
@@ -421,19 +398,22 @@ export default function HomeScreen() {
   const heroGlowStyle = useAnimatedStyle(() => ({
     opacity: heroGlow.value,
   }))
-  
+
   const particleStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: interpolate(heroParticles.value, [0, 1], [-50, 50], Extrapolation.CLAMP) }],
+    transform: [
+      { translateX: interpolate(heroParticles.value, [0, 1], [-50, 50], Extrapolation.CLAMP) },
+    ],
   }))
-  
+
   const searchPulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: searchPulse.value }],
   }))
-  
-  const backgroundStyle = useAnimatedStyle(() => {
-    const hue = interpolate(backgroundShift.value, [0, 1], [0, 60], Extrapolation.CLAMP)
-    return {}
-  })
+
+  // Unused for now - will be used for dynamic background effects
+  // const backgroundStyle = useAnimatedStyle(() => {
+  //   const hue = interpolate(backgroundShift.value, [0, 1], [0, 60], Extrapolation.CLAMP)
+  //   return {}
+  // })
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -449,23 +429,19 @@ export default function HomeScreen() {
           styles.backgroundGradient,
           {
             height: (isLandscape ? HEADER_HEIGHT_LANDSCAPE : HEADER_HEIGHT_PORTRAIT) + 200,
-          }
+          },
         ]}
         speed="slow"
       />
-      
+
       {/* Hero glow effect */}
       <Animated.View style={[styles.heroGlow, heroGlowStyle]}>
         <LinearGradient
-          colors={[
-            'transparent',
-            `${theme.colors.primary}15`,
-            'transparent'
-          ]}
+          colors={['transparent', `${theme.colors.primary}15`, 'transparent']}
           style={StyleSheet.absoluteFillObject}
         />
       </Animated.View>
-      
+
       {/* Floating particles */}
       <View style={styles.particlesContainer}>
         {Array.from({ length: 8 }).map((_, index) => (
@@ -475,14 +451,16 @@ export default function HomeScreen() {
               styles.particle,
               particleStyle,
               {
-                left: `${(index * 12) + 10}%`,
+                left: `${index * 12 + 10}%`,
                 top: `${20 + (index % 3) * 15}%`,
                 animationDelay: `${index * 0.5}s`,
-              }
+              },
             ]}
           >
             <FloatingElement intensity={4} duration={3000 + index * 400}>
-              <View style={[styles.particleDot, { backgroundColor: `${theme.colors.primary}40` }]} />
+              <View
+                style={[styles.particleDot, { backgroundColor: `${theme.colors.primary}40` }]}
+              />
             </FloatingElement>
           </Animated.View>
         ))}
@@ -494,7 +472,7 @@ export default function HomeScreen() {
           styles.depthGradient,
           {
             top: (isLandscape ? HEADER_HEIGHT_LANDSCAPE : HEADER_HEIGHT_PORTRAIT) - 100,
-          }
+          },
         ]}
         opacity={0.3}
         speed="fast"
@@ -523,19 +501,19 @@ export default function HomeScreen() {
                   entering={BounceIn.delay(200).springify()}
                   style={styles.heroTextContainer}
                 >
-                  <HeroText 
-                    gradient 
-                    animated 
-                    variant="scale" 
-                    glow 
+                  <HeroText
+                    gradient
+                    animated
+                    variant="scale"
+                    glow
                     style={styles.heroTitle}
                     customColors={['#ffffff', theme.colors.primary, theme.colors.accent]}
                   >
                     Welcome to EmuReady
                   </HeroText>
-                  
-                  <TypewriterText 
-                    animated 
+
+                  <TypewriterText
+                    animated
                     delay={800}
                     style={[
                       styles.heroSubtitle,
@@ -543,7 +521,7 @@ export default function HomeScreen() {
                         color: theme.isDark
                           ? `${theme.colors.textInverse}CC`
                           : theme.colors.textSecondary,
-                      }
+                      },
                     ]}
                   >
                     Discover the best emulation performance for your favorite games
@@ -555,12 +533,7 @@ export default function HomeScreen() {
                   style={[searchBarAnimatedStyle, searchPulseStyle]}
                   entering={SlideInLeft.delay(1000).springify()}
                 >
-                  <MagneticView
-                    borderRadius={24}
-                    animated
-                    hoverable
-                    style={styles.searchContainer}
-                  >
+                  <MagneticView borderRadius={24} animated hoverable style={styles.searchContainer}>
                     <BlurView
                       intensity={100}
                       tint={theme.isDark ? 'dark' : 'light'}
@@ -574,7 +547,7 @@ export default function HomeScreen() {
                         style={StyleSheet.absoluteFillObject}
                         opacity={0.1}
                       />
-                      
+
                       <View style={styles.searchInputContainer}>
                         <FloatingElement intensity={2} duration={2000}>
                           <Ionicons
@@ -584,13 +557,13 @@ export default function HomeScreen() {
                             style={styles.searchIcon}
                           />
                         </FloatingElement>
-                        
+
                         <TextInput
                           style={[
                             styles.searchInput,
                             {
                               color: theme.colors.text,
-                            }
+                            },
                           ]}
                           placeholder="Search games, devices, emulators..."
                           placeholderTextColor={theme.colors.textMuted}
@@ -599,23 +572,15 @@ export default function HomeScreen() {
                           onSubmitEditing={handleSearch}
                           returnKeyType="search"
                         />
-                        
+
                         {searchQuery.length > 0 && (
                           <AnimatedPressable onPress={handleSearch}>
-                            <MagneticView 
-                              borderRadius={12} 
-                              style={styles.searchButton}
-                            >
+                            <MagneticView borderRadius={12} style={styles.searchButton}>
                               <LinearGradient
                                 colors={theme.colors.gradients.primary}
                                 style={StyleSheet.absoluteFillObject}
                               />
-                              <GlowText 
-                                glow 
-                                style={styles.searchButtonText}
-                              >
-                                Search
-                              </GlowText>
+                              <GlowText style={styles.searchButtonText}>Search</GlowText>
                             </MagneticView>
                           </AnimatedPressable>
                         )}
@@ -629,44 +594,20 @@ export default function HomeScreen() {
         </View>
 
         {/* Revolutionary Stats Section */}
-        <View style={getLandscapeStyles(
-          styles.statsSection,
-          styles.statsSectionLandscape
-        )}>
-          <Animated.View
-            entering={FadeInUp.delay(1200).springify()}
-            style={styles.statsHeader}
-          >
-            <HolographicView 
-              morphing 
-              borderRadius={20}
-              style={styles.statsBadge}
-            >
-              <GlowText 
-                type="caption" 
-                glow 
-                style={styles.statsBadgeText}
-              >
-                Community Stats
-              </GlowText>
+        <View style={getLandscapeStyles(styles.statsSection, styles.statsSectionLandscape)}>
+          <Animated.View entering={FadeInUp.delay(1200).springify()} style={styles.statsHeader}>
+            <HolographicView morphing borderRadius={20} style={styles.statsBadge}>
+              <GlowText style={styles.statsBadgeText}>Community Stats</GlowText>
             </HolographicView>
-            
-            <GradientTitle 
-              gradient 
-              animated 
-              variant="scale"
-              style={styles.statsTitle}
-            >
+
+            <GradientTitle animated style={styles.statsTitle}>
               Growing Together
             </GradientTitle>
-            
-            <TypewriterText 
-              animated 
+
+            <TypewriterText
+              animated
               delay={1400}
-              style={[
-                styles.statsSubtitle,
-                { color: theme.colors.textSecondary }
-              ]}
+              style={[styles.statsSubtitle, { color: theme.colors.textSecondary }]}
             >
               Join thousands of gamers sharing performance insights
             </TypewriterText>
@@ -675,7 +616,7 @@ export default function HomeScreen() {
           <View
             style={getLandscapeStyles(
               styles.statsCardsContainer,
-              styles.statsCardsContainerLandscape
+              styles.statsCardsContainerLandscape,
             )}
           >
             {statsQuery.isLoading
@@ -685,14 +626,12 @@ export default function HomeScreen() {
                     entering={ZoomIn.delay(1600 + index * 200).springify()}
                     style={styles.statsCard}
                   >
-                    <EnhancedSkeletonCard 
-                      variant="stats" 
-                      animated 
-                      style={styles.skeletonCard}
-                    />
+                    <EnhancedSkeletonCard variant="stats" animated style={styles.skeletonCard} />
                   </Animated.View>
                 ))
-              : statsData.map(renderStatsCard)}
+              : statsData.map((stat, index) => (
+                  <StatsCard key={stat.label} stat={stat} index={index} />
+                ))}
           </View>
         </View>
 
@@ -708,15 +647,17 @@ export default function HomeScreen() {
               {
                 paddingHorizontal: theme.spacing.xxl,
                 marginBottom: theme.spacing.xl,
-              }
+              },
             )}
           >
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: theme.spacing.md,
-            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: theme.spacing.md,
+              }}
+            >
               <View>
                 <Text
                   style={{
@@ -742,7 +683,9 @@ export default function HomeScreen() {
                 variant="ghost"
                 size="sm"
                 onPress={() => router.push('/browse')}
-                rightIcon={<Ionicons name="chevron-forward" size={16} color={theme.colors.primary} />}
+                rightIcon={
+                  <Ionicons name="chevron-forward" size={16} color={theme.colors.primary} />
+                }
               />
             </View>
           </Animated.View>
@@ -752,7 +695,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={getLandscapeStyles(
               { paddingHorizontal: theme.spacing.lg },
-              { paddingHorizontal: theme.spacing.xxl }
+              { paddingHorizontal: theme.spacing.xxl },
             )}
           >
             {popularGamesQuery.isLoading
@@ -764,7 +707,10 @@ export default function HomeScreen() {
                     )}
                     style={{ marginRight: theme.spacing.lg, width: 160 }}
                   >
-                    <Card style={{ height: 220, padding: 0, overflow: 'hidden' }} disableAnimations={true}>
+                    <Card
+                      style={{ height: 220, padding: 0, overflow: 'hidden' }}
+                      disableAnimations={true}
+                    >
                       <SkeletonLoader width="100%" height={140} />
                       <View style={{ padding: theme.spacing.md }}>
                         <SkeletonLoader
@@ -821,7 +767,10 @@ export default function HomeScreen() {
                       ANIMATION_CONFIG.timing.fast,
                     )}
                   >
-                    <Card style={{ height: 120, padding: theme.spacing.lg }} disableAnimations={true}>
+                    <Card
+                      style={{ height: 120, padding: theme.spacing.lg }}
+                      disableAnimations={true}
+                    >
                       <View style={{ flexDirection: 'row', gap: theme.spacing.md }}>
                         <SkeletonLoader
                           width={80}
@@ -865,7 +814,7 @@ export default function HomeScreen() {
               >
                 <Card style={{ overflow: 'hidden' }} disableAnimations={true}>
                   <LinearGradient
-                    colors={theme.colors.gradients.secondary as [string, string, ...string[]]}
+                    colors={theme.colors.gradients.secondary}
                     style={{
                       padding: theme.spacing.xxl,
                       alignItems: 'center',
@@ -1006,7 +955,7 @@ export default function HomeScreen() {
                 ]}
               >
                 <LinearGradient
-                  colors={theme.colors.gradients.primary as [string, string, ...string[]]}
+                  colors={theme.colors.gradients.primary}
                   style={{
                     position: 'absolute',
                     top: 0,

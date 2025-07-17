@@ -1,13 +1,13 @@
-import React, { memo, useRef, useEffect } from 'react'
-import { TextInput, StyleSheet, type TextInputProps, type ViewStyle, Pressable } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  interpolateColor,
-} from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/contexts/ThemeContext'
+import { Ionicons } from '@expo/vector-icons'
+import React, { memo, useEffect, useRef } from 'react'
+import { Pressable, StyleSheet, TextInput, type TextInputProps, type ViewStyle } from 'react-native'
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated'
 
 interface SearchBarProps extends Omit<TextInputProps, 'style'> {
   value: string

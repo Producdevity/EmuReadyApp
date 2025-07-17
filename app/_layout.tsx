@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { Ionicons } from '@expo/vector-icons'
 import {
   DarkTheme,
   DefaultTheme,
@@ -6,36 +6,36 @@ import {
 } from '@react-navigation/native'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { useFonts } from 'expo-font'
+import * as Haptics from 'expo-haptics'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
-import { View, Dimensions, Platform } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+import React, { useEffect, useState } from 'react'
+import { Dimensions, Platform, View } from 'react-native'
 import Animated, {
+  Extrapolation,
   FadeIn,
   FadeOut,
+  interpolate,
   SlideInUp,
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withRepeat,
   withSequence,
   withTiming,
-  interpolate,
-  Extrapolation,
 } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import * as Haptics from 'expo-haptics'
 
+import ErrorBoundary from '@/components/ErrorBoundary'
+import { GradientTitle } from '@/components/themed/ThemedText'
+import FluidGradient from '@/components/ui/FluidGradient'
+import { FloatingElement } from '@/components/ui/MicroInteractions'
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext'
+import { useGamepadEventHandler } from '@/hooks/useGamepadNavigation'
 import { queryClient } from '@/lib/api/client'
 import { setAuthTokenGetter } from '@/lib/api/http'
-import { ClerkProvider, CLERK_PUBLISHABLE_KEY, useAuthHelpers } from '@/lib/auth/clerk'
+import { ClerkProvider, useAuthHelpers } from '@/lib/auth/clerk'
 import { tokenCache } from '@clerk/clerk-expo/token-cache'
-import { useTheme, ThemeProvider } from '@/contexts/ThemeContext'
-import { useGamepadEventHandler } from '@/hooks/useGamepadNavigation'
-import ErrorBoundary from '@/components/ErrorBoundary'
-import { FluidGradient } from '@/components/ui/FluidGradient'
-import { GradientTitle } from '@/components/themed/ThemedText'
-import { FloatingElement } from '@/components/ui/MicroInteractions'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
@@ -176,9 +176,7 @@ function AppContent() {
 
             <Animated.View entering={FadeIn.delay(600).duration(800)} style={{ marginTop: 32 }}>
               <GradientTitle
-                gradient
                 animated
-                variant="bounce"
                 style={{
                   fontSize: 42,
                   fontWeight: '800',

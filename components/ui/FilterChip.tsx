@@ -1,13 +1,13 @@
-import React, { memo } from 'react'
-import { Pressable, StyleSheet, type ViewStyle, type TextStyle } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  interpolateColor,
-} from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/contexts/ThemeContext'
+import { Ionicons } from '@expo/vector-icons'
+import React, { memo } from 'react'
+import { Pressable, StyleSheet, type TextStyle, type ViewStyle } from 'react-native'
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated'
 
 interface FilterChipProps {
   label: string

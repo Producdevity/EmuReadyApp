@@ -1,7 +1,7 @@
+import { useTheme } from '@/contexts/ThemeContext'
+import { Skeleton } from 'moti/skeleton'
 import React from 'react'
 import { StyleSheet, View, type DimensionValue, type ViewStyle } from 'react-native'
-import { Skeleton } from 'moti/skeleton'
-import { useTheme } from '@/contexts/ThemeContext'
 
 interface SkeletonLoaderProps {
   width?: DimensionValue

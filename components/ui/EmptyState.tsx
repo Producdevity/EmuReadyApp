@@ -1,9 +1,9 @@
-import React, { memo } from 'react'
-import { Text, StyleSheet, type ViewStyle } from 'react-native'
-import Animated, { FadeInUp } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import Button from './Button'
 import { useTheme } from '@/contexts/ThemeContext'
+import { Ionicons } from '@expo/vector-icons'
+import React, { memo } from 'react'
+import { StyleSheet, Text, type ViewStyle } from 'react-native'
+import Animated, { FadeInUp } from 'react-native-reanimated'
+import Button from './Button'
 import { GlassCard } from './GlassMorphism'
 import { FloatingElement, PulsingElement } from './MicroInteractions'
 
@@ -61,7 +61,7 @@ const EmptyState: React.FC<EmptyStateProps> = memo(function EmptyState({
   const config = getVariantConfig()
 
   return (
-    <GlassCard 
+    <GlassCard
       style={[styles.container, style]}
       variant="frosted"
       intensity={15}

@@ -1,16 +1,16 @@
+import { useTheme } from '@/contexts/ThemeContext'
+import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
 import React, { useEffect } from 'react'
-import { View, StyleSheet, Platform } from 'react-native'
+import { Platform, StyleSheet, View } from 'react-native'
 import Animated, {
-  useSharedValue,
+  Extrapolation,
+  interpolate,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
-  interpolate,
-  Extrapolation,
 } from 'react-native-reanimated'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
-import { useTheme } from '@/contexts/ThemeContext'
 
 interface GlassMorphismProps {
   children: React.ReactNode
@@ -65,48 +65,32 @@ export default function GlassMorphism({
       case 'frosted':
         return {
           blurIntensity: intensity + 10,
-          backgroundColor: theme.isDark 
-            ? 'rgba(255, 255, 255, 0.05)' 
-            : 'rgba(255, 255, 255, 0.25)',
-          borderColor: theme.isDark 
-            ? 'rgba(255, 255, 255, 0.1)' 
-            : 'rgba(255, 255, 255, 0.3)',
+          backgroundColor: theme.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.25)',
+          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.3)',
           shadowColor: theme.colors.shadow,
           shadowOpacity: 0.15,
         }
       case 'crystal':
         return {
           blurIntensity: intensity + 5,
-          backgroundColor: theme.isDark 
-            ? 'rgba(124, 58, 237, 0.08)' 
-            : 'rgba(124, 58, 237, 0.12)',
-          borderColor: theme.isDark 
-            ? 'rgba(124, 58, 237, 0.2)' 
-            : 'rgba(124, 58, 237, 0.3)',
+          backgroundColor: theme.isDark ? 'rgba(124, 58, 237, 0.08)' : 'rgba(124, 58, 237, 0.12)',
+          borderColor: theme.isDark ? 'rgba(124, 58, 237, 0.2)' : 'rgba(124, 58, 237, 0.3)',
           shadowColor: theme.colors.primary,
           shadowOpacity: 0.2,
         }
       case 'ambient':
         return {
           blurIntensity: intensity - 5,
-          backgroundColor: theme.isDark 
-            ? 'rgba(0, 0, 0, 0.3)' 
-            : 'rgba(255, 255, 255, 0.4)',
-          borderColor: theme.isDark 
-            ? 'rgba(255, 255, 255, 0.08)' 
-            : 'rgba(0, 0, 0, 0.08)',
+          backgroundColor: theme.isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.4)',
+          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
           shadowColor: theme.colors.shadow,
           shadowOpacity: 0.1,
         }
       case 'dynamic':
         return {
           blurIntensity: intensity + 15,
-          backgroundColor: theme.isDark 
-            ? 'rgba(30, 30, 30, 0.6)' 
-            : 'rgba(250, 250, 250, 0.6)',
-          borderColor: theme.isDark 
-            ? 'rgba(124, 58, 237, 0.3)' 
-            : 'rgba(124, 58, 237, 0.4)',
+          backgroundColor: theme.isDark ? 'rgba(30, 30, 30, 0.6)' : 'rgba(250, 250, 250, 0.6)',
+          borderColor: theme.isDark ? 'rgba(124, 58, 237, 0.3)' : 'rgba(124, 58, 237, 0.4)',
           shadowColor: theme.colors.primary,
           shadowOpacity: 0.25,
         }
@@ -144,25 +128,12 @@ export default function GlassMorphism({
   }
 
   const animatedStyle = useAnimatedStyle(() => {
-    const translateY = interpolate(
-      animatedValue.value,
-      [0, 1],
-      [20, 0],
-      Extrapolation.CLAMP
-    )
-    
-    const opacity = interpolate(
-      animatedValue.value,
-      [0, 1],
-      [0, 1],
-      Extrapolation.CLAMP
-    )
+    const translateY = interpolate(animatedValue.value, [0, 1], [20, 0], Extrapolation.CLAMP)
+
+    const opacity = interpolate(animatedValue.value, [0, 1], [0, 1], Extrapolation.CLAMP)
 
     return {
-      transform: [
-        { translateY },
-        { scale: scaleValue.value }
-      ],
+      transform: [{ translateY }, { scale: scaleValue.value }],
       opacity: opacity * opacityValue.value,
     }
   })
@@ -199,10 +170,7 @@ export default function GlassMorphism({
       <BlurView
         intensity={config.blurIntensity}
         tint={tintColor || (theme.isDark ? 'dark' : 'light')}
-        style={[
-          StyleSheet.absoluteFillObject,
-          { borderRadius: borderRadius - borderWidth }
-        ]}
+        style={[StyleSheet.absoluteFillObject, { borderRadius: borderRadius - borderWidth }]}
       />
 
       {/* Gradient Overlay */}
@@ -213,10 +181,7 @@ export default function GlassMorphism({
             `rgba(91, 33, 182, ${gradientOpacity * 0.8})`,
             `rgba(124, 58, 237, ${gradientOpacity * 0.6})`,
           ]}
-          style={[
-            StyleSheet.absoluteFillObject,
-            { borderRadius: borderRadius - borderWidth }
-          ]}
+          style={[StyleSheet.absoluteFillObject, { borderRadius: borderRadius - borderWidth }]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         />
@@ -228,7 +193,7 @@ export default function GlassMorphism({
           colors={theme.colors.gradients.primary as [string, string, ...string[]]}
           style={[
             StyleSheet.absoluteFillObject,
-            { borderRadius: borderRadius - borderWidth, opacity: 0.1 }
+            { borderRadius: borderRadius - borderWidth, opacity: 0.1 },
           ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -236,9 +201,7 @@ export default function GlassMorphism({
       )}
 
       {/* Content */}
-      <View style={styles.content}>
-        {children}
-      </View>
+      <View style={styles.content}>{children}</View>
 
       {/* Highlight Border Effect */}
       {variant === 'crystal' && (
@@ -249,7 +212,7 @@ export default function GlassMorphism({
               borderRadius: borderRadius - borderWidth,
               borderTopWidth: 1,
               borderTopColor: 'rgba(255, 255, 255, 0.2)',
-            }
+            },
           ]}
         />
       )}

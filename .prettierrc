@@ -6,6 +6,7 @@
   "useTabs": false,
   "printWidth": 100,
   "trailingComma": "all",
+  "plugins": ["prettier-plugin-organize-imports"],
   "overrides": [
     {
       "files": ["*.svg"],

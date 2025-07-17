@@ -1,15 +1,15 @@
-import React, { useState, memo } from 'react'
-import { View, ActivityIndicator, StyleSheet, type ViewStyle, type ImageStyle } from 'react-native'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSequence,
-  runOnJS,
-} from 'react-native-reanimated'
-import { Image, type ImageContentFit } from 'expo-image'
-import { Ionicons } from '@expo/vector-icons'
 import { useTheme } from '@/contexts/ThemeContext'
+import { Ionicons } from '@expo/vector-icons'
+import { Image, type ImageContentFit } from 'expo-image'
+import React, { memo, useState } from 'react'
+import { ActivityIndicator, StyleSheet, View, type ImageStyle, type ViewStyle } from 'react-native'
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated'
 
 interface CachedImageProps {
   source: { uri: string } | string | number

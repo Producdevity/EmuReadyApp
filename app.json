@@ -32,10 +32,7 @@
               "scheme": "emuready"
             }
           ],
-          "category": [
-            "DEFAULT",
-            "BROWSABLE"
-          ]
+          "category": ["DEFAULT", "BROWSABLE"]
         }
       ]
     },

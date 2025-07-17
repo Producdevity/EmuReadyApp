@@ -1,6 +1,6 @@
 import { getErrorMessage } from '@/lib/utils'
-import { Platform, Linking } from 'react-native'
 import * as IntentLauncher from 'expo-intent-launcher'
+import { Linking, Platform } from 'react-native'
 
 // Alternative launch methods for Eden emulator using expo-intent-launcher
 export class EmulatorAltService {
@@ -154,24 +154,24 @@ export class EmulatorAltService {
       console.log('Package Name:', packageName)
       console.log('Title ID:', titleId)
       console.log('Custom Settings: NONE (using game defaults)')
-      
+
       // Only pass title_id, omit custom_settings entirely
       // This allows Eden's getStringExtra to return null as expected
       const intentExtras = {
         title_id: titleId,
         // custom_settings is omitted entirely
       }
-      
+
       // Explicitly log what we're sending to diagnose the issue
       console.log('Intent extras being sent:', JSON.stringify(intentExtras, null, 2))
-      
+
       // Try without specifying className to let Android resolve the correct activity
       await IntentLauncher.startActivityAsync(`${packageName}.LAUNCH_WITH_CUSTOM_CONFIG`, {
         packageName: packageName,
         // className: 'org.yuzu.yuzu_emu.activities.EmulationActivity',
         extra: intentExtras,
       })
-      
+
       console.log('Title-only launch successful!')
     } catch (error) {
       console.log('Title-only launch failed:', error)

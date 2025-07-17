@@ -1,23 +1,21 @@
-
- {
-    "titleId": "0100000000001000",
-    "configuration": {
-      "sections": {
-        "Controls": {
-          "vibration_enabled\\use_global": "true",
-          "enable_accurate_vibrations\\use_global": "true"
-        },
-        "Renderer": {
-          "use_vsync\\use_global": "false",
-          "use_vsync\\default": "false",
-          "use_vsync": "0"
-        },
-        "GpuDriver": {
-          "driver_path\\use_global": "false",
-          "driver_path\\default": "false",
-          "driver_path": "/storage/emulated/0/Android/data/dev.eden.eden_emulator/files/gpu_drivers/
-  turnip_mrpurple-T19-toasted.adpkg.zip"
-        }
+{
+  "titleId": "0100000000001000",
+  "configuration": {
+    "sections": {
+      "Controls": {
+        "vibration_enabled\\use_global": "true",
+        "enable_accurate_vibrations\\use_global": "true"
+      },
+      "Renderer": {
+        "use_vsync\\use_global": "false",
+        "use_vsync\\default": "false",
+        "use_vsync": "0"
+      },
+      "GpuDriver": {
+        "driver_path\\use_global": "false",
+        "driver_path\\default": "false",
+        "driver_path": "/storage/emulated/0/Android/data/dev.eden.eden_emulator/files/gpu_drivers/turnip_mrpurple-T19-toasted.adpkg.zip"
       }
     }
   }
+}
