@@ -50,12 +50,14 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
   }))
 
   const handleLoadStart = () => {
-    setIsLoading(true)
-    setHasError(false)
+    'worklet'
+    runOnJS(setIsLoading)(true)
+    runOnJS(setHasError)(false)
   }
 
   const handleLoadEnd = () => {
-    setIsLoading(false)
+    'worklet'
+    runOnJS(setIsLoading)(false)
     opacity.value = withSequence(withTiming(0, { duration: 0 }), withTiming(1, { duration: 300 }))
     scale.value = withTiming(1, { duration: 300 })
 
@@ -65,8 +67,9 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
   }
 
   const handleError = () => {
-    setIsLoading(false)
-    setHasError(true)
+    'worklet'
+    runOnJS(setIsLoading)(false)
+    runOnJS(setHasError)(true)
 
     if (onError) {
       runOnJS(onError)()

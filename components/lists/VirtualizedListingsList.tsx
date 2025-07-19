@@ -65,7 +65,6 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
     const scale = useSharedValue(0.95)
     const opacity = useSharedValue(0)
     const translateX = useSharedValue(-50)
-    const rotateY = useSharedValue(5)
 
     useEffect(() => {
       const delay = index * 100
@@ -74,16 +73,14 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
         scale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
         opacity.value = withTiming(1, { duration: 400 })
         translateX.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
-        rotateY.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
       }, delay)
-    }, [index])
+    }, [index, opacity, scale, translateX])
 
     const animatedStyle = useAnimatedStyle(() => ({
       opacity: opacity.value,
       transform: [
         { scale: scale.value },
         { translateX: translateX.value },
-        { rotateY: `${rotateY.value}deg` },
       ],
     }))
 
@@ -118,12 +115,12 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
     ({ item, index }) => (
       <AnimatedListingCard listing={item} onPress={() => onListingPress(item.id)} index={index} />
     ),
-    [onListingPress],
+    [onListingPress, AnimatedListingCard],
   )
 
   const renderLoadingItem: ListRenderItem<number> = useCallback(
     ({ index }) => <LoadingItem index={index} />,
-    [],
+    [LoadingItem],
   )
 
   const keyExtractor = useCallback((item: Listing) => item.id, [])
@@ -186,7 +183,7 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
                   </View>
                 </FloatingElement>
 
-                <GradientTitle gradient animated variant="scale" style={styles.errorTitle}>
+                <GradientTitle animated variant="scale" style={styles.errorTitle}>
                   Unable to Load Listings
                 </GradientTitle>
 
@@ -257,7 +254,7 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
                 </View>
               </FloatingElement>
 
-              <GlowText type="title" glow style={styles.emptyTitle}>
+              <GlowText style={styles.emptyTitle}>
                 {emptyTitle}
               </GlowText>
 

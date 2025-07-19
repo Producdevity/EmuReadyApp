@@ -9,7 +9,6 @@ import Animated, {
   Extrapolation,
   interpolate,
   interpolateColor,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
@@ -33,7 +32,7 @@ interface TabButtonProps {
   descriptors: any
 }
 
-const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabButtonProps) => {
+const TabButton = ({ route, isFocused, onPress, onLongPress: _onLongPress, descriptors }: TabButtonProps) => {
   const { theme } = useTheme()
   const scale = useSharedValue(1)
   const iconScale = useSharedValue(1)
@@ -97,7 +96,7 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
       glowOpacity.value = withTiming(0, { duration: 300 })
       indicatorWidth.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
     }
-  }, [isFocused])
+  }, [glowOpacity, iconScale, indicatorWidth, isFocused, morphValue, opacity, rippleScale, scale, translateY])
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }, { translateY: translateY.value }] as any,
@@ -143,17 +142,13 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
   const handlePress = () => {
     // Enhanced haptic feedback pattern
     if (route.name === 'create') {
-      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     } else {
-      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     }
     onPress()
   }
 
-  const handleLongPress = () => {
-    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Heavy)
-    onLongPress()
-  }
 
   const { options } = descriptors[route.key]
   const label =
@@ -164,7 +159,17 @@ const TabButton = ({ route, isFocused, onPress, onLongPress, descriptors }: TabB
         : route.name
 
   return (
-    <AnimatedPressable onPress={handlePress} style={styles.tabButton} scale={0.95} haptic={false}>
+    <AnimatedPressable 
+      onPress={handlePress} 
+      style={styles.tabButton} 
+      scale={0.95} 
+      haptic={false}
+      accessible={true}
+      accessibilityRole="tab"
+      accessibilityLabel={`${label} tab`}
+      accessibilityHint={`Navigate to ${label} screen`}
+      accessibilityState={{ selected: isFocused }}
+    >
       <FloatingElement intensity={1} duration={4000}>
         <Animated.View style={[styles.tabContainer, animatedStyle as any]}>
           {/* Glow effect */}

@@ -63,7 +63,6 @@ const EmptyState: React.FC<EmptyStateProps> = memo(function EmptyState({
   return (
     <GlassCard
       style={[styles.container, style]}
-      variant="frosted"
       intensity={15}
       elevation={2}
       animated={true}

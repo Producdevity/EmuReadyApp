@@ -22,6 +22,7 @@ import {
   FloatingElement,
   MICRO_SPRING_CONFIG,
 } from '@/components/ui/MicroInteractions'
+import MorphingSkeleton from '@/components/ui/MorphingSkeleton'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useRawgSearchGameImages, useTgdbSearchGameImages } from '@/lib/api/hooks'
 
@@ -48,6 +49,35 @@ export default function GameMediaSection({
   const mediaOpacity = useSharedValue(0)
   const shimmerX = useSharedValue(-200)
 
+  // Fetch media from both sources - MUST be called before any conditional returns
+  const { data: rawgData, isLoading: rawgLoading } = useRawgSearchGameImages(
+    { query: gameName, pageSize: compact ? 4 : 8 },
+    { enabled: !!gameName },
+  )
+
+  const { data: tgdbData, isLoading: tgdbLoading } = useTgdbSearchGameImages(
+    { name: gameName },
+    { enabled: !!gameName },
+  )
+
+  // Animated styles - MUST be defined before any conditional returns
+  const headerGlowStyle = useAnimatedStyle(() => ({
+    opacity: headerGlow.value,
+  }))
+
+  const selectorAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: selectorScale.value }],
+  }))
+
+  const mediaContainerStyle = useAnimatedStyle(() => ({
+    opacity: mediaOpacity.value,
+    transform: [{ scale: mediaScale.value }],
+  }))
+
+  const _shimmerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shimmerX.value }],
+  }))
+
   useEffect(() => {
     // Initialize entrance animations
     headerGlow.value = withRepeat(
@@ -60,18 +90,7 @@ export default function GameMediaSection({
     mediaOpacity.value = withTiming(1, { duration: 600 })
 
     shimmerX.value = withRepeat(withTiming(400, { duration: 3000 }), -1, false)
-  }, [])
-
-  // Fetch media from both sources
-  const { data: rawgData, isLoading: rawgLoading } = useRawgSearchGameImages(
-    { query: gameName, pageSize: compact ? 4 : 8 },
-    { enabled: !!gameName },
-  )
-
-  const { data: tgdbData, isLoading: tgdbLoading } = useTgdbSearchGameImages(
-    { name: gameName },
-    { enabled: !!gameName },
-  )
+  }, [headerGlow, mediaOpacity, mediaScale, shimmerX])
 
   const isLoading = selectedSource === 'rawg' ? rawgLoading : tgdbLoading
   const data = selectedSource === 'rawg' ? rawgData : tgdbData
@@ -87,7 +106,7 @@ export default function GameMediaSection({
   }
 
   const handleSourceChange = (source: 'rawg' | 'tgdb') => {
-    runOnJS(Haptics.selectionAsync)()
+    Haptics.selectionAsync()
     selectorScale.value = withSequence(
       withSpring(0.95, MICRO_SPRING_CONFIG.instant),
       withSpring(1, MICRO_SPRING_CONFIG.bouncy),
@@ -98,23 +117,6 @@ export default function GameMediaSection({
   if (!gameName || (!rawgData?.length && !tgdbData?.length)) {
     return null
   }
-
-  const headerGlowStyle = useAnimatedStyle(() => ({
-    opacity: headerGlow.value,
-  }))
-
-  const selectorAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: selectorScale.value }],
-  }))
-
-  const mediaContainerStyle = useAnimatedStyle(() => ({
-    opacity: mediaOpacity.value,
-    transform: [{ scale: mediaScale.value }],
-  }))
-
-  const shimmerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: shimmerX.value }],
-  }))
 
   return (
     <FloatingElement intensity={2} duration={4000}>
@@ -343,7 +345,6 @@ const MediaImageCard = memo(function MediaImageCard({
 }) {
   const scale = useSharedValue(0.9)
   const opacity = useSharedValue(0)
-  const rotateY = useSharedValue(10)
 
   useEffect(() => {
     const delay = index * 100
@@ -351,13 +352,12 @@ const MediaImageCard = memo(function MediaImageCard({
     setTimeout(() => {
       scale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
       opacity.value = withTiming(1, { duration: 400 })
-      rotateY.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
     }, delay)
-  }, [index])
+  }, [index, opacity, scale])
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    transform: [{ scale: scale.value }, { rotateY: `${rotateY.value}deg` }],
+    transform: [{ scale: scale.value }],
   }))
 
   return (

@@ -82,28 +82,28 @@ export default function SignUpScreen() {
     )
 
     // Form floating animation
-    formFloat.value = withRepeat(
-      withSequence(withTiming(12, { duration: 6500 }), withTiming(-12, { duration: 6500 })),
-      -1,
-      true,
-    )
+    // formFloat.value = withRepeat(
+    //   withSequence(withTiming(12, { duration: 6500 }), withTiming(-12, { duration: 6500 })),
+    //   -1,
+    //   true,
+    // )
 
-    // Button pulse animation
-    buttonPulse.value = withRepeat(
-      withSequence(
-        withSpring(1.03, MICRO_SPRING_CONFIG.bouncy),
-        withSpring(1, MICRO_SPRING_CONFIG.smooth),
-      ),
-      -1,
-      true,
-    )
+    // Button pulse animation - DISABLED
+    // buttonPulse.value = withRepeat(
+    //   withSequence(
+    //     withSpring(1.03, MICRO_SPRING_CONFIG.bouncy),
+    //     withSpring(1, MICRO_SPRING_CONFIG.smooth),
+    //   ),
+    //   -1,
+    //   true,
+    // )
 
     // Particle flow animation
     particleFlow.value = withRepeat(withTiming(1, { duration: 14000 }), -1, false)
 
-    // Logo rotation animation
-    logoRotate.value = withRepeat(withTiming(360, { duration: 20000 }), -1, false)
-  }, [])
+    // Logo rotation animation - DISABLED
+    // logoRotate.value = withRepeat(withTiming(360, { duration: 20000 }), -1, false)
+  }, [backgroundShift, buttonPulse, formFloat, heroGlow, logoRotate, particleFlow])
 
   const handleSignUp = async () => {
     if (!isLoaded) return
@@ -176,15 +176,15 @@ export default function SignUpScreen() {
   }))
 
   const formFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: formFloat.value }],
+    transform: [{ translateY: 0 }],
   }))
 
   const buttonPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonPulse.value }],
+    transform: [{ scale: 1 }],
   }))
 
   const logoRotateStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${logoRotate.value}deg` }],
+    transform: [/* { rotate: `${logoRotate.value}deg` } */],
   }))
 
   const particleFlowStyle = useAnimatedStyle(() => ({
@@ -208,7 +208,7 @@ export default function SignUpScreen() {
   if (pendingVerification) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <StatusBar translucent />
 
         {/* Revolutionary Cosmic Background */}
         <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
@@ -388,7 +388,7 @@ export default function SignUpScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar translucent />
 
       {/* Revolutionary Cosmic Background */}
       <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>

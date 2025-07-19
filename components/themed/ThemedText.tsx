@@ -10,6 +10,7 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
   withSpring,
@@ -17,7 +18,9 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { AnimatedPressable, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
+import { DESIGN_CONSTANTS } from '@/constants/design'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useReducedMotion, useAnimationDuration } from '@/hooks/useReducedMotion'
 import { useThemeColor } from '@/hooks/useThemeColor'
 
 export type ThemedTextProps = TextProps & {
@@ -70,16 +73,17 @@ export function ThemedText({
   ...rest
 }: ThemedTextProps) {
   const { theme } = useTheme()
+  const reduceMotion = useReducedMotion()
+  const durations = useAnimationDuration()
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text')
 
-  // Animation values
+  // Animation values - respect reduced motion
   const scale = useSharedValue(1)
-  const opacity = useSharedValue(animated ? 0 : 1)
-  const translateY = useSharedValue(animated ? 20 : 0)
+  const opacity = useSharedValue(animated && !reduceMotion ? 0 : 1)
+  const translateY = useSharedValue(animated && !reduceMotion ? 20 : 0)
   const glowOpacity = useSharedValue(0)
   const morphValue = useSharedValue(0)
   const shimmerX = useSharedValue(-100)
-  const rotateZ = useSharedValue(0)
   const typewriterProgress = useSharedValue(0)
 
   // Get gradient colors based on type or custom
@@ -100,72 +104,85 @@ export function ThemedText({
     }
   }
 
-  const gradientColors = getGradientColors()
+  const gradientColors = getGradientColors() as readonly [string, string, ...string[]]
 
-  // Initialize animations
+  // Initialize animations - respect reduced motion
   useEffect(() => {
-    if (animated) {
+    if (animated && !reduceMotion) {
       const animationDelay = delay
 
       switch (variant) {
         case 'shimmer':
-          opacity.value = withTiming(1, { duration: 300 })
-          shimmerX.value = withRepeat(withTiming(200, { duration: 2000 }), -1, false)
+          opacity.value = withTiming(1, { duration: durations.short })
+          shimmerX.value = withRepeat(withTiming(200, { duration: durations.long * 2 }), durations.infinite, false)
           break
 
         case 'typewriter':
           opacity.value = 1
-          typewriterProgress.value = withTiming(1, { duration: 2000 + animationDelay })
+          typewriterProgress.value = withTiming(1, { duration: durations.long + animationDelay })
           break
 
         case 'fade':
-          opacity.value = withTiming(1, { duration: 800 + animationDelay })
+          opacity.value = withTiming(1, { duration: durations.medium + animationDelay })
           break
 
         case 'scale':
-          scale.value = withSpring(1, {
-            ...MICRO_SPRING_CONFIG.bouncy,
-            duration: 600 + animationDelay,
-          })
-          opacity.value = withTiming(1, { duration: 400 + animationDelay })
+          scale.value = withDelay(animationDelay, withSpring(1, MICRO_SPRING_CONFIG.bouncy))
+          opacity.value = withDelay(animationDelay, withTiming(1, { duration: durations.short }))
           break
 
         case 'bounce':
-          translateY.value = withSpring(0, {
-            ...MICRO_SPRING_CONFIG.bouncy,
-            duration: 800 + animationDelay,
-          })
-          opacity.value = withTiming(1, { duration: 600 + animationDelay })
+          translateY.value = withDelay(animationDelay, withSpring(0, MICRO_SPRING_CONFIG.bouncy))
+          opacity.value = withDelay(animationDelay, withTiming(1, { duration: durations.medium }))
           break
 
         default:
-          opacity.value = withTiming(1, { duration: 600 + animationDelay })
+          opacity.value = withTiming(1, { duration: durations.medium + animationDelay })
           translateY.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
       }
     }
 
-    if (glow) {
+    if (glow && !reduceMotion) {
       glowOpacity.value = withRepeat(
-        withSequence(withTiming(0.8, { duration: 1000 }), withTiming(0.3, { duration: 1000 })),
-        -1,
+        withSequence(withTiming(0.8, { duration: durations.medium }), withTiming(0.3, { duration: durations.medium })),
+        durations.infinite,
         true,
       )
     }
 
-    if (morphing) {
+    if (morphing && !reduceMotion) {
       morphValue.value = withRepeat(
-        withSequence(withTiming(1, { duration: 2000 }), withTiming(0, { duration: 2000 })),
-        -1,
+        withSequence(withTiming(1, { duration: durations.long }), withTiming(0, { duration: durations.long })),
+        durations.infinite,
         true,
       )
 
-      rotateZ.value = withRepeat(
-        withSequence(withTiming(2, { duration: 4000 }), withTiming(-2, { duration: 4000 })),
-        -1,
-        true,
-      )
+      // Rotation disabled - looks unprofessional
+      // rotateZ.value = withRepeat(
+      //   withSequence(withTiming(2, { duration: 4000 }), withTiming(-2, { duration: 4000 })),
+      //   -1,
+      //   true,
+      // )
     }
-  }, [animated, variant, delay, glow, morphing])
+  }, [
+    animated,
+    delay,
+    durations.infinite,
+    durations.medium,
+    durations.short,
+    durations.long,
+    glow,
+    glowOpacity,
+    morphValue,
+    morphing,
+    opacity,
+    reduceMotion,
+    scale,
+    shimmerX,
+    translateY,
+    typewriterProgress,
+    variant,
+  ])
 
   // Animated styles
   const animatedStyle = useAnimatedStyle(() => {
@@ -178,7 +195,6 @@ export function ThemedText({
       transform: [
         { scale: scaleValue },
         { translateY: translateY.value },
-        { rotateZ: `${rotateZ.value}deg` },
       ],
     }
   })
@@ -194,9 +210,6 @@ export function ThemedText({
   }))
 
   const typewriterStyle = useAnimatedStyle(() => {
-    const textLength = typeof children === 'string' ? children.length : 0
-    const visibleLength = Math.floor(typewriterProgress.value * textLength)
-
     return {
       width: `${typewriterProgress.value * 100}%`,
     }
@@ -328,37 +341,37 @@ export function ThemedText({
 
 const styles = StyleSheet.create({
   default: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: DESIGN_CONSTANTS.TYPOGRAPHY.sizes.base,
+    lineHeight: DESIGN_CONSTANTS.TYPOGRAPHY.sizes.base * DESIGN_CONSTANTS.TYPOGRAPHY.lineHeights.normal,
     fontWeight: '400',
   },
   defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: DESIGN_CONSTANTS.TYPOGRAPHY.sizes.base,
+    lineHeight: DESIGN_CONSTANTS.TYPOGRAPHY.sizes.base * DESIGN_CONSTANTS.TYPOGRAPHY.lineHeights.normal,
     fontWeight: '600',
   },
   title: {
-    fontSize: 32,
+    fontSize: DESIGN_CONSTANTS.TYPOGRAPHY.sizes['3xl'],
     fontWeight: '700',
-    lineHeight: 38,
+    lineHeight: DESIGN_CONSTANTS.TYPOGRAPHY.sizes['3xl'] * DESIGN_CONSTANTS.TYPOGRAPHY.lineHeights.tight,
     letterSpacing: -0.5,
   },
   hero: {
-    fontSize: 42,
+    fontSize: DESIGN_CONSTANTS.TYPOGRAPHY.sizes['4xl'],
     fontWeight: '800',
-    lineHeight: 48,
+    lineHeight: DESIGN_CONSTANTS.TYPOGRAPHY.sizes['4xl'] * DESIGN_CONSTANTS.TYPOGRAPHY.lineHeights.tight,
     letterSpacing: -1,
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: DESIGN_CONSTANTS.TYPOGRAPHY.sizes.xl,
     fontWeight: '600',
-    lineHeight: 28,
+    lineHeight: DESIGN_CONSTANTS.TYPOGRAPHY.sizes.xl * DESIGN_CONSTANTS.TYPOGRAPHY.lineHeights.tight,
     letterSpacing: -0.2,
   },
   caption: {
-    fontSize: 12,
+    fontSize: DESIGN_CONSTANTS.TYPOGRAPHY.sizes.xs,
     fontWeight: '500',
-    lineHeight: 16,
+    lineHeight: DESIGN_CONSTANTS.TYPOGRAPHY.sizes.xs * DESIGN_CONSTANTS.TYPOGRAPHY.lineHeights.tight,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },

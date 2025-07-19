@@ -45,13 +45,6 @@ export default function FluidGradient({
   const colorIndex = useSharedValue(0)
   const gradientRef = useRef<any>(null)
 
-  // Speed configuration
-  const speedConfig = {
-    slow: 8000,
-    normal: 5000,
-    fast: 3000,
-  }
-
   // Gradient variants with multiple color sets for animation
   const getGradientVariants = () => {
     if (customColors) return { custom: [customColors] }
@@ -104,10 +97,17 @@ export default function FluidGradient({
 
   const gradientSets = getGradientVariants()
   const currentVariant = customColors ? 'custom' : variant
-  const colorSets = gradientSets[currentVariant as keyof typeof gradientSets] || gradientSets.brand
+  const colorSets = gradientSets[currentVariant as keyof typeof gradientSets] || gradientSets.brand || [['#7c3aed', '#5b21b6', '#8b5cf6']]
 
   useEffect(() => {
-    if (animated) {
+    if (animated && colorSets.length > 0) {
+      // Speed configuration
+      const speedConfig = {
+        slow: 8000,
+        normal: 5000,
+        fast: 3000,
+      }
+      
       // Animate through different color sets
       animationValue.value = withRepeat(withTiming(1, { duration: speedConfig[speed] }), -1, false)
 
@@ -144,12 +144,20 @@ export default function FluidGradient({
 
   // Animated colors
   const _animatedColors = useDerivedValue(() => {
+    if (colorSets.length === 0) {
+      return ['#7c3aed', '#5b21b6', '#8b5cf6']
+    }
+    
     const currentIndex = Math.floor(colorIndex.value)
     const nextIndex = (currentIndex + 1) % colorSets.length
     const progress = colorIndex.value - currentIndex
 
-    const currentColors = colorSets[currentIndex]
-    const nextColors = colorSets[nextIndex]
+    const currentColors = colorSets[currentIndex] || colorSets[0]
+    const nextColors = colorSets[nextIndex] || colorSets[0]
+
+    if (!currentColors || !Array.isArray(currentColors)) {
+      return ['#7c3aed', '#5b21b6', '#8b5cf6']
+    }
 
     // Interpolate between color sets
     return currentColors.map((color, index) => {
@@ -174,18 +182,21 @@ export default function FluidGradient({
 
   // Get current colors (fallback for non-animated state)
   const getCurrentColors = () => {
-    if (!animated) {
-      return colorSets[0]
+    if (colorSets.length === 0) {
+      return ['#7c3aed', '#5b21b6', '#8b5cf6']
     }
-    return colorSets[0] // Simplified for now TODO: fix this, this shouldn't be "simplified"
+    if (!animated) {
+      return colorSets[0] || ['#7c3aed', '#5b21b6', '#8b5cf6']
+    }
+    return colorSets[0] || ['#7c3aed', '#5b21b6', '#8b5cf6']
   }
 
   const currentColors = getCurrentColors()
 
   // Notify parent of color changes
   useEffect(() => {
-    if (onColorChange) {
-      onColorChange(currentColors)
+    if (onColorChange && Array.isArray(currentColors)) {
+      onColorChange([...currentColors])
     }
   }, [currentColors, onColorChange])
 
@@ -193,7 +204,7 @@ export default function FluidGradient({
     <Animated.View style={[styles.container, style, animatedStyle]}>
       <LinearGradient
         ref={gradientRef}
-        colors={currentColors}
+        colors={currentColors as [string, string, ...string[]]}
         style={[StyleSheet.absoluteFillObject, { borderRadius }]}
         start={gradientPoints.start}
         end={gradientPoints.end}

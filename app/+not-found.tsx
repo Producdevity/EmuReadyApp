@@ -15,7 +15,6 @@ import Animated, {
   useSharedValue,
   withRepeat,
   withSequence,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated'
 
@@ -26,11 +25,10 @@ import FluidGradient from '@/components/ui/FluidGradient'
 import {
   AnimatedPressable,
   FloatingElement,
-  MICRO_SPRING_CONFIG,
 } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 export default function NotFoundScreen() {
   const router = useRouter()
@@ -66,31 +64,31 @@ export default function NotFoundScreen() {
     )
 
     // Error floating animation
-    errorFloat.value = withRepeat(
-      withSequence(withTiming(15, { duration: 6000 }), withTiming(-15, { duration: 6000 })),
-      -1,
-      true,
-    )
+    // errorFloat.value = withRepeat(
+    //   withSequence(withTiming(15, { duration: 6000 }), withTiming(-15, { duration: 6000 })),
+    //   -1,
+    //   true,
+    // )
 
-    // Button pulse animation
-    buttonPulse.value = withRepeat(
-      withSequence(
-        withSpring(1.05, MICRO_SPRING_CONFIG.bouncy),
-        withSpring(1, MICRO_SPRING_CONFIG.smooth),
-      ),
-      -1,
-      true,
-    )
+    // Button pulse animation - DISABLED
+    // buttonPulse.value = withRepeat(
+    //   withSequence(
+    //     withSpring(1.05, MICRO_SPRING_CONFIG.bouncy),
+    //     withSpring(1, MICRO_SPRING_CONFIG.smooth),
+    //   ),
+    //   -1,
+    //   true,
+    // )
 
     // Particle flow animation
     particleFlow.value = withRepeat(withTiming(1, { duration: 10000 }), -1, false)
 
-    // Icon rotation animation
-    iconRotate.value = withRepeat(withTiming(360, { duration: 20000 }), -1, false)
+    // Icon rotation animation - DISABLED
+    // iconRotate.value = withRepeat(withTiming(360, { duration: 20000 }), -1, false)
 
     // Trigger haptic feedback
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
-  }, [])
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+  }, [backgroundShift, buttonPulse, errorFloat, glitchOffset, iconRotate, particleFlow])
 
   // Animated styles
   const glitchStyle = useAnimatedStyle(() => ({
@@ -110,15 +108,15 @@ export default function NotFoundScreen() {
   }))
 
   const errorFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: errorFloat.value }],
+    transform: [{ translateY: 0 }],
   }))
 
   const buttonPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonPulse.value }],
+    transform: [{ scale: 1 }],
   }))
 
   const iconRotateStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${iconRotate.value}deg` }],
+    transform: [/* { rotate: `${iconRotate.value}deg` } */],
   }))
 
   const particleFlowStyle = useAnimatedStyle(() => ({
@@ -139,7 +137,7 @@ export default function NotFoundScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <StatusBar translucent />
 
         {/* Revolutionary Cosmic Background */}
         <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
@@ -212,7 +210,7 @@ export default function NotFoundScreen() {
           >
             <AnimatedPressable
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                 router.replace('/')
               }}
               style={styles.homeButtonWrapper}
@@ -231,7 +229,7 @@ export default function NotFoundScreen() {
 
             <AnimatedPressable
               onPress={() => {
-                Haptics.selectionAsync()
+                void Haptics.selectionAsync()
                 router.back()
               }}
               style={styles.backLinkContainer}

@@ -1,16 +1,17 @@
 import { useTheme } from '@/contexts/ThemeContext'
+import { DESIGN_CONSTANTS } from '@/constants/design'
+import { useReducedMotion, useSpringConfig } from '@/hooks/useReducedMotion'
 import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { useEffect, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import { PanGestureHandler, TapGestureHandler } from 'react-native-gesture-handler'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
   Extrapolation,
   interpolate,
   runOnJS,
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -46,7 +47,7 @@ interface FloatingActionButtonProps {
 export default function FloatingActionButton({
   actions = [],
   mainIcon = 'add',
-  _mainLabel = 'Add',
+  mainLabel: _mainLabel = 'Add',
   position = 'bottom-right',
   size = 'medium',
   variant = 'gradient',
@@ -61,6 +62,8 @@ export default function FloatingActionButton({
   shadowIntensity = 1,
 }: FloatingActionButtonProps) {
   const { theme } = useTheme()
+  const reduceMotion = useReducedMotion()
+  const springConfig = useSpringConfig()
   const [isExpanded, setIsExpanded] = useState(false)
   const [_isDragging, setIsDragging] = useState(false)
 
@@ -73,14 +76,8 @@ export default function FloatingActionButton({
   const glowOpacity = useSharedValue(0)
   const expandValue = useSharedValue(0)
 
-  // Size configuration
-  const sizeConfig = {
-    small: { size: 48, iconSize: 20, padding: 12 },
-    medium: { size: 56, iconSize: 24, padding: 16 },
-    large: { size: 64, iconSize: 28, padding: 20 },
-  }
-
-  const config = sizeConfig[size]
+  // Use design constants for size configuration
+  const config = DESIGN_CONSTANTS.FAB.sizes[size]
 
   // Position styles
   const getPositionStyle = () => {
@@ -106,64 +103,66 @@ export default function FloatingActionButton({
     }
   }
 
-  // Drag gesture handler
-  const dragGestureHandler = useAnimatedGestureHandler({
-    onStart: () => {
-      if (!dragEnabled) return
+  // Drag gesture
+  const dragGesture = Gesture.Pan()
+    .enabled(dragEnabled)
+    .onStart(() => {
+      'worklet'
+      // Use runOnJS to update state from worklet
       runOnJS(setIsDragging)(true)
-      scale.value = withSpring(1.1, { damping: 15, stiffness: 300 })
+      scale.value = withSpring(1.1, springConfig.precise)
 
       if (hapticFeedback) {
         runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
       }
-    },
-    onActive: (event) => {
-      if (!dragEnabled) return
+    })
+    .onUpdate((event) => {
+      'worklet'
       translateX.value = event.translationX
       translateY.value = event.translationY
 
       // Magnetic effect near edges
       if (magneticEffect) {
-        const screenWidth = 400 // Approximate screen width
-        const _screenHeight = 800 // Approximate screen height
-        const magnetStrength = 20
+        const magnetStrength = DESIGN_CONSTANTS.FAB.animation.magneticThreshold
 
         if (Math.abs(event.absoluteX) < magnetStrength) {
           translateX.value = -event.absoluteX + magnetStrength
-        } else if (Math.abs(event.absoluteX - screenWidth) < magnetStrength) {
-          translateX.value = screenWidth - event.absoluteX - magnetStrength
+        } else if (Math.abs(event.absoluteX - DESIGN_CONSTANTS.SCREEN_WIDTH) < magnetStrength) {
+          translateX.value = DESIGN_CONSTANTS.SCREEN_WIDTH - event.absoluteX - magnetStrength
         }
       }
-    },
-    onEnd: (event) => {
-      if (!dragEnabled) return
+    })
+    .onEnd((event) => {
+      'worklet'
+      // Use runOnJS to update state from worklet
       runOnJS(setIsDragging)(false)
 
       // Snap to nearest edge or return to original position
       const threshold = 100
       if (Math.abs(event.translationX) > threshold || Math.abs(event.translationY) > threshold) {
         // Snap to edge logic could be implemented here
-        translateX.value = withSpring(0, { damping: 20, stiffness: 300 })
-        translateY.value = withSpring(0, { damping: 20, stiffness: 300 })
+        translateX.value = withSpring(0, springConfig.gentle)
+        translateY.value = withSpring(0, springConfig.gentle)
       } else {
-        translateX.value = withSpring(0, { damping: 20, stiffness: 300 })
-        translateY.value = withSpring(0, { damping: 20, stiffness: 300 })
+        translateX.value = withSpring(0, springConfig.gentle)
+        translateY.value = withSpring(0, springConfig.gentle)
       }
 
-      scale.value = withSpring(1, { damping: 15, stiffness: 300 })
-    },
-  })
+      scale.value = withSpring(1, springConfig.precise)
+    })
 
-  // Tap gesture handler
-  const tapGestureHandler = useAnimatedGestureHandler({
-    onStart: () => {
+  // Tap gesture
+  const tapGesture = Gesture.Tap()
+    .onStart(() => {
+      'worklet'
       scale.value = withSpring(0.9, { damping: 15, stiffness: 400 })
 
       if (hapticFeedback) {
         runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
       }
-    },
-    onEnd: () => {
+    })
+    .onEnd(() => {
+      'worklet'
       scale.value = withSpring(1, { damping: 15, stiffness: 300 })
 
       if (actions.length > 0) {
@@ -171,8 +170,10 @@ export default function FloatingActionButton({
       } else if (onMainPress) {
         runOnJS(onMainPress)()
       }
-    },
-  })
+    })
+
+  // Combine gestures
+  const composedGesture = Gesture.Simultaneous(tapGesture, dragGesture)
 
   const toggleExpansion = () => {
     setIsExpanded(!isExpanded)
@@ -180,6 +181,10 @@ export default function FloatingActionButton({
     if (hapticFeedback) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     }
+  }
+
+  const closeExpansion = () => {
+    setIsExpanded(false)
   }
 
   // Expansion animation
@@ -197,7 +202,7 @@ export default function FloatingActionButton({
     if (glowEffect) {
       glowOpacity.value = withTiming(isExpanded ? 0.6 : 0, { duration: 300 })
     }
-  }, [isExpanded])
+  }, [expandValue, glowEffect, glowOpacity, isExpanded, rotation])
 
   // Auto-hide on scroll (simplified)
   useEffect(() => {
@@ -231,53 +236,102 @@ export default function FloatingActionButton({
     transform: [{ scale: interpolate(glowOpacity.value, [0, 1], [0.8, 1.3]) }],
   }))
 
-  // Action items animation
-  const getActionItemStyle = (index: number) => {
-    const animatedStyle = useAnimatedStyle(() => {
-      const distance = 70 * (index + 1)
-      let translateXOffset = 0
-      let translateYOffset = 0
+  // Action items animation - Create individual animated styles for supported number of actions
+  const actionItem0Style = useAnimatedStyle(() => {
+    if (actions.length < 1) return {}
+    const distance = DESIGN_CONSTANTS.FAB.animation.distance * 1
+    let translateXOffset = 0
+    let translateYOffset = 0
 
-      switch (expandDirection) {
-        case 'up':
-          translateYOffset = -distance
-          break
-        case 'down':
-          translateYOffset = distance
-          break
-        case 'left':
-          translateXOffset = -distance
-          break
-        case 'right':
-          translateXOffset = distance
-          break
-        case 'radial':
-          const angle = (index * (Math.PI * 2)) / actions.length
-          translateXOffset = Math.cos(angle) * distance
-          translateYOffset = Math.sin(angle) * distance
-          break
-      }
+    switch (expandDirection) {
+      case 'up': translateYOffset = -distance; break
+      case 'down': translateYOffset = distance; break
+      case 'left': translateXOffset = -distance; break
+      case 'right': translateXOffset = distance; break
+      case 'radial':
+        const angle = (0 * (Math.PI * 2)) / actions.length
+        translateXOffset = Math.cos(angle) * distance
+        translateYOffset = Math.sin(angle) * distance
+        break
+    }
 
-      const animatedScale = interpolate(expandValue.value, [0, 1], [0, 1], Extrapolation.CLAMP)
+    const animatedScale = reduceMotion ? 1 : interpolate(expandValue.value, [0, 1], [0, 1], Extrapolation.CLAMP)
+    const animatedOpacity = interpolate(expandValue.value, [0, 0.5, 1], [0, 0.5, 1], Extrapolation.CLAMP)
 
-      const animatedOpacity = interpolate(
-        expandValue.value,
-        [0, 0.5, 1],
-        [0, 0.5, 1],
-        Extrapolation.CLAMP,
-      )
+    return {
+      transform: [
+        { translateX: translateXOffset * expandValue.value },
+        { translateY: translateYOffset * expandValue.value },
+        { scale: animatedScale },
+      ],
+      opacity: animatedOpacity,
+    }
+  })
 
-      return {
-        transform: [
-          { translateX: translateXOffset * expandValue.value },
-          { translateY: translateYOffset * expandValue.value },
-          { scale: animatedScale },
-        ],
-        opacity: animatedOpacity,
-      }
-    })
-    return animatedStyle
-  }
+  const actionItem1Style = useAnimatedStyle(() => {
+    if (actions.length < 2) return {}
+    const distance = DESIGN_CONSTANTS.FAB.animation.distance * 2
+    let translateXOffset = 0
+    let translateYOffset = 0
+
+    switch (expandDirection) {
+      case 'up': translateYOffset = -distance; break
+      case 'down': translateYOffset = distance; break
+      case 'left': translateXOffset = -distance; break
+      case 'right': translateXOffset = distance; break
+      case 'radial':
+        const angle = (1 * (Math.PI * 2)) / actions.length
+        translateXOffset = Math.cos(angle) * distance
+        translateYOffset = Math.sin(angle) * distance
+        break
+    }
+
+    const animatedScale = reduceMotion ? 1 : interpolate(expandValue.value, [0, 1], [0, 1], Extrapolation.CLAMP)
+    const animatedOpacity = interpolate(expandValue.value, [0, 0.5, 1], [0, 0.5, 1], Extrapolation.CLAMP)
+
+    return {
+      transform: [
+        { translateX: translateXOffset * expandValue.value },
+        { translateY: translateYOffset * expandValue.value },
+        { scale: animatedScale },
+      ],
+      opacity: animatedOpacity,
+    }
+  })
+
+  const actionItem2Style = useAnimatedStyle(() => {
+    if (actions.length < 3) return {}
+    const distance = DESIGN_CONSTANTS.FAB.animation.distance * 3
+    let translateXOffset = 0
+    let translateYOffset = 0
+
+    switch (expandDirection) {
+      case 'up': translateYOffset = -distance; break
+      case 'down': translateYOffset = distance; break
+      case 'left': translateXOffset = -distance; break
+      case 'right': translateXOffset = distance; break
+      case 'radial':
+        const angle = (2 * (Math.PI * 2)) / actions.length
+        translateXOffset = Math.cos(angle) * distance
+        translateYOffset = Math.sin(angle) * distance
+        break
+    }
+
+    const animatedScale = reduceMotion ? 1 : interpolate(expandValue.value, [0, 1], [0, 1], Extrapolation.CLAMP)
+    const animatedOpacity = interpolate(expandValue.value, [0, 0.5, 1], [0, 0.5, 1], Extrapolation.CLAMP)
+
+    return {
+      transform: [
+        { translateX: translateXOffset * expandValue.value },
+        { translateY: translateYOffset * expandValue.value },
+        { scale: animatedScale },
+      ],
+      opacity: animatedOpacity,
+    }
+  })
+
+  // Array of action item styles (limit to 3 actions for now to avoid hooks violation)
+  const actionItemStyles = [actionItem0Style, actionItem1Style, actionItem2Style]
 
   // Get variant styles
   const getVariantStyle = () => {
@@ -322,15 +376,15 @@ export default function FloatingActionButton({
               height: config.size * 0.8,
               borderRadius: config.size * 0.4,
             },
-            getActionItemStyle(index),
+            actionItemStyles[index],
           ]}
         >
-          <TapGestureHandler
-            onGestureEvent={() => {
+          <GestureDetector
+            gesture={Gesture.Tap().onEnd(() => {
               'worklet'
               runOnJS(action.onPress)()
-              runOnJS(setIsExpanded)(false)
-            }}
+              runOnJS(closeExpansion)()
+            })}
           >
             <Animated.View
               style={[
@@ -342,10 +396,14 @@ export default function FloatingActionButton({
                   borderRadius: config.size * 0.4,
                 },
               ]}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={action.label}
+              accessibilityHint={`Activate ${action.label} action`}
             >
               <Ionicons name={action.icon} size={config.iconSize * 0.8} color="#ffffff" />
             </Animated.View>
-          </TapGestureHandler>
+          </GestureDetector>
 
           {/* Action Label */}
           <View style={styles.actionLabel}>
@@ -357,11 +415,10 @@ export default function FloatingActionButton({
       ))}
 
       {/* Main Button */}
-      <PanGestureHandler onGestureEvent={dragGestureHandler}>
+      <GestureDetector gesture={composedGesture}>
         <Animated.View>
-          <TapGestureHandler onGestureEvent={tapGestureHandler}>
-            <Animated.View
-              style={[
+          <Animated.View
+            style={[
                 styles.mainButton,
                 {
                   width: config.size,
@@ -372,6 +429,11 @@ export default function FloatingActionButton({
                 },
                 mainButtonStyle,
               ]}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={isExpanded ? "Collapse actions menu" : "Open actions menu"}
+              accessibilityHint="Double tap to toggle action items"
+              accessibilityState={{ expanded: isExpanded }}
             >
               {/* Glow Effect */}
               {glowEffect && (
@@ -434,9 +496,8 @@ export default function FloatingActionButton({
                 />
               )}
             </Animated.View>
-          </TapGestureHandler>
         </Animated.View>
-      </PanGestureHandler>
+      </GestureDetector>
     </View>
   )
 }

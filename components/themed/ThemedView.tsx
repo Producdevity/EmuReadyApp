@@ -9,6 +9,7 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
   withSpring,
@@ -61,7 +62,7 @@ export function ThemedView({
   hoverable = false,
   customGradient,
   borderGlow = false,
-  particleEffect = false,
+  particleEffect: _particleEffect = false,
   delay = 0,
   children,
   ...otherProps
@@ -73,7 +74,6 @@ export function ThemedView({
   const scale = useSharedValue(1)
   const opacity = useSharedValue(animated ? 0 : 1)
   const translateY = useSharedValue(animated ? 20 : 0)
-  const rotateZ = useSharedValue(0)
   const glowOpacity = useSharedValue(0)
   const morphValue = useSharedValue(0)
   const pulseScale = useSharedValue(1)
@@ -103,13 +103,13 @@ export function ThemedView({
     }
   }
 
-  const gradientColors = getGradientColors()
+  const gradientColors = getGradientColors() as readonly [string, string, ...string[]]
 
   // Initialize animations
   useEffect(() => {
     if (animated) {
       opacity.value = withTiming(1, { duration: 600 + delay })
-      translateY.value = withSpring(0, { ...MICRO_SPRING_CONFIG.smooth, duration: 800 + delay })
+      translateY.value = withDelay(delay, withSpring(0, MICRO_SPRING_CONFIG.smooth))
 
       if (variant === 'floating') {
         translateY.value = withRepeat(
@@ -127,29 +127,31 @@ export function ThemedView({
         true,
       )
 
-      rotateZ.value = withRepeat(
-        withSequence(withTiming(2, { duration: 6000 }), withTiming(-2, { duration: 6000 })),
-        -1,
-        true,
-      )
+      // Rotation disabled - looks unprofessional
+      // rotateZ.value = withRepeat(
+      //   withSequence(withTiming(2, { duration: 6000 }), withTiming(-2, { duration: 6000 })),
+      //   -1,
+      //   true,
+      // )
     }
 
-    if (pulsing) {
-      pulseScale.value = withRepeat(
-        withSequence(
-          withTiming(1.02 * intensity, { duration: 1500 }),
-          withTiming(1, { duration: 1500 }),
-        ),
-        -1,
-        true,
-      )
+    // Pulsing disabled - looks unprofessional
+    // if (pulsing) {
+    //   pulseScale.value = withRepeat(
+    //     withSequence(
+    //       withTiming(1.02 * intensity, { duration: 1500 }),
+    //       withTiming(1, { duration: 1500 }),
+    //     ),
+    //     -1,
+    //     true,
+    //   )
 
-      glowOpacity.value = withRepeat(
-        withSequence(withTiming(0.8, { duration: 1500 }), withTiming(0.3, { duration: 1500 })),
-        -1,
-        true,
-      )
-    }
+    //   glowOpacity.value = withRepeat(
+    //     withSequence(withTiming(0.8, { duration: 1500 }), withTiming(0.3, { duration: 1500 })),
+    //     -1,
+    //     true,
+    //   )
+    // }
 
     if (borderGlow) {
       borderGlowOpacity.value = withRepeat(
@@ -158,7 +160,7 @@ export function ThemedView({
         true,
       )
     }
-  }, [animated, morphing, pulsing, borderGlow, delay, intensity, variant])
+  }, [animated, borderGlow, borderGlowOpacity, delay, glowOpacity, intensity, morphValue, morphing, opacity, pulseScale, pulsing, translateY, variant])
 
   // Animated styles
   const animatedStyle = useAnimatedStyle(() => {
@@ -171,7 +173,6 @@ export function ThemedView({
       transform: [
         { scale: scaleValue },
         { translateY: translateY.value },
-        { rotateZ: `${rotateZ.value}deg` },
       ],
       shadowOpacity: pulsing
         ? interpolate(glowOpacity.value, [0, 1], [0.1, 0.4], Extrapolation.CLAMP)
@@ -203,6 +204,7 @@ export function ThemedView({
   }
 
   const handleHoverIn = () => {
+    'worklet'
     if (hoverable) {
       hoverScale.value = withSpring(1.02, MICRO_SPRING_CONFIG.smooth)
       elevationValue.value = withSpring(elevation + 4, MICRO_SPRING_CONFIG.smooth)
@@ -210,6 +212,7 @@ export function ThemedView({
   }
 
   const handleHoverOut = () => {
+    'worklet'
     if (hoverable) {
       hoverScale.value = withSpring(1, MICRO_SPRING_CONFIG.smooth)
       elevationValue.value = withSpring(elevation, MICRO_SPRING_CONFIG.smooth)

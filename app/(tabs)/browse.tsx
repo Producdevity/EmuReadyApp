@@ -42,7 +42,7 @@ import FluidGradient, { AuroraGradient, CosmicGradient } from '@/components/ui/F
 import { AnimatedPressable, FloatingElement } from '@/components/ui/MicroInteractions'
 import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useListings, useSearchSuggestions, useSystems } from '@/lib/api/hooks'
+import { useDevices, useListings, useSearchSuggestions, useSystems } from '@/lib/api/hooks'
 import { appStorage } from '@/lib/storage'
 import type { Listing, System } from '@/types'
 
@@ -92,16 +92,17 @@ export default function BrowseScreen() {
       true,
     )
 
-    searchPulse.value = withRepeat(
-      withSequence(withTiming(1.01, { duration: 2000 }), withTiming(1, { duration: 2000 })),
-      -1,
-      true,
-    )
+    // searchPulse animation - DISABLED
+    // searchPulse.value = withRepeat(
+    //   withSequence(withTiming(1.01, { duration: 2000 }), withTiming(1, { duration: 2000 })),
+    //   -1,
+    //   true,
+    // )
 
     particleFlow.value = withRepeat(withTiming(1, { duration: 8000 }), -1, false)
 
     backgroundShift.value = withRepeat(withTiming(1, { duration: 15000 }), -1, true)
-  }, [])
+  }, [backgroundShift, heroGlow, particleFlow, searchPulse])
 
   // API calls
   const listingsQuery = useListings({
@@ -113,6 +114,7 @@ export default function BrowseScreen() {
     limit: 50,
   })
   const systemsQuery = useSystems()
+  const devicesQuery = useDevices()
   const suggestionsQuery = useSearchSuggestions(
     { query: debouncedQuery, limit: 10 },
     { enabled: debouncedQuery.length > 0 },
@@ -316,7 +318,7 @@ export default function BrowseScreen() {
   }))
 
   const searchPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: searchPulse.value }],
+    transform: [{ scale: 1 }],
   }))
 
   const particleStyle = useAnimatedStyle(() => ({
@@ -779,6 +781,88 @@ export default function BrowseScreen() {
                   </Animated.ScrollView>
                 </View>
 
+                {/* Device Filter */}
+                <View style={{ marginBottom: theme.spacing.lg }}>
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.md,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                      color: theme.colors.text,
+                      marginBottom: theme.spacing.md,
+                    }}
+                  >
+                    Device
+                  </Text>
+                  <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        gap: theme.spacing.sm,
+                        paddingRight: theme.spacing.lg,
+                      }}
+                    >
+                      <Pressable
+                        onPress={() => handleFilterChange('deviceId', null)}
+                        style={{
+                          backgroundColor: !filters.deviceId
+                            ? theme.colors.primary
+                            : theme.colors.surface,
+                          paddingHorizontal: theme.spacing.md,
+                          paddingVertical: theme.spacing.sm,
+                          borderRadius: theme.borderRadius.lg,
+                          borderWidth: 1,
+                          borderColor: !filters.deviceId
+                            ? theme.colors.primary
+                            : theme.colors.border,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: theme.typography.fontSize.sm,
+                            fontWeight: theme.typography.fontWeight.medium,
+                            color: !filters.deviceId ? theme.colors.textInverse : theme.colors.text,
+                          }}
+                        >
+                          All
+                        </Text>
+                      </Pressable>
+                      {devicesQuery.data?.slice(0, 10).map((device: any) => (
+                        <Pressable
+                          key={device.id}
+                          onPress={() => handleFilterChange('deviceId', device.id)}
+                          style={{
+                            backgroundColor:
+                              filters.deviceId === device.id
+                                ? theme.colors.primary
+                                : theme.colors.surface,
+                            paddingHorizontal: theme.spacing.md,
+                            paddingVertical: theme.spacing.sm,
+                            borderRadius: theme.borderRadius.lg,
+                            borderWidth: 1,
+                            borderColor:
+                              filters.deviceId === device.id
+                                ? theme.colors.primary
+                                : theme.colors.border,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: theme.typography.fontSize.sm,
+                              fontWeight: theme.typography.fontWeight.medium,
+                              color:
+                                filters.deviceId === device.id
+                                  ? theme.colors.textInverse
+                                  : theme.colors.text,
+                            }}
+                          >
+                            {device.brand?.name || ''} {device.modelName}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </Animated.ScrollView>
+                </View>
+
                 {/* Enhanced Sort Options */}
                 <View>
                   <Text
@@ -859,7 +943,7 @@ export default function BrowseScreen() {
             >
               {sortedListings.length} Results
             </Text>
-            {(filters.query || filters.systemId || filters.performanceRank) && (
+            {(filters.query || filters.systemId || filters.deviceId || filters.performanceRank) && (
               <Text
                 style={{
                   fontSize: theme.typography.fontSize.md,
@@ -870,6 +954,8 @@ export default function BrowseScreen() {
                 {filters.query && `"${filters.query}"`}
                 {filters.systemId &&
                   ` in ${systemsQuery.data?.find((s: System) => s.id === filters.systemId)?.name}`}
+                {filters.deviceId &&
+                  ` on ${devicesQuery.data?.find((d: any) => d.id === filters.deviceId)?.modelName || 'device'}`}
                 {filters.performanceRank &&
                   ` with ${performanceOptions.find((p) => p.rank === filters.performanceRank)?.label} performance`}
               </Text>

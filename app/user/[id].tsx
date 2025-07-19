@@ -47,7 +47,7 @@ interface TabData {
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = 120
 const PROFILE_HEIGHT = 200
-const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
+const _isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
 
 export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -68,56 +68,13 @@ export default function UserProfileScreen() {
   const particleFlow = useSharedValue(0)
   const avatarScale = useSharedValue(0.9)
 
-  // Fetch user profile data (always call hooks before conditionals)
+  // Fetch user profile data - MUST be called before any conditional returns
   const userProfileQuery = useUserProfile({ userId: id || '' }, { enabled: !!id })
 
-  // Fetch user listings
+  // Fetch user listings - MUST be called before any conditional returns
   const userListingsQuery = useUserListings({ userId: id || '' })
 
-  const isOwnProfile = currentUserId === id
-
-  useEffect(() => {
-    // Initialize cosmic background animation
-    backgroundShift.value = withRepeat(
-      withSequence(withTiming(1, { duration: 20000 }), withTiming(0, { duration: 20000 })),
-      -1,
-      true,
-    )
-
-    // Hero glow animation
-    heroGlow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 4000 }), withTiming(0.3, { duration: 4000 })),
-      -1,
-      true,
-    )
-
-    // Profile floating animation
-    profileFloat.value = withRepeat(
-      withSequence(withTiming(10, { duration: 6000 }), withTiming(-10, { duration: 6000 })),
-      -1,
-      true,
-    )
-
-    // Stats floating animation
-    statsFloat.value = withRepeat(
-      withSequence(withTiming(5, { duration: 5000 }), withTiming(-5, { duration: 5000 })),
-      -1,
-      true,
-    )
-
-    // Particle flow animation
-    particleFlow.value = withRepeat(withTiming(1, { duration: 12000 }), -1, false)
-
-    // Avatar scale entrance
-    avatarScale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
-  }, [])
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y
-    },
-  })
-
+  // Animated styles - MUST be defined before any conditional returns
   const headerAnimatedStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       scrollY.value,
@@ -144,6 +101,92 @@ export default function UserProfileScreen() {
     return {
       transform: [{ translateY }, { scale }],
     }
+  })
+
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
+      },
+    ],
+  }))
+
+  const _heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+
+  const profileFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: 0 }],
+  }))
+
+  const tabScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: tabScale.value }],
+  }))
+
+  const statsFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: 0 }],
+  }))
+
+  const avatarScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: avatarScale.value }],
+  }))
+
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          particleFlow.value,
+          [0, 1],
+          [-200, SCREEN_WIDTH + 200],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
+  }))
+
+  const isOwnProfile = currentUserId === id
+
+  useEffect(() => {
+    // Initialize cosmic background animation
+    backgroundShift.value = withRepeat(
+      withSequence(withTiming(1, { duration: 20000 }), withTiming(0, { duration: 20000 })),
+      -1,
+      true,
+    )
+
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(withTiming(1, { duration: 4000 }), withTiming(0.3, { duration: 4000 })),
+      -1,
+      true,
+    )
+
+    // Profile floating animation
+    // profileFloat.value = withRepeat(
+    //   withSequence(withTiming(10, { duration: 6000 }), withTiming(-10, { duration: 6000 })),
+    //   -1,
+    //   true,
+    // )
+
+    // Stats floating animation
+    // statsFloat.value = withRepeat(
+    //   withSequence(withTiming(5, { duration: 5000 }), withTiming(-5, { duration: 5000 })),
+    //   -1,
+    //   true,
+    // )
+
+    // Particle flow animation
+    particleFlow.value = withRepeat(withTiming(1, { duration: 12000 }), -1, false)
+
+    // Avatar scale entrance
+    avatarScale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
+  }, [avatarScale, backgroundShift, heroGlow, particleFlow, profileFloat, statsFloat])
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+    },
   })
 
   useEffect(() => {
@@ -465,52 +508,10 @@ export default function UserProfileScreen() {
     }
   }
 
-  // Animated styles for cosmic background
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
-      },
-    ],
-  }))
-
-  const heroGlowStyle = useAnimatedStyle(() => ({
-    opacity: heroGlow.value,
-  }))
-
-  const profileFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: profileFloat.value }],
-  }))
-
-  const tabScaleStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: tabScale.value }],
-  }))
-
-  const statsFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: statsFloat.value }],
-  }))
-
-  const avatarScaleStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: avatarScale.value }],
-  }))
-
-  const particleFlowStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(
-          particleFlow.value,
-          [0, 1],
-          [-200, SCREEN_WIDTH + 200],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
-    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
-  }))
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar translucent />
 
       {/* Revolutionary Cosmic Background */}
       <RNAnimated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>

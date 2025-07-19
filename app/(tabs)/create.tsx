@@ -94,15 +94,15 @@ export default function CreateScreen() {
     )
 
     // Step floating animation
-    stepFloat.value = withRepeat(
-      withSequence(withTiming(8, { duration: 5000 }), withTiming(-8, { duration: 5000 })),
-      -1,
-      true,
-    )
+    // stepFloat.value = withRepeat(
+    //   withSequence(withTiming(8, { duration: 5000 }), withTiming(-8, { duration: 5000 })),
+    //   -1,
+    //   true,
+    // )
 
     // Particle flow animation
     particleFlow.value = withRepeat(withTiming(1, { duration: 8000 }), -1, false)
-  }, [])
+  }, [backgroundShift, heroGlow, particleFlow, stepFloat])
 
   const steps = [
     { step: 1, title: 'Select Game', icon: 'game-controller', completed: !!formData.gameId },
@@ -161,6 +161,7 @@ export default function CreateScreen() {
 
   const handleStepTransition = (nextStep: number) => {
     fadeAnim.value = withTiming(0, { duration: 150 }, () => {
+      'worklet'
       fadeAnim.value = withTiming(1, { duration: 150 })
     })
     progressAnim.value = withSpring(nextStep / 5)
@@ -532,28 +533,21 @@ export default function CreateScreen() {
             </Text>
 
             <View style={{ gap: theme.spacing.sm }}>
-              {emulatorsQuery.isLoading
-                ? Array.from({ length: 3 }).map((_, index) => (
-                    <Animated.View key={index} entering={FadeInUp.delay(index * 100).springify()}>
-                      <Card style={{ padding: theme.spacing.md }}>
-                        <SkeletonLoader
-                          width="50%"
-                          height={18}
-                          style={{ marginBottom: theme.spacing.xs }}
-                        />
-                        <SkeletonLoader width="70%" height={14} />
-                      </Card>
-                    </Animated.View>
-                  ))
-                : (
-                    emulatorsQuery.data || [
-                      { id: '1', name: 'RetroArch', description: 'Multi-system emulator' },
-                      { id: '2', name: 'Dolphin', description: 'GameCube & Wii emulator' },
-                      { id: '3', name: 'PCSX2', description: 'PlayStation 2 emulator' },
-                      { id: '4', name: 'RPCS3', description: 'PlayStation 3 emulator' },
-                      { id: '5', name: 'Citra', description: '3DS emulator' },
-                    ]
-                  ).map((emulator: any, index: number) => (
+              {emulatorsQuery.isLoading ? (
+                Array.from({ length: 3 }).map((_, index) => (
+                  <Animated.View key={index} entering={FadeInUp.delay(index * 100).springify()}>
+                    <Card style={{ padding: theme.spacing.md }}>
+                      <SkeletonLoader
+                        width="50%"
+                        height={18}
+                        style={{ marginBottom: theme.spacing.xs }}
+                      />
+                      <SkeletonLoader width="70%" height={14} />
+                    </Card>
+                  </Animated.View>
+                ))
+              ) : emulatorsQuery.data && emulatorsQuery.data.length > 0 ? (
+                emulatorsQuery.data.map((emulator: any, index: number) => (
                     <Animated.View
                       key={emulator.id}
                       entering={SlideInRight.delay(index * 50).springify()}
@@ -602,7 +596,40 @@ export default function CreateScreen() {
                         </Card>
                       </Pressable>
                     </Animated.View>
-                  ))}
+                  ))
+              ) : (
+                <View
+                  style={{
+                    paddingVertical: theme.spacing.xl,
+                    alignItems: 'center',
+                  }}
+                >
+                  <Ionicons
+                    name="apps-outline"
+                    size={48}
+                    color={theme.colors.textMuted}
+                    style={{ marginBottom: theme.spacing.md }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: theme.typography.fontSize.md,
+                      color: theme.colors.textMuted,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {emulatorsQuery.error ? 'Failed to load emulators. Please try again.' : 'No emulators available.'}
+                  </Text>
+                  {emulatorsQuery.error && (
+                    <Button
+                      title="Retry"
+                      variant="outline"
+                      size="sm"
+                      onPress={() => emulatorsQuery.refetch()}
+                      style={{ marginTop: theme.spacing.md }}
+                    />
+                  )}
+                </View>
+              )}
             </View>
           </View>
         )
@@ -918,7 +945,7 @@ export default function CreateScreen() {
   }))
 
   const stepFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: stepFloat.value }],
+    transform: [{ translateY: 0 }],
   }))
 
   const particleFlowStyle = useAnimatedStyle(() => ({

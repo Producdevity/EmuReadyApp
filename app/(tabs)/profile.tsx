@@ -8,7 +8,8 @@ import {
   MICRO_SPRING_CONFIG,
 } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useListings, useUnreadNotificationCount } from '@/lib/api/hooks'
+import { useUnreadNotificationCount, useUserListings, useUserProfile } from '@/lib/api/hooks'
+import { useAuthHelpers, transformClerkUser } from '@/lib/auth/clerk'
 import type { Listing } from '@/types'
 import { useAuth } from '@clerk/clerk-expo'
 import { Ionicons } from '@expo/vector-icons'
@@ -42,6 +43,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
+import EditProfileModal from '@/components/modals/EditProfileModal'
 import { Button, Card } from '../../components/ui'
 
 type ProfileTab = 'listings' | 'favorites' | 'activity'
@@ -52,10 +54,12 @@ const HEADER_HEIGHT = SCREEN_HEIGHT * 0.25
 export default function ProfileScreen() {
   const router = useRouter()
   const { isSignedIn, signOut } = useAuth()
+  const { user: clerkUser } = useAuthHelpers()
   const { theme, themeMode, setThemeMode } = useTheme()
   const [activeTab, setActiveTab] = useState<ProfileTab>('listings')
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [showEditProfile, setShowEditProfile] = useState(false)
 
   // Enhanced 2025 animation values
   const heroGlow = useSharedValue(0)
@@ -81,42 +85,44 @@ export default function ProfileScreen() {
     )
 
     // Profile floating animation
-    profileFloat.value = withRepeat(
-      withSequence(withTiming(10, { duration: 5000 }), withTiming(-10, { duration: 5000 })),
-      -1,
-      true,
-    )
+    // profileFloat.value = withRepeat(
+    //   withSequence(withTiming(10, { duration: 5000 }), withTiming(-10, { duration: 5000 })),
+    //   -1,
+    //   true,
+    // )
 
     // Stats floating animation
-    statsFloat.value = withRepeat(
-      withSequence(withTiming(5, { duration: 4000 }), withTiming(-5, { duration: 4000 })),
-      -1,
-      true,
-    )
+    // statsFloat.value = withRepeat(
+    //   withSequence(withTiming(5, { duration: 4000 }), withTiming(-5, { duration: 4000 })),
+    //   -1,
+    //   true,
+    // )
 
     // Particle flow animation
     particleFlow.value = withRepeat(withTiming(1, { duration: 10000 }), -1, false)
-  }, [])
+  }, [backgroundShift, heroGlow, particleFlow, profileFloat, statsFloat])
 
   // Create themed styles (needs to be before early returns)
   const styles = createStyles(theme)
 
-  // Only fetch user data and listings when authenticated
-  // TODO: Implement current user query with Clerk user data
-  const currentUserQuery = {
-    data: null as { name: string; email: string } | null,
-    isLoading: false,
-    error: null,
-    refetch: () => Promise.resolve({ data: null }),
-  }
-  const _unreadCountQuery = useUnreadNotificationCount()
-  const userListingsQuery = useListings({
-    page: 1,
-    limit: 50,
+  // Fetch user profile data
+  const userProfileQuery = useUserProfile(undefined, {
+    enabled: isSignedIn,
   })
 
-  // Filter listings to show only user's listings when authenticated
-  const userListings: Listing[] = []
+  // Transform Clerk user data if profile query fails
+  const userData = userProfileQuery.data || (clerkUser ? transformClerkUser(clerkUser) : null)
+
+  const _unreadCountQuery = useUnreadNotificationCount()
+  
+  // Use the proper hook for user listings
+  const userListingsQuery = useUserListings(
+    { userId: userData?.id || '' },
+    { enabled: !!userData?.id }
+  )
+
+  // Get user's listings
+  const userListings: Listing[] = userListingsQuery.data || []
 
   // Animated styles (must be defined before any early returns)
   const backgroundAnimatedStyle = useAnimatedStyle(() => ({
@@ -128,7 +134,7 @@ export default function ProfileScreen() {
   }))
 
   const profileFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: profileFloat.value }],
+    transform: [{ translateY: 0 }],
   }))
 
   const tabScaleStyle = useAnimatedStyle(() => ({
@@ -136,7 +142,7 @@ export default function ProfileScreen() {
   }))
 
   const statsFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: statsFloat.value }],
+    transform: [{ translateY: 0 }],
   }))
 
   const particleFlowStyle = useAnimatedStyle(() => ({
@@ -196,9 +202,13 @@ export default function ProfileScreen() {
   }
 
   const handleEditProfile = () => {
-    Alert.alert('Edit Profile', 'Profile editing will be available in a future update.', [
-      { text: 'OK' },
-    ])
+    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+    setShowEditProfile(true)
+  }
+
+  const handleEditProfileSuccess = () => {
+    // Refetch user data after successful edit
+    userProfileQuery.refetch()
   }
 
   const handleListingPress = (listingId: string) => {
@@ -284,33 +294,12 @@ export default function ProfileScreen() {
   }
 
   // Show loading state while fetching user data
-  if (currentUserQuery.isLoading) {
+  if (userProfileQuery.isLoading && !userData) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Loading profile...</Text>
-        </View>
-      </SafeAreaView>
-    )
-  }
-
-  // Show error state if user data failed to load
-  if (currentUserQuery.error || !currentUserQuery.data) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle" size={64} color={theme.colors.error} />
-          <Text style={styles.errorTitle}>Failed to Load Profile</Text>
-          <Text style={styles.errorDescription}>There was an error loading your profile data.</Text>
-          <Button
-            title="Try Again"
-            variant="primary"
-            onPress={async () => {
-              await Promise.all([currentUserQuery.refetch(), userListingsQuery.refetch()])
-            }}
-            style={styles.retryButton}
-          />
         </View>
       </SafeAreaView>
     )
@@ -501,11 +490,11 @@ export default function ProfileScreen() {
 
                     <View style={styles.profileDetails}>
                       <GradientTitle animated style={styles.profileName}>
-                        {currentUserQuery.data?.name || 'Guest Player'}
+                        {userData?.name || clerkUser?.firstName || 'EmuReady User'}
                       </GradientTitle>
 
                       <TypewriterText animated delay={300} style={styles.profileEmail}>
-                        {currentUserQuery.data?.email || 'guest@emuready.com'}
+                        {userData?.email || clerkUser?.primaryEmailAddress?.emailAddress || ''}
                       </TypewriterText>
 
                       <Animated.View style={statsFloatStyle}>
@@ -734,6 +723,13 @@ export default function ProfileScreen() {
           <View style={styles.bottomSpacing} />
         </ScrollView>
       </SafeAreaView>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        visible={showEditProfile}
+        onClose={() => setShowEditProfile(false)}
+        onSuccess={handleEditProfileSuccess}
+      />
     </View>
   )
 }

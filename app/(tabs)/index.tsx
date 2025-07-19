@@ -20,11 +20,11 @@ import Animated, {
   Extrapolation,
   FadeInUp,
   interpolate,
-  runOnJS,
   SlideInLeft,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
   withSpring,
@@ -47,6 +47,7 @@ import {
 import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useOrientationOptimized } from '@/hooks/useGamepadNavigation'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { ANIMATION_CONFIG, getBaseDelay, getStaggerDelay } from '@/lib/animation/config'
 import { useAppStats, useFeaturedListings, usePopularGames } from '@/lib/api/hooks'
 import type { Game, Listing } from '@/types'
@@ -59,48 +60,30 @@ const HEADER_HEIGHT = SCREEN_HEIGHT * 0.45
 export default function HomeScreen() {
   const { theme } = useTheme()
   const { isLandscape, getLandscapeStyles } = useOrientationOptimized()
+  const reduceMotion = useReducedMotion()
   const [searchQuery, setSearchQuery] = useState('')
   const [refreshing, setRefreshing] = useState(false)
   const scrollY = useSharedValue(0)
 
-  // Enhanced animation values for 2025 design
+  // Enhanced animation values for 2025 design - reduced for performance
   const heroGlow = useSharedValue(0)
-  const heroParticles = useSharedValue(0)
-  const searchPulse = useSharedValue(1)
-  const statsFloat = useSharedValue(0)
   const backgroundShift = useSharedValue(0)
 
   useEffect(() => {
-    // Hero section ambient animations
-    heroGlow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 3000 }), withTiming(0.3, { duration: 3000 })),
-      -1,
-      true,
-    )
+    if (!reduceMotion) {
+      // Hero section ambient animations
+      heroGlow.value = withRepeat(
+        withSequence(withTiming(1, { duration: 3000 }), withTiming(0.3, { duration: 3000 })),
+        -1,
+        true,
+      )
 
-    // Particle movement
-    heroParticles.value = withRepeat(withTiming(1, { duration: 8000 }), -1, false)
-
-    // Search bar pulse
-    searchPulse.value = withRepeat(
-      withSequence(withTiming(1.02, { duration: 2000 }), withTiming(1, { duration: 2000 })),
-      -1,
-      true,
-    )
-
-    // Stats floating
-    statsFloat.value = withRepeat(
-      withSequence(withTiming(5, { duration: 4000 }), withTiming(-5, { duration: 4000 })),
-      -1,
-      true,
-    )
-
-    // Background color shift
-    backgroundShift.value = withRepeat(withTiming(1, { duration: 12000 }), -1, true)
-  }, [])
+      // Background color shift
+      backgroundShift.value = withRepeat(withTiming(1, { duration: 12000 }), -1, true)
+    }
+  }, [backgroundShift, heroGlow, reduceMotion])
 
   const statsQuery = useAppStats()
-  console.log('Stats Query:', JSON.stringify(statsQuery.data, null, 2))
   const featuredListingsQuery = useFeaturedListings()
   const popularGamesQuery = usePopularGames()
 
@@ -143,18 +126,18 @@ export default function HomeScreen() {
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       router.push(`/browse?search=${encodeURIComponent(searchQuery.trim())}`)
     }
   }
 
   const handleGamePress = (gameId: string) => {
-    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     router.push(`/game/${gameId}`)
   }
 
   const handleListingPress = (listingId: string) => {
-    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     router.push(`/listing/${listingId}`)
   }
 
@@ -170,18 +153,20 @@ export default function HomeScreen() {
 
     useEffect(() => {
       const delay = index * 200
-      setTimeout(() => {
-        scale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
-        glow.value = withRepeat(
+      // Use withDelay instead of setTimeout for animations
+      scale.value = withDelay(delay, withSpring(1, MICRO_SPRING_CONFIG.bouncy))
+      glow.value = withDelay(
+        delay,
+        withRepeat(
           withSequence(withTiming(1, { duration: 2000 }), withTiming(0.4, { duration: 2000 })),
           -1,
           true,
         )
-      }, delay)
+      )
     }, [index, scale, glow])
 
     const animatedStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: scale.value }, { translateY: statsFloat.value }],
+      transform: [{ scale: scale.value }, { translateY: 0 }], // No floating
     }))
 
     const glowStyle = useAnimatedStyle(() => ({
@@ -275,10 +260,10 @@ export default function HomeScreen() {
               position: 'relative',
             }}
           >
-            {game.coverImageUrl || game.boxArtUrl ? (
+            {game.imageUrl || game.boxartUrl || game.bannerUrl ? (
               <>
                 <CachedImage
-                  source={{ uri: game.coverImageUrl || game.boxArtUrl || '' }}
+                  source={{ uri: game.imageUrl || game.boxartUrl || game.bannerUrl || '' }}
                   style={{
                     width: '100%',
                     height: '100%',
@@ -401,12 +386,12 @@ export default function HomeScreen() {
 
   const particleStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: interpolate(heroParticles.value, [0, 1], [-50, 50], Extrapolation.CLAMP) },
+      { translateX: 0 },
     ],
   }))
 
   const searchPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: searchPulse.value }],
+    transform: [{ scale: 1 }],
   }))
 
   // Unused for now - will be used for dynamic background effects
@@ -419,7 +404,6 @@ export default function HomeScreen() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <StatusBar
         barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-        backgroundColor="transparent"
         translucent
       />
 
@@ -708,7 +692,7 @@ export default function HomeScreen() {
                     style={{ marginRight: theme.spacing.lg, width: 160 }}
                   >
                     <Card
-                      style={{ height: 220, padding: 0, overflow: 'hidden' }}
+                      style={{ height: 240, padding: 0, overflow: 'hidden' }}
                       disableAnimations={true}
                     >
                       <SkeletonLoader width="100%" height={140} />
@@ -723,9 +707,30 @@ export default function HomeScreen() {
                     </Card>
                   </Animated.View>
                 ))
-              : Array.isArray(popularGamesQuery.data)
-                ? popularGamesQuery.data.slice(0, 8).map(renderGameCard)
-                : []}
+              : popularGamesQuery.error
+                ? (
+                    <View style={{ padding: theme.spacing.lg, width: '100%' }}>
+                      <Text style={{ color: theme.colors.error, textAlign: 'center' }}>
+                        Failed to load games: {popularGamesQuery.error?.message || 'Unknown error'}
+                      </Text>
+                    </View>
+                  )
+                : popularGamesQuery.data && Array.isArray(popularGamesQuery.data) && popularGamesQuery.data.length > 0
+                  ? popularGamesQuery.data.slice(0, 8).map((game, index) => {
+                      // Validate game object
+                      if (!game || typeof game !== 'object' || !game.id) {
+                        console.warn('Invalid game object:', game)
+                        return null
+                      }
+                      return renderGameCard(game, index)
+                    }).filter(Boolean)
+                  : !popularGamesQuery.isLoading && (
+                      <View style={{ padding: theme.spacing.lg, width: '100%' }}>
+                        <Text style={{ color: theme.colors.textSecondary, textAlign: 'center' }}>
+                          No popular games available
+                        </Text>
+                      </View>
+                    )}
           </ScrollView>
         </View>
 
@@ -994,7 +999,7 @@ export default function HomeScreen() {
             icon: 'add',
             label: 'Create Listing',
             onPress: () => {
-              runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Heavy)
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)
               router.push('/(tabs)/create')
             },
           },
@@ -1003,7 +1008,7 @@ export default function HomeScreen() {
             icon: 'search',
             label: 'Advanced Search',
             onPress: () => {
-              runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
               router.push('/browse')
             },
           },
@@ -1012,7 +1017,7 @@ export default function HomeScreen() {
             icon: 'person',
             label: 'My Profile',
             onPress: () => {
-              runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
               router.push('/(tabs)/profile')
             },
           },

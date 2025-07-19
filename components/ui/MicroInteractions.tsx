@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics'
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
+import type { AccessibilityRole } from 'react-native'
 import { StyleSheet, View } from 'react-native'
 import Animated, {
   cancelAnimation,
@@ -68,6 +69,7 @@ export const usePressAnimation = (
   }))
 
   const handlePressIn = () => {
+    'worklet'
     if (disabled) return
 
     cancelAnimation(scaleValue)
@@ -82,6 +84,7 @@ export const usePressAnimation = (
   }
 
   const handlePressOut = () => {
+    'worklet'
     if (disabled) return
 
     scaleValue.value = withSpring(1, MICRO_SPRING_CONFIG[springConfig])
@@ -126,12 +129,14 @@ export const useHoverAnimation = (
   }))
 
   const handleHoverIn = () => {
+    'worklet'
     scaleValue.value = withSpring(scale, MICRO_SPRING_CONFIG[springConfig])
     elevationValue.value = withSpring(elevation, MICRO_SPRING_CONFIG[springConfig])
     glowValue.value = withTiming(0.3, { duration: 200 })
   }
 
   const handleHoverOut = () => {
+    'worklet'
     scaleValue.value = withSpring(1, MICRO_SPRING_CONFIG[springConfig])
     elevationValue.value = withSpring(2, MICRO_SPRING_CONFIG[springConfig])
     glowValue.value = withTiming(0, { duration: 300 })
@@ -156,33 +161,37 @@ export const useFloatingAnimation = (
   } = {},
 ) => {
   const { intensity = 3, duration = 3000, delay = 0, autoStart = true } = config
+  
+  // Reduce intensity to make it less distracting
+  const actualIntensity = intensity * 0.3 // Only 30% of original movement
 
   const translateY = useSharedValue(0)
-  const rotateZ = useSharedValue(0)
+  const _rotateZ = useSharedValue(0) // Unused but kept for future use
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }, { rotateZ: `${rotateZ.value}deg` }],
+    transform: [{ translateY: translateY.value }],
   }))
 
-  const startFloating = () => {
+  const startFloating = useCallback(() => {
     translateY.value = withDelay(
       delay,
       withSequence(
-        withTiming(-intensity, { duration: duration / 2 }),
-        withTiming(intensity, { duration: duration }),
+        withTiming(-actualIntensity, { duration: duration / 2 }),
+        withTiming(actualIntensity, { duration: duration }),
         withTiming(0, { duration: duration / 2 }),
       ),
     )
 
-    rotateZ.value = withDelay(
-      delay,
-      withSequence(
-        withTiming(1, { duration: duration / 3 }),
-        withTiming(-1, { duration: duration / 3 }),
-        withTiming(0, { duration: duration / 3 }),
-      ),
-    )
-  }
+    // Rotation disabled - it's too distracting
+    // rotateZ.value = withDelay(
+    //   delay,
+    //   withSequence(
+    //     withTiming(1, { duration: duration / 3 }),
+    //     withTiming(-1, { duration: duration / 3 }),
+    //     withTiming(0, { duration: duration / 3 }),
+    //   ),
+    // )
+  }, [delay, duration, translateY, actualIntensity])
 
   useEffect(() => {
     if (autoStart) {
@@ -190,7 +199,8 @@ export const useFloatingAnimation = (
       startFloating()
       return () => clearInterval(interval)
     }
-  }, [autoStart, duration, delay])
+    return undefined
+  }, [autoStart, duration, delay, startFloating])
 
   return {
     animatedStyle,
@@ -206,35 +216,38 @@ export const usePulseAnimation = (
     intensity?: number
   } = {},
 ) => {
-  const { scale = 1.05, duration = 1500, autoStart = true, intensity = 1 } = config
+  const { scale: _scale = 1.05, duration: _duration = 1500, autoStart: _autoStart = true, intensity: _intensity = 1 } = config
 
-  const scaleValue = useSharedValue(1)
-  const opacityValue = useSharedValue(1)
+  const _scaleValue = useSharedValue(1)
+  const _opacityValue = useSharedValue(1)
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scaleValue.value }],
-    opacity: opacityValue.value,
+    transform: [{ scale: 1 }], // No pulsing
+    opacity: 1,
   }))
 
-  const startPulse = () => {
-    scaleValue.value = withSequence(
-      withTiming(scale * intensity, { duration: duration / 2 }),
-      withTiming(1, { duration: duration / 2 }),
-    )
+  const startPulse = useCallback(() => {
+    // Pulsing disabled - looks unprofessional
+    // scaleValue.value = withSequence(
+    //   withTiming(scale * intensity, { duration: duration / 2 }),
+    //   withTiming(1, { duration: duration / 2 }),
+    // )
 
-    opacityValue.value = withSequence(
-      withTiming(0.7, { duration: duration / 2 }),
-      withTiming(1, { duration: duration / 2 }),
-    )
-  }
+    // opacityValue.value = withSequence(
+    //   withTiming(0.7, { duration: duration / 2 }),
+    //   withTiming(1, { duration: duration / 2 }),
+    // )
+  }, [])
 
   useEffect(() => {
-    if (autoStart) {
-      const interval = setInterval(startPulse, duration)
-      startPulse()
-      return () => clearInterval(interval)
-    }
-  }, [autoStart, duration])
+    // Disabled pulsing effect
+    // if (autoStart) {
+    //   const interval = setInterval(startPulse, duration)
+    //   startPulse()
+    //   return () => clearInterval(interval)
+    // }
+    return undefined
+  }, [_autoStart, _duration, startPulse])
 
   return {
     animatedStyle,
@@ -250,6 +263,7 @@ export const useShakeAnimation = () => {
   }))
 
   const shake = (intensity = 10, duration = 500) => {
+    'worklet'
     translateX.value = withSequence(
       withTiming(-intensity, { duration: duration / 8 }),
       withTiming(intensity, { duration: duration / 4 }),
@@ -278,6 +292,7 @@ export const useRippleAnimation = () => {
   }))
 
   const startRipple = (duration = 600) => {
+    'worklet'
     scale.value = 0
     opacity.value = 0.6
 
@@ -300,6 +315,11 @@ interface AnimatedPressableProps {
   haptic?: boolean
   springConfig?: keyof typeof MICRO_SPRING_CONFIG
   disabled?: boolean
+  accessible?: boolean
+  accessibilityRole?: AccessibilityRole
+  accessibilityLabel?: string
+  accessibilityHint?: string
+  accessibilityState?: { selected?: boolean; expanded?: boolean }
 }
 
 export const AnimatedPressable: React.FC<AnimatedPressableProps> = ({
@@ -310,6 +330,11 @@ export const AnimatedPressable: React.FC<AnimatedPressableProps> = ({
   haptic = true,
   springConfig = 'snappy',
   disabled = false,
+  accessible,
+  accessibilityRole,
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityState,
 }) => {
   const { animatedStyle, handlers } = usePressAnimation({
     scale,
@@ -325,6 +350,11 @@ export const AnimatedPressable: React.FC<AnimatedPressableProps> = ({
       onTouchStart={handlers.onPressIn}
       onTouchEnd={handlers.onPressOut}
       onTouchCancel={handlers.onPressOut}
+      accessible={accessible}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={accessibilityState}
     >
       {children}
     </Animated.View>
@@ -341,18 +371,21 @@ interface FloatingElementProps {
 
 export const FloatingElement: React.FC<FloatingElementProps> = ({
   children,
-  intensity = 3,
-  duration = 3000,
-  delay = 0,
+  intensity: _intensity = 3,
+  duration: _duration = 3000,
+  delay: _delay = 0,
   style,
 }) => {
-  const { animatedStyle } = useFloatingAnimation({
-    intensity,
-    duration,
-    delay,
-  })
-
-  return <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
+  // Animation completely disabled - no floating or rotation
+  // const { animatedStyle } = useFloatingAnimation({
+  //   intensity,
+  //   duration,
+  //   delay,
+  // })
+  // return <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
+  
+  // Just return a plain View with no animations
+  return <View style={style}>{children}</View>
 }
 
 interface PulsingElementProps {

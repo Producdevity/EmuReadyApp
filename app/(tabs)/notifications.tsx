@@ -34,7 +34,7 @@ import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/The
 import { MagneticView } from '@/components/themed/ThemedView'
 import { Card, EmptyState, LoadingSpinner } from '@/components/ui'
 import FluidGradient from '@/components/ui/FluidGradient'
-import { FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
+import { FloatingElement } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
   useMarkAllNotificationsAsRead,
@@ -81,26 +81,26 @@ export default function NotificationsScreen() {
       true,
     )
 
-    // Badge pulse animation
-    badgePulse.value = withRepeat(
-      withSequence(
-        withSpring(1.15, MICRO_SPRING_CONFIG.bouncy),
-        withSpring(1, MICRO_SPRING_CONFIG.smooth),
-      ),
-      -1,
-      true,
-    )
+    // Badge pulse animation - DISABLED
+    // badgePulse.value = withRepeat(
+    //   withSequence(
+    //     withSpring(1.15, MICRO_SPRING_CONFIG.bouncy),
+    //     withSpring(1, MICRO_SPRING_CONFIG.smooth),
+    //   ),
+    //   -1,
+    //   true,
+    // )
 
     // Notification floating animation
-    notificationFloat.value = withRepeat(
-      withSequence(withTiming(6, { duration: 4000 }), withTiming(-6, { duration: 4000 })),
-      -1,
-      true,
-    )
+    // notificationFloat.value = withRepeat(
+    //   withSequence(withTiming(6, { duration: 4000 }), withTiming(-6, { duration: 4000 })),
+    //   -1,
+    //   true,
+    // )
 
     // Particle flow animation
     particleFlow.value = withRepeat(withTiming(1, { duration: 7000 }), -1, false)
-  }, [])
+  }, [backgroundShift, badgePulse, heroGlow, notificationFloat, particleFlow])
 
   // Animated styles
   const filterAnimatedStyle = useAnimatedStyle(() => ({
@@ -120,7 +120,7 @@ export default function NotificationsScreen() {
   }))
 
   const badgePulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: badgePulse.value }],
+    transform: [{ scale: 1 }],
   }))
 
   const particleFlowStyle = useAnimatedStyle(() => ({

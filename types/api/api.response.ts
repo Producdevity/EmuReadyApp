@@ -125,12 +125,19 @@ export interface Emulator extends BaseResource {
 
 export interface Game extends BaseResource {
   title: string
-  description: string | null
-  releaseDate: string | null
-  coverImageUrl: string | null
-  boxArtUrl: string | null
-  system: System
+  systemId: string
+  imageUrl: string | null
+  boxartUrl: string | null
+  bannerUrl: string | null
+  tgdbGameId: number | null
+  ageRating: string | null
+  isErotic: boolean
   status: ApprovalStatus
+  submittedBy: string | null
+  submittedAt: string | null
+  approvedBy: string | null
+  approvedAt: string | null
+  system: System
   _count?: {
     listings: number
   }

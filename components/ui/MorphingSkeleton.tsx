@@ -49,25 +49,18 @@ export default function MorphingSkeleton({
   const scaleValue = useSharedValue(1)
   const opacityValue = useSharedValue(0.7)
 
-  // Speed configuration
-  const speedConfig = {
-    slow: 2000,
-    normal: 1200,
-    fast: 800,
-  }
-
   // Default colors based on theme
-  const defaultColors = colors || [
+  const defaultColors: string[] = colors || [
     theme.isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(91, 33, 182, 0.05)',
     theme.isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(91, 33, 182, 0.12)',
     theme.isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(91, 33, 182, 0.08)',
   ]
 
   // Enhanced shimmer colors with more stops
-  const shimmerColors = [
+  const shimmerColors: [string, string, ...string[]] = [
     defaultColors[0],
     defaultColors[1],
-    defaultColors[2],
+    defaultColors[2] || defaultColors[1],
     defaultColors[1],
     defaultColors[0],
   ]
@@ -75,6 +68,13 @@ export default function MorphingSkeleton({
   useEffect(() => {
     if (!animated) return
 
+    // Speed configuration
+    const speedConfig = {
+      slow: 2000,
+      normal: 1200,
+      fast: 800,
+    }
+    
     const duration = speedConfig[speed]
 
     // Main animation loop
@@ -115,7 +115,7 @@ export default function MorphingSkeleton({
         false,
       )
     }
-  }, [animated, speed, variant, intensity, morphShapes.length])
+  }, [animated, animationValue, intensity, morphShapes.length, morphValue, opacityValue, scaleValue, speed, variant])
 
   // Shimmer animation style
   const shimmerStyle = useAnimatedStyle(() => {
@@ -217,20 +217,21 @@ export default function MorphingSkeleton({
           colors: shimmerColors,
           start: { x: 0, y: 0 },
           end: { x: 1, y: 0 },
-          locations: [0, 0.3, 0.5, 0.7, 1],
+          locations: [0, 0.3, 0.5, 0.7, 1] as readonly [number, number, ...number[]],
         }
       case 'shimmer':
         return {
           colors: shimmerColors,
           start: direction === 'vertical' ? { x: 0, y: 0 } : { x: 0, y: 0 },
           end: direction === 'vertical' ? { x: 0, y: 1 } : { x: 1, y: 0 },
-          locations: [0, 0.25, 0.5, 0.75, 1],
+          locations: [0, 0.25, 0.5, 0.75, 1] as readonly [number, number, ...number[]],
         }
       default:
         return {
-          colors: defaultColors,
+          colors: defaultColors.length >= 2 ? defaultColors : [...defaultColors, defaultColors[0]],
           start: { x: 0, y: 0 },
           end: { x: 1, y: 1 },
+          locations: undefined,
         }
     }
   }
@@ -255,7 +256,7 @@ export default function MorphingSkeleton({
     >
       {/* Base gradient */}
       <LinearGradient
-        colors={gradientConfig.colors}
+        colors={gradientConfig.colors as [string, string, ...string[]]}
         style={StyleSheet.absoluteFillObject}
         start={gradientConfig.start}
         end={gradientConfig.end}

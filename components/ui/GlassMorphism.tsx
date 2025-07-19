@@ -6,6 +6,7 @@ import { Platform, StyleSheet, View } from 'react-native'
 import Animated, {
   Extrapolation,
   interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -108,6 +109,7 @@ export default function GlassMorphism({
   const config = getVariantConfig()
 
   const handlePressIn = () => {
+    'worklet'
     if (pressable) {
       scaleValue.value = withSpring(0.98, {
         damping: 30,
@@ -118,12 +120,16 @@ export default function GlassMorphism({
   }
 
   const handlePressOut = () => {
+    'worklet'
     if (pressable) {
       scaleValue.value = withSpring(1, {
         damping: 25,
         stiffness: 350,
       })
       opacityValue.value = withTiming(1, { duration: 150 })
+      if (onPress) {
+        runOnJS(onPress)()
+      }
     }
   }
 
@@ -157,19 +163,31 @@ export default function GlassMorphism({
     style,
   ]
 
-  const Component = pressable ? Animated.createAnimatedComponent(View) : Animated.View
+  if (pressable) {
+    return (
+      <Animated.View
+        style={[containerStyle, animatedStyle]}
+        onTouchStart={handlePressIn}
+        onTouchEnd={handlePressOut}
+      >
+        {renderContent()}
+      </Animated.View>
+    )
+  }
 
   return (
-    <Component
-      style={[containerStyle, animatedStyle]}
-      onTouchStart={pressable ? handlePressIn : undefined}
-      onTouchEnd={pressable ? handlePressOut : undefined}
-      onPress={pressable ? onPress : undefined}
-    >
+    <Animated.View style={[containerStyle, animatedStyle]}>
+      {renderContent()}
+    </Animated.View>
+  )
+
+  function renderContent() {
+    return (
+      <>
       {/* Blur Background */}
       <BlurView
         intensity={config.blurIntensity}
-        tint={tintColor || (theme.isDark ? 'dark' : 'light')}
+        tint={(tintColor || (theme.isDark ? 'dark' : 'light')) as 'light' | 'dark' | 'default'}
         style={[StyleSheet.absoluteFillObject, { borderRadius: borderRadius - borderWidth }]}
       />
 
@@ -216,8 +234,9 @@ export default function GlassMorphism({
           ]}
         />
       )}
-    </Component>
-  )
+      </>
+    )
+  }
 }
 
 const styles = StyleSheet.create({

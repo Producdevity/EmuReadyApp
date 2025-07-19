@@ -4,12 +4,11 @@ import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { useCallback } from 'react'
 import { Platform, StyleSheet } from 'react-native'
-import { PanGestureHandler, TapGestureHandler } from 'react-native-gesture-handler'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
   Extrapolation,
   interpolate,
   runOnJS,
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -66,8 +65,9 @@ export default function MagneticCard({
   const childrenParallax = useSharedValue(0)
 
   // Magnetic hover effect
-  const panGestureHandler = useAnimatedGestureHandler({
-    onStart: () => {
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      'worklet'
       if (disabled) return
 
       elevation.value = withSpring(hoverElevation, {
@@ -82,13 +82,13 @@ export default function MagneticCard({
       if (hapticFeedback) {
         runOnJS(Haptics.selectionAsync)()
       }
-    },
-    onActive: (event) => {
+    })
+    .onUpdate((event) => {
+      'worklet'
       if (disabled) return
 
-      const { absoluteX, absoluteY } = event
-      const cardCenterX = absoluteX
-      const cardCenterY = absoluteY
+      const cardCenterX = event.absoluteX
+      const cardCenterY = event.absoluteY
 
       // Magnetic attraction effect
       translateX.value = withSpring((cardCenterX - 100) * magneticStrength * 0.1, {
@@ -119,8 +119,9 @@ export default function MagneticCard({
           stiffness: 200,
         })
       }
-    },
-    onEnd: () => {
+    })
+    .onEnd(() => {
+      'worklet'
       if (disabled) return
 
       // Return to original position
@@ -140,12 +141,12 @@ export default function MagneticCard({
       if (parallaxChildren) {
         childrenParallax.value = withSpring(0, { damping: 20, stiffness: 300 })
       }
-    },
-  })
+    })
 
   // Tap gesture for press effects
-  const tapGestureHandler = useAnimatedGestureHandler({
-    onStart: () => {
+  const tapGesture = Gesture.Tap()
+    .onStart(() => {
+      'worklet'
       if (disabled) return
 
       scale.value = withSpring(pressScale, {
@@ -156,8 +157,9 @@ export default function MagneticCard({
       if (hapticFeedback) {
         runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
       }
-    },
-    onEnd: () => {
+    })
+    .onEnd(() => {
+      'worklet'
       if (disabled) return
 
       scale.value = withSpring(1, {
@@ -168,8 +170,15 @@ export default function MagneticCard({
       if (onPress) {
         runOnJS(onPress)()
       }
-    },
-  })
+    })
+
+  // Long press gesture
+  const longPressGesture = Gesture.LongPress()
+    .onStart(() => {
+      'worklet'
+      if (disabled || !onLongPress) return
+      runOnJS(handleLongPress)()
+    })
 
   // Long press handler
   const handleLongPress = useCallback(() => {
@@ -269,21 +278,26 @@ export default function MagneticCard({
     transform: [{ translateX: childrenParallax.value }],
   }))
 
+  // Compose gestures
+  const composedGesture = Gesture.Simultaneous(
+    panGesture,
+    tapGesture,
+    longPressGesture
+  )
+
   return (
-    <TapGestureHandler onGestureEvent={tapGestureHandler} onActivated={handleLongPress}>
-      <Animated.View>
-        <PanGestureHandler onGestureEvent={panGestureHandler}>
-          <Animated.View
-            style={[
-              styles.container,
-              {
-                borderRadius,
-                ...variantStyle,
-              },
-              style,
-              animatedStyle,
-            ]}
-          >
+    <GestureDetector gesture={composedGesture}>
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            borderRadius,
+            ...variantStyle,
+          },
+          style,
+          animatedStyle,
+        ]}
+      >
             {/* Glow effect */}
             {glowEffect && (
               <Animated.View
@@ -356,10 +370,8 @@ export default function MagneticCard({
                 pointerEvents="none"
               />
             )}
-          </Animated.View>
-        </PanGestureHandler>
       </Animated.View>
-    </TapGestureHandler>
+    </GestureDetector>
   )
 }
 

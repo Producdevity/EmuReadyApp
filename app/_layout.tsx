@@ -12,12 +12,14 @@ import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import React, { useEffect, useState } from 'react'
-import { Dimensions, Platform, View } from 'react-native'
+import { Platform, View } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import Animated, {
   Extrapolation,
   FadeIn,
   FadeOut,
   interpolate,
+  runOnJS,
   SlideInUp,
   useAnimatedStyle,
   useSharedValue,
@@ -37,22 +39,19 @@ import { setAuthTokenGetter } from '@/lib/api/http'
 import { ClerkProvider, useAuthHelpers } from '@/lib/auth/clerk'
 import { tokenCache } from '@clerk/clerk-expo/token-cache'
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
-
 // Prevent auto-hiding of splash screen
 SplashScreen.preventAutoHideAsync()
 
 function AppContent() {
   const { getAuthToken } = useAuthHelpers()
   const { theme } = useTheme()
-  const [splashAnimationComplete, setSplashAnimationComplete] = useState(false)
+  const [_splashAnimationComplete, setSplashAnimationComplete] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
 
   // Enhanced 2025 animation values
   const splashProgress = useSharedValue(0)
   const logoScale = useSharedValue(0.8)
   const backgroundShift = useSharedValue(0)
-  const particleFlow = useSharedValue(0)
 
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -91,7 +90,8 @@ function AppContent() {
       )
 
       splashProgress.value = withTiming(1, { duration: 2000 }, () => {
-        setSplashAnimationComplete(true)
+        'worklet'
+        runOnJS(setSplashAnimationComplete)(true)
       })
 
       // Trigger haptic feedback on Android
@@ -104,7 +104,7 @@ function AppContent() {
         setShowSplash(false)
       }, 2500)
     }
-  }, [loaded])
+  }, [backgroundShift, loaded, logoScale, splashProgress])
 
   const splashBackgroundStyle = useAnimatedStyle(() => ({
     transform: [
@@ -117,9 +117,9 @@ function AppContent() {
   const splashLogoStyle = useAnimatedStyle(() => ({
     transform: [
       { scale: logoScale.value },
-      {
-        rotate: `${interpolate(splashProgress.value, [0, 1], [0, 360], Extrapolation.CLAMP)}deg`,
-      },
+      // {
+      //   rotate: `${interpolate(splashProgress.value, [0, 1], [0, 360], Extrapolation.CLAMP)}deg`,
+      // },
     ],
     opacity: interpolate(splashProgress.value, [0, 0.8, 1], [1, 1, 0], Extrapolation.CLAMP),
   }))
@@ -265,13 +265,6 @@ function AppContent() {
             }}
           />
           <Stack.Screen
-            name="hardware"
-            options={{
-              headerShown: false,
-              animation: 'fade',
-            }}
-          />
-          <Stack.Screen
             name="emulators"
             options={{
               headerShown: false,
@@ -280,6 +273,13 @@ function AppContent() {
           />
           <Stack.Screen
             name="devices"
+            options={{
+              headerShown: false,
+              animation: 'fade',
+            }}
+          />
+          <Stack.Screen
+            name="hardware"
             options={{
               headerShown: false,
               animation: 'fade',
@@ -313,7 +313,6 @@ function AppContent() {
         </Stack>
         <StatusBar
           style={theme.isDark ? 'light' : 'dark'}
-          backgroundColor="transparent"
           translucent
         />
       </NavigationThemeProvider>
@@ -323,14 +322,16 @@ function AppContent() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <ClerkProvider tokenCache={tokenCache}>
-        <QueryClientProvider client={queryClient}>
-          <View style={{ flex: 1, backgroundColor: '#111827' }}>
-            <AppContent />
-          </View>
-        </QueryClientProvider>
-      </ClerkProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <ClerkProvider tokenCache={tokenCache}>
+          <QueryClientProvider client={queryClient}>
+            <View style={{ flex: 1, backgroundColor: '#111827' }}>
+              <AppContent />
+            </View>
+          </QueryClientProvider>
+        </ClerkProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   )
 }

@@ -52,7 +52,7 @@ import type { Listing } from '@/types'
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.5
 const PARALLAX_HEIGHT = HEADER_HEIGHT * 1.2
-const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
+const _isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
 
 export default function GameDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -73,61 +73,11 @@ export default function GameDetailScreen() {
   const particleFlow = useSharedValue(0)
   const coverScale = useSharedValue(0.9)
 
-  useEffect(() => {
-    // Initialize cosmic background animation
-    backgroundShift.value = withRepeat(
-      withSequence(withTiming(1, { duration: 20000 }), withTiming(0, { duration: 20000 })),
-      -1,
-      true,
-    )
-
-    // Hero glow animation
-    heroGlow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 3000 }), withTiming(0.3, { duration: 3000 })),
-      -1,
-      true,
-    )
-
-    // Game floating animation
-    gameFloat.value = withRepeat(
-      withSequence(withTiming(10, { duration: 5000 }), withTiming(-10, { duration: 5000 })),
-      -1,
-      true,
-    )
-
-    // Stats floating animation
-    statsFloat.value = withRepeat(
-      withSequence(withTiming(5, { duration: 4000 }), withTiming(-5, { duration: 4000 })),
-      -1,
-      true,
-    )
-
-    // Particle flow animation
-    particleFlow.value = withRepeat(withTiming(1, { duration: 12000 }), -1, false)
-
-    // Cover scale entrance
-    coverScale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
-  }, [])
-
-  // API hooks
+  // API hooks - MUST be called before any conditional returns
   const gameQuery = useGameById({ id: id! }, { enabled: !!id })
   const listingsQuery = useListingsByGame({ gameId: id! }, { enabled: !!id })
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y
-
-      // Update header opacity
-      const opacity = interpolate(
-        scrollY.value,
-        [0, HEADER_HEIGHT * 0.3, HEADER_HEIGHT * 0.7],
-        [1, 0.8, 0],
-        Extrapolation.CLAMP,
-      )
-      headerOpacity.value = withSpring(opacity)
-    },
-  })
-
+  // Animated styles - MUST be defined before any conditional returns
   const headerAnimatedStyle = useAnimatedStyle(() => {
     const translateY = interpolate(
       scrollY.value,
@@ -155,6 +105,95 @@ export default function GameDetailScreen() {
     return {
       opacity,
     }
+  })
+
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
+      },
+    ],
+  }))
+
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+
+  const gameFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: 0 }],
+  }))
+
+  const coverScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: coverScale.value }],
+  }))
+
+  const statsFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: 0 }],
+  }))
+
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          particleFlow.value,
+          [0, 1],
+          [-200, SCREEN_WIDTH + 200],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
+  }))
+
+  useEffect(() => {
+    // Initialize cosmic background animation
+    backgroundShift.value = withRepeat(
+      withSequence(withTiming(1, { duration: 20000 }), withTiming(0, { duration: 20000 })),
+      -1,
+      true,
+    )
+
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(withTiming(1, { duration: 3000 }), withTiming(0.3, { duration: 3000 })),
+      -1,
+      true,
+    )
+
+    // Game floating animation
+    // gameFloat.value = withRepeat(
+    //   withSequence(withTiming(10, { duration: 5000 }), withTiming(-10, { duration: 5000 })),
+    //   -1,
+    //   true,
+    // )
+
+    // Stats floating animation
+    // statsFloat.value = withRepeat(
+    //   withSequence(withTiming(5, { duration: 4000 }), withTiming(-5, { duration: 4000 })),
+    //   -1,
+    //   true,
+    // )
+
+    // Particle flow animation
+    particleFlow.value = withRepeat(withTiming(1, { duration: 12000 }), -1, false)
+
+    // Cover scale entrance
+    coverScale.value = withSpring(1, MICRO_SPRING_CONFIG.bouncy)
+  }, [backgroundShift, coverScale, gameFloat, heroGlow, particleFlow, statsFloat])
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+
+      // Update header opacity
+      const opacity = interpolate(
+        scrollY.value,
+        [0, HEADER_HEIGHT * 0.3, HEADER_HEIGHT * 0.7],
+        [1, 0.8, 0],
+        Extrapolation.CLAMP,
+      )
+      headerOpacity.value = withSpring(opacity)
+    },
   })
 
   const onRefresh = async () => {
@@ -661,48 +700,9 @@ export default function GameDetailScreen() {
 
   const game = gameQuery.data
 
-  // Animated styles for cosmic background
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
-      },
-    ],
-  }))
-
-  const heroGlowStyle = useAnimatedStyle(() => ({
-    opacity: heroGlow.value,
-  }))
-
-  const gameFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: gameFloat.value }],
-  }))
-
-  const coverScaleStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: coverScale.value }],
-  }))
-
-  const statsFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: statsFloat.value }],
-  }))
-
-  const particleFlowStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(
-          particleFlow.value,
-          [0, 1],
-          [-200, SCREEN_WIDTH + 200],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
-    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
-  }))
-
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar translucent />
 
       {/* Revolutionary Cosmic Background */}
       <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
@@ -774,7 +774,7 @@ export default function GameDetailScreen() {
               <CachedImage
                 source={{
                   uri:
-                    game?.coverImageUrl || game?.boxArtUrl || 'https://via.placeholder.com/400x600',
+                    game?.imageUrl || game?.boxartUrl || game?.bannerUrl || 'https://via.placeholder.com/400x600',
                 }}
                 style={{
                   width: '100%',

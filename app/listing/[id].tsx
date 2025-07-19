@@ -58,7 +58,7 @@ import type { Comment } from '@/types'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = SCREEN_HEIGHT * 0.4
-const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
+const _isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
 
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -81,59 +81,14 @@ export default function ListingDetailScreen() {
   const particleFlow = useSharedValue(0)
   const performanceGlow = useSharedValue(0)
 
-  // API hooks
+  // API hooks - MUST be called before any conditional returns
   const listingQuery = useListingById({ id: id! }, { enabled: !!id })
   const commentsQuery = useListingComments({ listingId: id! }, { enabled: !!id })
   const userVoteQuery = useUserVote({ listingId: id! }, { enabled: !!id && isSignedIn })
   const voteMutation = useVoteListing()
   const addCommentMutation = useCreateComment()
 
-  useEffect(() => {
-    // Initialize cosmic background animation
-    backgroundShift.value = withRepeat(
-      withSequence(withTiming(1, { duration: 18000 }), withTiming(0, { duration: 18000 })),
-      -1,
-      true,
-    )
-
-    // Hero glow animation
-    heroGlow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 3500 }), withTiming(0.3, { duration: 3500 })),
-      -1,
-      true,
-    )
-
-    // Listing floating animation
-    listingFloat.value = withRepeat(
-      withSequence(withTiming(15, { duration: 5500 }), withTiming(-15, { duration: 5500 })),
-      -1,
-      true,
-    )
-
-    // Stats floating animation
-    statsFloat.value = withRepeat(
-      withSequence(withTiming(8, { duration: 4500 }), withTiming(-8, { duration: 4500 })),
-      -1,
-      true,
-    )
-
-    // Particle flow animation
-    particleFlow.value = withRepeat(withTiming(1, { duration: 15000 }), -1, false)
-
-    // Performance glow animation
-    performanceGlow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 2000 }), withTiming(0.5, { duration: 2000 })),
-      -1,
-      true,
-    )
-  }, [])
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y
-    },
-  })
-
+  // Animated styles - MUST be defined before any conditional returns
   const headerAnimatedStyle = useAnimatedStyle(() => {
     const translateY = interpolate(
       scrollY.value,
@@ -158,6 +113,94 @@ export default function ListingDetailScreen() {
     )
 
     return { opacity }
+  })
+
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
+      },
+    ],
+  }))
+
+  const _heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+
+  const _listingFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: 0 }],
+  }))
+
+  const voteScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: voteScale.value }],
+  }))
+
+  const _statsFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: 0 }],
+  }))
+
+  const _performanceGlowStyle = useAnimatedStyle(() => ({
+    opacity: performanceGlow.value,
+  }))
+
+  const particleFlowStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(
+          particleFlow.value,
+          [0, 1],
+          [-200, SCREEN_WIDTH + 200],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
+  }))
+
+  useEffect(() => {
+    // Initialize cosmic background animation
+    backgroundShift.value = withRepeat(
+      withSequence(withTiming(1, { duration: 18000 }), withTiming(0, { duration: 18000 })),
+      -1,
+      true,
+    )
+
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(withTiming(1, { duration: 3500 }), withTiming(0.3, { duration: 3500 })),
+      -1,
+      true,
+    )
+
+    // Listing floating animation
+    // listingFloat.value = withRepeat(
+    //   withSequence(withTiming(15, { duration: 5500 }), withTiming(-15, { duration: 5500 })),
+    //   -1,
+    //   true,
+    // )
+
+    // Stats floating animation
+    // statsFloat.value = withRepeat(
+    //   withSequence(withTiming(8, { duration: 4500 }), withTiming(-8, { duration: 4500 })),
+    //   -1,
+    //   true,
+    // )
+
+    // Particle flow animation
+    particleFlow.value = withRepeat(withTiming(1, { duration: 15000 }), -1, false)
+
+    // Performance glow animation
+    performanceGlow.value = withRepeat(
+      withSequence(withTiming(1, { duration: 2000 }), withTiming(0.5, { duration: 2000 })),
+      -1,
+      true,
+    )
+  }, [backgroundShift, heroGlow, listingFloat, particleFlow, performanceGlow, statsFloat])
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+    },
   })
 
   const onRefresh = async () => {
@@ -318,52 +361,9 @@ export default function ListingDetailScreen() {
 
   const listing = listingQuery.data
 
-  // Animated styles for cosmic background
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
-      },
-    ],
-  }))
-
-  const heroGlowStyle = useAnimatedStyle(() => ({
-    opacity: heroGlow.value,
-  }))
-
-  const listingFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: listingFloat.value }],
-  }))
-
-  const voteScaleStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: voteScale.value }],
-  }))
-
-  const statsFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: statsFloat.value }],
-  }))
-
-  const performanceGlowStyle = useAnimatedStyle(() => ({
-    opacity: performanceGlow.value,
-  }))
-
-  const particleFlowStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(
-          particleFlow.value,
-          [0, 1],
-          [-200, SCREEN_WIDTH + 200],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
-    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
-  }))
-
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar translucent />
 
       {/* Revolutionary Cosmic Background */}
       <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
@@ -425,8 +425,9 @@ export default function ListingDetailScreen() {
         <CachedImage
           source={{
             uri:
-              listing?.game?.coverImageUrl ||
-              listing?.game?.boxArtUrl ||
+              listing?.game?.imageUrl ||
+              listing?.game?.boxartUrl ||
+              listing?.game?.bannerUrl ||
               'https://via.placeholder.com/400x600',
           }}
           style={{

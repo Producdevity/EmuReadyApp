@@ -21,7 +21,6 @@ import Animated, {
   FadeInUp,
   SlideInRight,
   interpolate,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -32,7 +31,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
-const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
+const _isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
 
 export default function HardwareScreen() {
   const { theme } = useTheme()
@@ -64,23 +63,23 @@ export default function HardwareScreen() {
       true,
     )
 
-    // Hardware floating animation
-    hardwareFloat.value = withRepeat(
-      withSequence(withTiming(12, { duration: 5000 }), withTiming(-12, { duration: 5000 })),
-      -1,
-      true,
-    )
+    // Hardware floating animation - disabled for professional look
+    // hardwareFloat.value = withRepeat(
+    //   withSequence(withTiming(12, { duration: 5000 }), withTiming(-12, { duration: 5000 })),
+    //   -1,
+    //   true,
+    // )
 
-    // Stats floating animation
-    statsFloat.value = withRepeat(
-      withSequence(withTiming(8, { duration: 4000 }), withTiming(-8, { duration: 4000 })),
-      -1,
-      true,
-    )
+    // Stats floating animation - disabled for professional look
+    // statsFloat.value = withRepeat(
+    //   withSequence(withTiming(8, { duration: 4000 }), withTiming(-8, { duration: 4000 })),
+    //   -1,
+    //   true,
+    // )
 
     // Particle flow animation
     particleFlow.value = withRepeat(withTiming(1, { duration: 15000 }), -1, false)
-  }, [])
+  }, [backgroundShift, hardwareFloat, heroGlow, particleFlow, statsFloat])
 
   const hardwareCategories = [
     {
@@ -106,7 +105,7 @@ export default function HardwareScreen() {
   ]
 
   const handleCategoryPress = (route: string) => {
-    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium)
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     categoryScale.value = withSequence(
       withSpring(0.95, MICRO_SPRING_CONFIG.instant),
       withSpring(1, MICRO_SPRING_CONFIG.bouncy),
@@ -128,11 +127,11 @@ export default function HardwareScreen() {
   }))
 
   const hardwareFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: hardwareFloat.value }],
+    transform: [{ translateY: 0 }], // No floating
   }))
 
   const statsFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: statsFloat.value }],
+    transform: [{ translateY: 0 }], // No floating
   }))
 
   const categoryScaleStyle = useAnimatedStyle(() => ({
@@ -155,7 +154,7 @@ export default function HardwareScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar translucent />
 
       {/* Revolutionary Cosmic Background */}
       <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>

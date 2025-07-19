@@ -5,7 +5,6 @@ import * as Sharing from 'expo-sharing'
 import React, { useEffect, useState } from 'react'
 import {
   Alert,
-  Dimensions,
   Pressable,
   RefreshControl,
   SafeAreaView,
@@ -35,9 +34,7 @@ import { MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 const HEADER_HEIGHT = 320
-const isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
 
 export default function DeviceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -51,7 +48,6 @@ export default function DeviceDetailScreen() {
   const heroGlow = useSharedValue(0)
   const deviceFloat = useSharedValue(0)
   const backgroundShift = useSharedValue(0)
-  const tabScale = useSharedValue(1)
   const specPulse = useSharedValue(1)
   const particleFlow = useSharedValue(0)
 
@@ -71,11 +67,11 @@ export default function DeviceDetailScreen() {
     )
 
     // Device floating animation
-    deviceFloat.value = withRepeat(
-      withSequence(withTiming(10, { duration: 5000 }), withTiming(-10, { duration: 5000 })),
-      -1,
-      true,
-    )
+    // deviceFloat.value = withRepeat(
+    //   withSequence(withTiming(10, { duration: 5000 }), withTiming(-10, { duration: 5000 })),
+    //   -1,
+    //   true,
+    // )
 
     // Spec pulse animation
     specPulse.value = withRepeat(
@@ -89,7 +85,7 @@ export default function DeviceDetailScreen() {
 
     // Particle flow animation
     particleFlow.value = withRepeat(withTiming(1, { duration: 12000 }), -1, false)
-  }, [])
+  }, [backgroundShift, deviceFloat, heroGlow, particleFlow, specPulse])
 
   // TODO: Replace with proper API hooks
   const deviceQuery = {
@@ -142,43 +138,6 @@ export default function DeviceDetailScreen() {
     }
   })
 
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(backgroundShift.value, [0, 1], [-80, 80], Extrapolation.CLAMP),
-      },
-    ],
-  }))
-
-  const heroGlowStyle = useAnimatedStyle(() => ({
-    opacity: heroGlow.value,
-  }))
-
-  const deviceFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: deviceFloat.value }],
-  }))
-
-  const tabScaleStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: tabScale.value }],
-  }))
-
-  const specPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: specPulse.value }],
-  }))
-
-  const particleFlowStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(
-          particleFlow.value,
-          [0, 1],
-          [-200, SCREEN_WIDTH + 200],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
-    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
-  }))
 
   const onRefresh = async () => {
     setRefreshing(true)

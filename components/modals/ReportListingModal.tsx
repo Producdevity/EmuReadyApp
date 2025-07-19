@@ -9,6 +9,7 @@ import {
   Alert,
   Modal,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -265,7 +266,7 @@ export default function ReportListingModal({
   )
 }
 
-const styles = StyleSheet.create({
+const _styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
