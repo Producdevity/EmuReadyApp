@@ -1,6 +1,14 @@
+import { DESIGN_CONSTANTS } from '@/constants/design'
 import { networkUtils, queryClient } from '@/lib/api/client'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useEffect, useState } from 'react'
+
+// Constants for offline mode management
+const OFFLINE_CONSTANTS = {
+  networkCheckInterval: 30000, // 30 seconds
+  processQueueDelay: DESIGN_CONSTANTS.ANIMATION.slowest - 200, // 1000ms
+  simulatedSuccessRate: 0.9, // 90% success rate for simulation
+} as const
 
 // AsyncStorage-based storage implementation for offline functionality
 const storage = {
@@ -71,7 +79,7 @@ const useOfflineMode = () => {
         console.log(`Processing offline item: ${item.endpoint}`)
 
         // Simulate API call success/failure
-        const success = Math.random() > 0.1 // 90% success rate
+        const success = Math.random() > (1 - OFFLINE_CONSTANTS.simulatedSuccessRate)
 
         if (success) {
           processedItems.push(item.id)
@@ -97,12 +105,10 @@ const useOfflineMode = () => {
     }
 
     // Update queue by removing processed items and updating failed items
+    const failedItemsMap = new Map(failedItems.map((item) => [item.id, item]))
     const newQueue = offlineQueue
       .filter((item) => !processedItems.includes(item.id))
-      .map((item) => {
-        const failedItem = failedItems.find((failed) => failed.id === item.id)
-        return failedItem || item
-      })
+      .map((item) => failedItemsMap.get(item.id) || item)
 
     setOfflineQueue(newQueue)
     await saveOfflineQueue(newQueue)
@@ -134,7 +140,7 @@ const useOfflineMode = () => {
 
       // If we just came back online, process the offline queue
       if (isOnline && !state.isOnline) {
-        setTimeout(() => processOfflineQueue(), 1000)
+        setTimeout(() => processOfflineQueue(), OFFLINE_CONSTANTS.processQueueDelay)
       }
     }
 
@@ -142,7 +148,7 @@ const useOfflineMode = () => {
     checkNetworkStatus()
 
     // Check every 30 seconds
-    const interval = setInterval(checkNetworkStatus, 30000)
+    const interval = setInterval(checkNetworkStatus, OFFLINE_CONSTANTS.networkCheckInterval)
 
     // Load offline queue and last sync time on mount
     loadOfflineData()

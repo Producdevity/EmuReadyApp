@@ -1,9 +1,8 @@
 import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import FluidGradient from '@/components/ui/FluidGradient'
+import { GlassView } from '@/components/themed/ThemedView'
+import { ScreenLayout, ScreenHeader } from '@/components/ui'
 import {
   AnimatedPressable,
-  FloatingElement,
   MICRO_SPRING_CONFIG,
 } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -14,10 +13,9 @@ import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import React, { useEffect } from 'react'
-import { Dimensions, ScrollView, StatusBar, StyleSheet, View } from 'react-native'
+import { Dimensions, StyleSheet, View } from 'react-native'
 import Animated, {
   Extrapolation,
-  FadeInDown,
   FadeInUp,
   SlideInRight,
   interpolate,
@@ -28,19 +26,15 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
-const _isLandscape = SCREEN_WIDTH > SCREEN_HEIGHT
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 export default function HardwareScreen() {
   const { theme } = useTheme()
 
-  // Enhanced 2025 animation values
+  // Animation values
   const heroGlow = useSharedValue(0)
-  const hardwareFloat = useSharedValue(0)
   const backgroundShift = useSharedValue(0)
-  const statsFloat = useSharedValue(0)
   const particleFlow = useSharedValue(0)
   const categoryScale = useSharedValue(1)
 
@@ -49,7 +43,7 @@ export default function HardwareScreen() {
   const { data: gpusData } = useGpus({ limit: 1 })
 
   useEffect(() => {
-    // Initialize cosmic background animation
+    // Initialize background animation
     backgroundShift.value = withRepeat(
       withSequence(withTiming(1, { duration: 25000 }), withTiming(0, { duration: 25000 })),
       -1,
@@ -63,23 +57,9 @@ export default function HardwareScreen() {
       true,
     )
 
-    // Hardware floating animation - disabled for professional look
-    // hardwareFloat.value = withRepeat(
-    //   withSequence(withTiming(12, { duration: 5000 }), withTiming(-12, { duration: 5000 })),
-    //   -1,
-    //   true,
-    // )
-
-    // Stats floating animation - disabled for professional look
-    // statsFloat.value = withRepeat(
-    //   withSequence(withTiming(8, { duration: 4000 }), withTiming(-8, { duration: 4000 })),
-    //   -1,
-    //   true,
-    // )
-
     // Particle flow animation
     particleFlow.value = withRepeat(withTiming(1, { duration: 15000 }), -1, false)
-  }, [backgroundShift, hardwareFloat, heroGlow, particleFlow, statsFloat])
+  }, [backgroundShift, heroGlow, particleFlow])
 
   const hardwareCategories = [
     {
@@ -122,16 +102,8 @@ export default function HardwareScreen() {
     ],
   }))
 
-  const heroGlowStyle = useAnimatedStyle(() => ({
+  const _heroGlowStyle = useAnimatedStyle(() => ({
     opacity: heroGlow.value,
-  }))
-
-  const hardwareFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: 0 }], // No floating
-  }))
-
-  const statsFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: 0 }], // No floating
   }))
 
   const categoryScaleStyle = useAnimatedStyle(() => ({
@@ -153,17 +125,12 @@ export default function HardwareScreen() {
   }))
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar translucent />
-
-      {/* Revolutionary Cosmic Background */}
+    <ScreenLayout>
+      {/* Background */}
       <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
-        <FluidGradient
-          variant="cosmic"
-          animated
-          speed="slow"
-          style={StyleSheet.absoluteFillObject}
-          opacity={0.3}
+        <LinearGradient
+          colors={theme.colors.gradients.primary}
+          style={[StyleSheet.absoluteFillObject, { opacity: 0.3 }]}
         />
       </Animated.View>
 
@@ -199,314 +166,322 @@ export default function HardwareScreen() {
         />
       </Animated.View>
 
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/* Enhanced Header */}
-          <Animated.View
-            entering={FadeInDown.delay(200).springify()}
-            style={[heroGlowStyle]}
-            className="px-4 py-4 border-b"
-          >
-            <HolographicView morphing borderRadius={20} style={{ padding: 20 }}>
-              <LinearGradient
-                colors={theme.colors.gradients.primary}
-                style={[StyleSheet.absoluteFillObject, { opacity: 0.1 }]}
-              />
-              <FloatingElement intensity={2} duration={3000}>
-                <View style={{ alignItems: 'center' }}>
-                  <MagneticView borderRadius={30} style={{ marginBottom: 12 }}>
-                    <LinearGradient
-                      colors={theme.colors.gradients.secondary}
-                      style={{
-                        width: 60,
-                        height: 60,
-                        borderRadius: 30,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Ionicons name="hardware-chip" size={32} color="#ffffff" />
-                    </LinearGradient>
-                  </MagneticView>
-                  <GradientTitle animated className="text-2xl font-bold text-center">
-                    Hardware Database
-                  </GradientTitle>
-                  <TypewriterText
-                    animated
-                    delay={400}
-                    className="text-sm mt-1 text-center"
-                    style={{ color: theme.colors.textSecondary }}
-                  >
-                    Comprehensive specifications and performance data
-                  </TypewriterText>
-                </View>
-              </FloatingElement>
-            </HolographicView>
-          </Animated.View>
+      <ScreenHeader
+        title="Hardware Database"
+        subtitle="Comprehensive specifications and performance data"
+        variant="hero"
+        animated
+      />
 
-          <View className="p-4">
-            {/* Enhanced Overview Stats */}
+          <View style={{ padding: theme.spacing.lg }}>
+            {/* Overview Stats */}
             <Animated.View
               entering={FadeInUp.delay(400).springify()}
-              style={[statsFloatStyle, { marginBottom: 24 }]}
+              style={{ marginBottom: theme.spacing.xl }}
             >
-              <HolographicView morphing borderRadius={theme.borderRadius.xl}>
-                <GlassView
-                  borderRadius={theme.borderRadius.xl}
-                  blurIntensity={20}
-                  style={{ padding: 16 }}
+              <GlassView
+                borderRadius={theme.borderRadius.xl}
+                blurIntensity={20}
+                style={{ padding: theme.spacing.lg }}
+              >
+                <GradientTitle 
+                  animated 
+                  style={{ 
+                    fontSize: theme.typography.fontSize.lg,
+                    fontWeight: theme.typography.fontWeight.semibold,
+                    marginBottom: theme.spacing.md,
+                    textAlign: 'center'
+                  }}
                 >
-                  <GradientTitle animated className="text-lg font-semibold mb-3 text-center">
-                    Database Overview
-                  </GradientTitle>
+                  Database Overview
+                </GradientTitle>
 
-                  <View className="flex-row justify-around">
-                    <FloatingElement intensity={1} duration={3000}>
-                      <MagneticView borderRadius={12} style={{ alignItems: 'center', padding: 12 }}>
-                        <GlowText
-                          className="text-2xl font-bold"
-                          style={{ color: theme.colors.primary }}
-                        >
-                          {(cpusData?.pagination?.total || 0) + (gpusData?.pagination?.total || 0)}
-                        </GlowText>
-                        <TypewriterText
-                          animated
-                          delay={600}
-                          className="text-sm"
-                          style={{ color: theme.colors.textSecondary }}
-                        >
-                          Total Components
-                        </TypewriterText>
-                      </MagneticView>
-                    </FloatingElement>
-
-                    <FloatingElement intensity={1} duration={3500}>
-                      <MagneticView borderRadius={12} style={{ alignItems: 'center', padding: 12 }}>
-                        <GlowText
-                          className="text-2xl font-bold"
-                          style={{ color: theme.colors.secondary }}
-                        >
-                          {cpusData?.pagination?.total || 0}
-                        </GlowText>
-                        <TypewriterText
-                          animated
-                          delay={700}
-                          className="text-sm"
-                          style={{ color: theme.colors.textSecondary }}
-                        >
-                          CPUs
-                        </TypewriterText>
-                      </MagneticView>
-                    </FloatingElement>
-
-                    <FloatingElement intensity={1} duration={4000}>
-                      <MagneticView borderRadius={12} style={{ alignItems: 'center', padding: 12 }}>
-                        <GlowText
-                          className="text-2xl font-bold"
-                          style={{ color: theme.colors.accent }}
-                        >
-                          {gpusData?.pagination?.total || 0}
-                        </GlowText>
-                        <TypewriterText
-                          animated
-                          delay={800}
-                          className="text-sm"
-                          style={{ color: theme.colors.textSecondary }}
-                        >
-                          GPUs
-                        </TypewriterText>
-                      </MagneticView>
-                    </FloatingElement>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                  <View style={{ alignItems: 'center', padding: theme.spacing.md }}>
+                    <GlowText
+                      style={{ 
+                        fontSize: theme.typography.fontSize.xxl,
+                        fontWeight: theme.typography.fontWeight.bold,
+                        color: theme.colors.primary
+                      }}
+                    >
+                      {(cpusData?.pagination?.total || 0) + (gpusData?.pagination?.total || 0)}
+                    </GlowText>
+                    <TypewriterText
+                      animated
+                      delay={600}
+                      style={{ 
+                        fontSize: theme.typography.fontSize.sm,
+                        color: theme.colors.textSecondary
+                      }}
+                    >
+                      Total Components
+                    </TypewriterText>
                   </View>
-                </GlassView>
-              </HolographicView>
+
+                  <View style={{ alignItems: 'center', padding: theme.spacing.md }}>
+                    <GlowText
+                      style={{ 
+                        fontSize: theme.typography.fontSize.xxl,
+                        fontWeight: theme.typography.fontWeight.bold,
+                        color: theme.colors.secondary
+                      }}
+                    >
+                      {cpusData?.pagination?.total || 0}
+                    </GlowText>
+                    <TypewriterText
+                      animated
+                      delay={700}
+                      style={{ 
+                        fontSize: theme.typography.fontSize.sm,
+                        color: theme.colors.textSecondary
+                      }}
+                    >
+                      CPUs
+                    </TypewriterText>
+                  </View>
+
+                  <View style={{ alignItems: 'center', padding: theme.spacing.md }}>
+                    <GlowText
+                      style={{ 
+                        fontSize: theme.typography.fontSize.xxl,
+                        fontWeight: theme.typography.fontWeight.bold,
+                        color: theme.colors.accent
+                      }}
+                    >
+                      {gpusData?.pagination?.total || 0}
+                    </GlowText>
+                    <TypewriterText
+                      animated
+                      delay={800}
+                      style={{ 
+                        fontSize: theme.typography.fontSize.sm,
+                        color: theme.colors.textSecondary
+                      }}
+                    >
+                      GPUs
+                    </TypewriterText>
+                  </View>
+                </View>
+              </GlassView>
             </Animated.View>
 
             {/* Hardware Categories */}
-            <View className="space-y-4">
+            <View style={{ gap: theme.spacing.lg }}>
               {hardwareCategories.map((category, index) => (
                 <Animated.View
                   key={category.id}
                   entering={SlideInRight.delay(
                     getStaggerDelay(index, 'normal', 'fast'),
                   ).springify()}
-                  style={[hardwareFloatStyle, { marginBottom: 16 }]}
+                  style={{ marginBottom: theme.spacing.lg }}
                 >
                   <AnimatedPressable onPress={() => handleCategoryPress(category.route)}>
                     <Animated.View style={categoryScaleStyle}>
-                      <HolographicView morphing borderRadius={theme.borderRadius.xl}>
-                        <GlassView
-                          borderRadius={theme.borderRadius.xl}
-                          blurIntensity={20}
-                          style={{ padding: 16 }}
-                        >
-                          <FluidGradient
-                            variant="gaming"
-                            animated
-                            speed="slow"
-                            style={StyleSheet.absoluteFillObject}
-                            opacity={0.05}
-                          />
-                          <View className="flex-row items-start">
-                            <FloatingElement intensity={1} duration={3000 + index * 500}>
-                              <MagneticView
-                                borderRadius={24}
-                                className="w-12 h-12 mr-4 items-center justify-center"
-                                style={{ backgroundColor: `${category.color}20` }}
-                              >
-                                <Ionicons
-                                  name={category.icon as any}
-                                  size={24}
-                                  color={category.color}
-                                />
-                              </MagneticView>
-                            </FloatingElement>
-
-                            <View className="flex-1">
-                              <View className="flex-row justify-between items-start mb-2">
-                                <GradientTitle animated className="text-xl font-semibold">
-                                  {category.title}
-                                </GradientTitle>
-                                <View className="flex-row items-center">
-                                  <GlowText
-                                    className="text-sm font-medium mr-2"
-                                    style={{ color: theme.colors.textSecondary }}
-                                  >
-                                    {category.count.toLocaleString()} items
-                                  </GlowText>
-                                  <Ionicons
-                                    name="chevron-forward"
-                                    size={16}
-                                    color={theme.colors.textMuted}
-                                  />
-                                </View>
-                              </View>
-
-                              <GlowText
-                                className="text-sm font-medium mb-2"
-                                style={{ color: category.color }}
-                              >
-                                {category.subtitle}
-                              </GlowText>
-
-                              <TypewriterText
-                                animated
-                                delay={800 + index * 100}
-                                className="text-sm"
-                                style={{ color: theme.colors.textSecondary }}
-                              >
-                                {category.description}
-                              </TypewriterText>
-                            </View>
+                      <GlassView
+                        borderRadius={theme.borderRadius.xl}
+                        blurIntensity={20}
+                        style={{ padding: theme.spacing.lg }}
+                      >
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                          <View
+                            style={{ 
+                              width: 48,
+                              height: 48,
+                              marginRight: theme.spacing.lg,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              backgroundColor: `${category.color}20`, 
+                              borderRadius: 24 
+                            }}
+                          >
+                            <Ionicons
+                              name={category.icon as any}
+                              size={24}
+                              color={category.color}
+                            />
                           </View>
-                        </GlassView>
-                      </HolographicView>
+
+                          <View style={{ flex: 1 }}>
+                            <View style={{ 
+                              flexDirection: 'row', 
+                              justifyContent: 'space-between', 
+                              alignItems: 'flex-start', 
+                              marginBottom: theme.spacing.sm 
+                            }}>
+                              <GradientTitle 
+                                animated 
+                                style={{ 
+                                  fontSize: theme.typography.fontSize.xl,
+                                  fontWeight: theme.typography.fontWeight.semibold
+                                }}
+                              >
+                                {category.title}
+                              </GradientTitle>
+                              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <GlowText
+                                  style={{ 
+                                    fontSize: theme.typography.fontSize.sm,
+                                    fontWeight: theme.typography.fontWeight.medium,
+                                    marginRight: theme.spacing.sm,
+                                    color: theme.colors.textSecondary
+                                  }}
+                                >
+                                  {category.count.toLocaleString()} items
+                                </GlowText>
+                                <Ionicons
+                                  name="chevron-forward"
+                                  size={16}
+                                  color={theme.colors.textMuted}
+                                />
+                              </View>
+                            </View>
+
+                            <GlowText
+                              style={{ 
+                                fontSize: theme.typography.fontSize.sm,
+                                fontWeight: theme.typography.fontWeight.medium,
+                                marginBottom: theme.spacing.sm,
+                                color: category.color
+                              }}
+                            >
+                              {category.subtitle}
+                            </GlowText>
+
+                            <TypewriterText
+                              animated
+                              delay={800 + index * 100}
+                              style={{ 
+                                fontSize: theme.typography.fontSize.sm,
+                                color: theme.colors.textSecondary
+                              }}
+                            >
+                              {category.description}
+                            </TypewriterText>
+                          </View>
+                        </View>
+                      </GlassView>
                     </Animated.View>
                   </AnimatedPressable>
                 </Animated.View>
               ))}
             </View>
 
-            {/* Enhanced Information Card */}
-            <Animated.View entering={FadeInUp.delay(800).springify()} style={{ marginTop: 24 }}>
-              <HolographicView morphing borderRadius={theme.borderRadius.xl}>
-                <GlassView
-                  borderRadius={theme.borderRadius.xl}
-                  blurIntensity={20}
-                  style={{ padding: 16 }}
-                >
-                  <View className="flex-row items-center mb-3">
-                    <FloatingElement intensity={1} duration={2500}>
-                      <Ionicons name="information-circle" size={20} color={theme.colors.primary} />
-                    </FloatingElement>
-                    <GradientTitle animated className="text-lg font-semibold ml-2">
-                      About Hardware Database
-                    </GradientTitle>
-                  </View>
-
-                  <TypewriterText
-                    animated
-                    delay={900}
-                    className="mb-3"
-                    style={{ color: theme.colors.textSecondary, lineHeight: 20 }}
+            {/* Information Card */}
+            <Animated.View 
+              entering={FadeInUp.delay(800).springify()} 
+              style={{ marginTop: theme.spacing.xl }}
+            >
+              <GlassView
+                borderRadius={theme.borderRadius.xl}
+                blurIntensity={20}
+                style={{ padding: theme.spacing.lg }}
+              >
+                <View style={{ 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  marginBottom: theme.spacing.md 
+                }}>
+                  <Ionicons name="information-circle" size={20} color={theme.colors.primary} />
+                  <GradientTitle 
+                    animated 
+                    style={{ 
+                      fontSize: theme.typography.fontSize.lg,
+                      fontWeight: theme.typography.fontWeight.semibold,
+                      marginLeft: theme.spacing.sm
+                    }}
                   >
-                    Our comprehensive hardware database provides detailed specifications for
-                    processors and graphics cards to help you make informed decisions about PC
-                    gaming performance.
-                  </TypewriterText>
+                    About Hardware Database
+                  </GradientTitle>
+                </View>
 
-                  <View className="space-y-2">
-                    <Animated.View
-                      entering={FadeInUp.delay(1000).springify()}
-                      className="flex-row items-start"
+                <TypewriterText
+                  animated
+                  delay={900}
+                  style={{ 
+                    color: theme.colors.textSecondary, 
+                    lineHeight: theme.typography.lineHeight.relaxed * theme.typography.fontSize.md,
+                    marginBottom: theme.spacing.md
+                  }}
+                >
+                  Our comprehensive hardware database provides detailed specifications for
+                  processors and graphics cards to help you make informed decisions about PC
+                  gaming performance.
+                </TypewriterText>
+
+                <View style={{ gap: theme.spacing.sm }}>
+                  <Animated.View
+                    entering={FadeInUp.delay(1000).springify()}
+                    style={{ flexDirection: 'row', alignItems: 'flex-start' }}
+                  >
+                    <Ionicons name="checkmark-circle" size={16} color={theme.colors.success} />
+                    <TypewriterText
+                      animated
+                      delay={1000}
+                      style={{ 
+                        marginLeft: theme.spacing.sm,
+                        flex: 1,
+                        color: theme.colors.textSecondary
+                      }}
                     >
-                      <FloatingElement intensity={0.5} duration={2000}>
-                        <Ionicons name="checkmark-circle" size={16} color={theme.colors.success} />
-                      </FloatingElement>
-                      <TypewriterText
-                        animated
-                        delay={1000}
-                        className="ml-2 flex-1"
-                        style={{ color: theme.colors.textSecondary }}
-                      >
-                        Detailed technical specifications and features
-                      </TypewriterText>
-                    </Animated.View>
-                    <Animated.View
-                      entering={FadeInUp.delay(1100).springify()}
-                      className="flex-row items-start"
+                      Detailed technical specifications and features
+                    </TypewriterText>
+                  </Animated.View>
+                  <Animated.View
+                    entering={FadeInUp.delay(1100).springify()}
+                    style={{ flexDirection: 'row', alignItems: 'flex-start' }}
+                  >
+                    <Ionicons name="checkmark-circle" size={16} color={theme.colors.success} />
+                    <TypewriterText
+                      animated
+                      delay={1100}
+                      style={{ 
+                        marginLeft: theme.spacing.sm,
+                        flex: 1,
+                        color: theme.colors.textSecondary
+                      }}
                     >
-                      <FloatingElement intensity={0.5} duration={2200}>
-                        <Ionicons name="checkmark-circle" size={16} color={theme.colors.success} />
-                      </FloatingElement>
-                      <TypewriterText
-                        animated
-                        delay={1100}
-                        className="ml-2 flex-1"
-                        style={{ color: theme.colors.textSecondary }}
-                      >
-                        Performance data from real user reports
-                      </TypewriterText>
-                    </Animated.View>
-                    <Animated.View
-                      entering={FadeInUp.delay(1200).springify()}
-                      className="flex-row items-start"
+                      Performance data from real user reports
+                    </TypewriterText>
+                  </Animated.View>
+                  <Animated.View
+                    entering={FadeInUp.delay(1200).springify()}
+                    style={{ flexDirection: 'row', alignItems: 'flex-start' }}
+                  >
+                    <Ionicons name="checkmark-circle" size={16} color={theme.colors.success} />
+                    <TypewriterText
+                      animated
+                      delay={1200}
+                      style={{ 
+                        marginLeft: theme.spacing.sm,
+                        flex: 1,
+                        color: theme.colors.textSecondary
+                      }}
                     >
-                      <FloatingElement intensity={0.5} duration={2400}>
-                        <Ionicons name="checkmark-circle" size={16} color={theme.colors.success} />
-                      </FloatingElement>
-                      <TypewriterText
-                        animated
-                        delay={1200}
-                        className="ml-2 flex-1"
-                        style={{ color: theme.colors.textSecondary }}
-                      >
-                        Search and filter capabilities
-                      </TypewriterText>
-                    </Animated.View>
-                    <Animated.View
-                      entering={FadeInUp.delay(1300).springify()}
-                      className="flex-row items-start"
+                      Search and filter capabilities
+                    </TypewriterText>
+                  </Animated.View>
+                  <Animated.View
+                    entering={FadeInUp.delay(1300).springify()}
+                    style={{ flexDirection: 'row', alignItems: 'flex-start' }}
+                  >
+                    <Ionicons name="checkmark-circle" size={16} color={theme.colors.success} />
+                    <TypewriterText
+                      animated
+                      delay={1300}
+                      style={{ 
+                        marginLeft: theme.spacing.sm,
+                        flex: 1,
+                        color: theme.colors.textSecondary
+                      }}
                     >
-                      <FloatingElement intensity={0.5} duration={2600}>
-                        <Ionicons name="checkmark-circle" size={16} color={theme.colors.success} />
-                      </FloatingElement>
-                      <TypewriterText
-                        animated
-                        delay={1300}
-                        className="ml-2 flex-1"
-                        style={{ color: theme.colors.textSecondary }}
-                      >
-                        Regular updates with latest hardware releases
-                      </TypewriterText>
-                    </Animated.View>
-                  </View>
-                </GlassView>
-              </HolographicView>
+                      Regular updates with latest hardware releases
+                    </TypewriterText>
+                  </Animated.View>
+                </View>
+              </GlassView>
             </Animated.View>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+    </ScreenLayout>
   )
 }

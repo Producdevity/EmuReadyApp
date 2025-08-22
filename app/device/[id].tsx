@@ -6,10 +6,6 @@ import React, { useEffect, useState } from 'react'
 import {
   Alert,
   Pressable,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -29,7 +25,7 @@ import Animated, {
 } from 'react-native-reanimated'
 // TODO: Update to use new hooks when implementing device details
 import { ListingCard } from '@/components/cards'
-import { Button, Card, SkeletonListingCard, SkeletonLoader } from '@/components/ui'
+import { Button, Card, SkeletonListingCard, SkeletonLoader, ScreenLayout } from '@/components/ui'
 import { MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
@@ -41,7 +37,7 @@ export default function DeviceDetailScreen() {
   const router = useRouter()
   const { theme } = useTheme()
   const [selectedTab, setSelectedTab] = useState<'overview' | 'listings'>('overview')
-  const [refreshing, setRefreshing] = useState(false)
+  const [_refreshing, _setRefreshing] = useState(false)
   const scrollY = useSharedValue(0)
 
   // Enhanced 2025 animation values
@@ -139,34 +135,28 @@ export default function DeviceDetailScreen() {
   })
 
 
-  const onRefresh = async () => {
-    setRefreshing(true)
+  const _onRefresh = async () => {
+    _setRefreshing(true)
     await Promise.all([deviceQuery.refetch(), listingsQuery.refetch()])
-    setRefreshing(false)
+    _setRefreshing(false)
   }
 
   // Guard against missing id parameter
   if (!id) {
     return (
-      <View style={styles.container}>
-        <StatusBar
-          barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-          backgroundColor="transparent"
-          translucent
-        />
-
+      <ScreenLayout scrollable={false}>
         <LinearGradient
           colors={
-            theme.isDark ? ['#1e293b', '#0f172a', '#0f172a'] : ['#f8fafc', '#ffffff', '#ffffff']
+            theme.isDark ? [theme.colors.surface, theme.colors.background, theme.colors.background] : [theme.colors.surface, theme.colors.background, theme.colors.background]
           }
           style={styles.gradientBackground}
         />
 
-        <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: theme.colors.text }}>Invalid device ID</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: theme.colors.text, marginBottom: theme.spacing.lg }}>Invalid device ID</Text>
           <Button title="Go Back" onPress={() => router.back()} />
-        </SafeAreaView>
-      </View>
+        </View>
+      </ScreenLayout>
     )
   }
 
@@ -198,111 +188,89 @@ export default function DeviceDetailScreen() {
 
   if (deviceQuery.isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <StatusBar
-          barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-          backgroundColor="transparent"
-          translucent
-        />
-
+      <ScreenLayout scrollable={false}>
         <LinearGradient
           colors={
-            theme.isDark ? ['#1e293b', '#0f172a', '#0f172a'] : ['#f8fafc', '#ffffff', '#ffffff']
+            theme.isDark ? [theme.colors.surface, theme.colors.background, theme.colors.background] : [theme.colors.surface, theme.colors.background, theme.colors.background]
           }
           style={styles.gradientBackground}
         />
 
-        <SafeAreaView style={{ flex: 1 }}>
-          <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.header}>
-            <Pressable onPress={() => router.back()} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-            </Pressable>
-            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Loading...</Text>
+        <Animated.View entering={FadeInDown.delay(100).springify()} style={[styles.header, { paddingTop: theme.spacing.xxl }]}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+          </Pressable>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Loading...</Text>
+        </Animated.View>
+
+        <View style={{ flex: 1, padding: theme.spacing.lg, gap: theme.spacing.lg }}>
+          <Animated.View entering={FadeInUp.delay(200).springify()}>
+            <Card variant="glass" padding="lg">
+              <SkeletonLoader width="80%" height={32} style={{ marginBottom: 12 }} />
+              <SkeletonLoader width="60%" height={16} style={{ marginBottom: 24 }} />
+              <SkeletonLoader width="100%" height={120} borderRadius={12} />
+            </Card>
           </Animated.View>
 
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
-            <Animated.View entering={FadeInUp.delay(200).springify()}>
-              <Card variant="glass" padding="lg" style={{ marginBottom: 24 }}>
-                <SkeletonLoader width="80%" height={32} style={{ marginBottom: 12 }} />
-                <SkeletonLoader width="60%" height={16} style={{ marginBottom: 24 }} />
-                <SkeletonLoader width="100%" height={120} borderRadius={12} />
-              </Card>
-            </Animated.View>
-
-            <Animated.View entering={FadeInUp.delay(400).springify()}>
-              {Array.from({ length: 3 }).map((_, index) => (
-                <SkeletonListingCard key={index} style={{ marginBottom: 16 }} />
-              ))}
-            </Animated.View>
-          </ScrollView>
-        </SafeAreaView>
-      </View>
+          <Animated.View entering={FadeInUp.delay(400).springify()}>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <SkeletonListingCard key={index} style={{ marginBottom: 16 }} />
+            ))}
+          </Animated.View>
+        </View>
+      </ScreenLayout>
     )
   }
 
   if (deviceQuery.error || !device) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <StatusBar
-          barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-          backgroundColor="transparent"
-          translucent
-        />
-
+      <ScreenLayout scrollable={false}>
         <LinearGradient
           colors={
-            theme.isDark ? ['#1e293b', '#0f172a', '#0f172a'] : ['#f8fafc', '#ffffff', '#ffffff']
+            theme.isDark ? [theme.colors.surface, theme.colors.background, theme.colors.background] : [theme.colors.surface, theme.colors.background, theme.colors.background]
           }
           style={styles.gradientBackground}
         />
 
-        <SafeAreaView style={{ flex: 1 }}>
-          <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.header}>
-            <Pressable onPress={() => router.back()} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-            </Pressable>
-            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Error</Text>
-          </Animated.View>
+        <Animated.View entering={FadeInDown.delay(100).springify()} style={[styles.header, { paddingTop: theme.spacing.xxl }]}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+          </Pressable>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Error</Text>
+        </Animated.View>
 
-          <View style={styles.errorContainer}>
-            <Animated.View entering={FadeInUp.delay(200).springify()}>
-              <Card variant="glass" padding="lg" style={{ alignItems: 'center' }}>
-                <Ionicons
-                  name="hardware-chip-outline"
-                  size={64}
-                  color={theme.colors.textMuted}
-                  style={{ marginBottom: 24 }}
-                />
-                <Text style={[styles.errorTitle, { color: theme.colors.text }]}>
-                  Device Not Found
-                </Text>
-                <Text style={[styles.errorText, { color: theme.colors.textMuted }]}>
-                  This device may have been removed or you may not have permission to view it.
-                </Text>
-                <Button
-                  title="Go Back"
-                  variant="gradient"
-                  onPress={() => router.back()}
-                  leftIcon={<Ionicons name="arrow-back" size={16} color="#ffffff" />}
-                />
-              </Card>
-            </Animated.View>
-          </View>
-        </SafeAreaView>
-      </View>
+        <View style={styles.errorContainer}>
+          <Animated.View entering={FadeInUp.delay(200).springify()}>
+            <Card variant="glass" padding="lg" style={{ alignItems: 'center' }}>
+              <Ionicons
+                name="hardware-chip-outline"
+                size={64}
+                color={theme.colors.textMuted}
+                style={{ marginBottom: 24 }}
+              />
+              <Text style={[styles.errorTitle, { color: theme.colors.text }]}>
+                Device Not Found
+              </Text>
+              <Text style={[styles.errorText, { color: theme.colors.textMuted }]}>
+                This device may have been removed or you may not have permission to view it.
+              </Text>
+              <Button
+                title="Go Back"
+                variant="gradient"
+                onPress={() => router.back()}
+                leftIcon={<Ionicons name="arrow-back" size={16} color={theme.colors.textInverse} />}
+              />
+            </Card>
+          </Animated.View>
+        </View>
+      </ScreenLayout>
     )
   }
 
   const listings = listingsQuery.data?.listings || []
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar
-        barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-        backgroundColor="transparent"
-        translucent
-      />
-
+    <ScreenLayout scrollable={false}>
       {/* Gradient Background */}
       <LinearGradient
         colors={
@@ -312,33 +280,23 @@ export default function DeviceDetailScreen() {
       />
 
       {/* Fixed Header */}
-      <SafeAreaView>
-        <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]} numberOfLines={1}>
-            {device?.modelName || 'Device'}
-          </Text>
-          <Pressable onPress={handleShare} style={styles.shareButton}>
-            <Ionicons name="share-outline" size={24} color={theme.colors.text} />
-          </Pressable>
-        </Animated.View>
-      </SafeAreaView>
+      <Animated.View entering={FadeInDown.delay(100).springify()} style={[styles.header, { paddingTop: theme.spacing.xxl }]}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+        </Pressable>
+        <Text style={[styles.headerTitle, { color: theme.colors.text }]} numberOfLines={1}>
+          {device?.modelName || 'Device'}
+        </Text>
+        <Pressable onPress={handleShare} style={styles.shareButton}>
+          <Ionicons name="share-outline" size={24} color={theme.colors.text} />
+        </Pressable>
+      </Animated.View>
 
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.colors.primary}
-            colors={[theme.colors.primary]}
-          />
-        }
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* Hero Section */}
@@ -415,7 +373,7 @@ export default function DeviceDetailScreen() {
                   style={[
                     styles.tabText,
                     {
-                      color: selectedTab === 'overview' ? '#ffffff' : theme.colors.text,
+                      color: selectedTab === 'overview' ? theme.colors.textInverse : theme.colors.text,
                       fontWeight: selectedTab === 'overview' ? '600' : '500',
                     },
                   ]}
@@ -437,7 +395,7 @@ export default function DeviceDetailScreen() {
                   style={[
                     styles.tabText,
                     {
-                      color: selectedTab === 'listings' ? '#ffffff' : theme.colors.text,
+                      color: selectedTab === 'listings' ? theme.colors.textInverse : theme.colors.text,
                       fontWeight: selectedTab === 'listings' ? '600' : '500',
                     },
                   ]}
@@ -493,7 +451,7 @@ export default function DeviceDetailScreen() {
                     Performance Overview
                   </Text>
                   <View style={styles.performanceGrid}>
-                    {getPerformanceStats(listings).map((stat, index) => (
+                    {getPerformanceStats(listings, theme).map((stat, index) => (
                       <View key={index} style={styles.performanceItem}>
                         <View style={[styles.performanceDot, { backgroundColor: stat.color }]} />
                         <Text style={[styles.performanceLabel, { color: theme.colors.text }]}>
@@ -521,7 +479,7 @@ export default function DeviceDetailScreen() {
                     variant="gradient"
                     onPress={() => router.push('/(tabs)/create')}
                     style={styles.actionButton}
-                    leftIcon={<Ionicons name="add" size={16} color="#ffffff" />}
+                    leftIcon={<Ionicons name="add" size={16} color={theme.colors.textInverse} />}
                   />
                   <Button
                     title="Browse Games"
@@ -581,7 +539,7 @@ export default function DeviceDetailScreen() {
                     variant="gradient"
                     onPress={() => router.push('/(tabs)/create')}
                     style={styles.emptyButton}
-                    leftIcon={<Ionicons name="add" size={16} color="#ffffff" />}
+                    leftIcon={<Ionicons name="add" size={16} color={theme.colors.textInverse} />}
                   />
                 </Card>
               </Animated.View>
@@ -592,11 +550,11 @@ export default function DeviceDetailScreen() {
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacing} />
       </Animated.ScrollView>
-    </View>
+    </ScreenLayout>
   )
 }
 
-function getPerformanceStats(listings: any[]) {
+function getPerformanceStats(listings: any[], theme: any) {
   const stats = listings.reduce(
     (acc: any, listing: any) => {
       const rank = listing.performance?.rank || 0
@@ -615,17 +573,17 @@ function getPerformanceStats(listings: any[]) {
     .map(([label, data]: [string, any]) => ({
       label,
       count: data.count,
-      color: getPerformanceColor(data.rank),
+      color: getPerformanceColor(data.rank, theme),
     }))
     .sort((a, b) => b.count - a.count)
 }
 
-function getPerformanceColor(rank: number): string {
-  if (rank >= 5) return '#10b981' // Green for perfect
-  if (rank >= 4) return '#3b82f6' // Blue for great
-  if (rank >= 3) return '#f59e0b' // Yellow for good
-  if (rank >= 2) return '#ef4444' // Red for poor
-  return '#6b7280' // Gray for unknown
+function getPerformanceColor(rank: number, theme: any): string {
+  if (rank >= 5) return theme.colors.performance?.perfect || '#10b981'
+  if (rank >= 4) return theme.colors.performance?.great || '#3b82f6'
+  if (rank >= 3) return theme.colors.performance?.good || '#f59e0b'
+  if (rank >= 2) return theme.colors.performance?.poor || '#ef4444'
+  return theme.colors.performance?.unplayable || '#6b7280'
 }
 
 const createStyles = (theme: any) =>

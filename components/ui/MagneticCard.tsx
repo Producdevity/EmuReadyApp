@@ -204,7 +204,7 @@ export default function MagneticCard({
           ...baseStyle,
           backgroundColor: theme.colors.glass,
           borderWidth: 1,
-          borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+          borderColor: theme.colors.borderLight,
         }
       case 'gradient':
         return {
@@ -214,7 +214,7 @@ export default function MagneticCard({
       case 'neon':
         return {
           ...baseStyle,
-          backgroundColor: theme.isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)',
+          backgroundColor: theme.isDark ? theme.colors.background : theme.colors.surface,
           borderWidth: 1,
           borderColor: theme.colors.primary,
         }
@@ -223,7 +223,7 @@ export default function MagneticCard({
           ...baseStyle,
           backgroundColor: 'transparent',
           borderWidth: 1,
-          borderColor: 'rgba(124, 58, 237, 0.3)',
+          borderColor: `${theme.colors.primary}4D`, // 30% opacity
         }
       default:
         return baseStyle
@@ -337,9 +337,9 @@ export default function MagneticCard({
             {variant === 'holographic' && (
               <LinearGradient
                 colors={[
-                  'rgba(124, 58, 237, 0.1)',
-                  'rgba(168, 85, 247, 0.15)',
-                  'rgba(79, 70, 229, 0.1)',
+                  `${theme.colors.primary}1A`, // 10% opacity
+                  `${theme.colors.primaryLight}26`, // 15% opacity
+                  `${theme.colors.primaryDark}1A`, // 10% opacity
                 ]}
                 style={[StyleSheet.absoluteFillObject, { borderRadius }]}
                 start={{ x: 0, y: 0 }}

@@ -4,19 +4,17 @@ import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Bell, FileText, FlaskConical, Home, Plus, Search, User } from 'lucide-react-native'
 import React, { useEffect } from 'react'
-import { Platform, StyleSheet, Text, View } from 'react-native'
+import { Platform, StyleSheet, View } from 'react-native'
 import Animated, {
-  Extrapolation,
   interpolate,
   interpolateColor,
   useAnimatedStyle,
   useSharedValue,
-  withSequence,
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AnimatedPressable, FloatingElement, MICRO_SPRING_CONFIG } from './MicroInteractions'
+import { AnimatedPressable, MICRO_SPRING_CONFIG } from './MicroInteractions'
 
 interface TabBarProps {
   state: any
@@ -35,120 +33,72 @@ interface TabButtonProps {
 const TabButton = ({ route, isFocused, onPress, onLongPress: _onLongPress, descriptors }: TabButtonProps) => {
   const { theme } = useTheme()
   const scale = useSharedValue(1)
-  const iconScale = useSharedValue(1)
   const translateY = useSharedValue(0)
   const opacity = useSharedValue(0.6)
-  const morphValue = useSharedValue(0)
-  const glowOpacity = useSharedValue(0)
-  const rippleScale = useSharedValue(0)
-  const indicatorWidth = useSharedValue(0)
+  const indicatorOpacity = useSharedValue(0)
 
   const getIcon = (routeName: string, focused: boolean) => {
-    const color = focused ? '#ffffff' : theme.colors.textMuted
-    const size = 22
+    const color = focused ? theme.colors.primary : theme.colors.textMuted
+    const size = 20
 
     switch (routeName) {
       case 'index':
-        return <Home color={color} size={size} strokeWidth={2.5} />
+        return <Home color={color} size={size} strokeWidth={2} />
       case 'browse':
-        return <Search color={color} size={size} strokeWidth={2.5} />
+        return <Search color={color} size={size} strokeWidth={2} />
       case 'create':
-        return <Plus color={color} size={size} strokeWidth={3} />
+        return <Plus color={color} size={size} strokeWidth={2.5} />
       case 'notifications':
-        return <Bell color={color} size={size} strokeWidth={2.5} />
+        return <Bell color={color} size={size} strokeWidth={2} />
       case 'profile':
-        return <User color={color} size={size} strokeWidth={2.5} />
+        return <User color={color} size={size} strokeWidth={2} />
       case 'test':
-        return <FlaskConical color={color} size={size} strokeWidth={2.5} />
+        return <FlaskConical color={color} size={size} strokeWidth={2} />
       case 'config':
-        return <FileText color={color} size={size} strokeWidth={2.5} />
+        return <FileText color={color} size={size} strokeWidth={2} />
       default:
-        return <Home color={color} size={size} strokeWidth={2.5} />
+        return <Home color={color} size={size} strokeWidth={2} />
     }
   }
 
   useEffect(() => {
     if (isFocused) {
-      // Enhanced focus animations with morphing
-      scale.value = withSpring(1.08, MICRO_SPRING_CONFIG.snappy)
-      iconScale.value = withSequence(
-        withSpring(1.2, MICRO_SPRING_CONFIG.bouncy),
-        withSpring(1.15, MICRO_SPRING_CONFIG.smooth),
-      )
-      translateY.value = withSpring(-3, MICRO_SPRING_CONFIG.snappy)
-      opacity.value = withTiming(1, { duration: 150 })
-      morphValue.value = withSpring(1, MICRO_SPRING_CONFIG.smooth)
-      glowOpacity.value = withTiming(0.8, { duration: 200 })
-      indicatorWidth.value = withSpring(20, MICRO_SPRING_CONFIG.snappy)
-
-      // Ripple effect
-      rippleScale.value = 0
-      rippleScale.value = withSequence(
-        withTiming(1, { duration: 300 }),
-        withTiming(0, { duration: 200 }),
-      )
+      // Simple, clean focus animations
+      scale.value = withSpring(1.05, MICRO_SPRING_CONFIG.smooth)
+      translateY.value = withSpring(-2, MICRO_SPRING_CONFIG.smooth)
+      opacity.value = withTiming(1, { duration: 200 })
+      indicatorOpacity.value = withTiming(1, { duration: 200 })
     } else {
       scale.value = withSpring(1, MICRO_SPRING_CONFIG.smooth)
-      iconScale.value = withSpring(1, MICRO_SPRING_CONFIG.smooth)
       translateY.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
-      opacity.value = withTiming(0.65, { duration: 150 })
-      morphValue.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
-      glowOpacity.value = withTiming(0, { duration: 300 })
-      indicatorWidth.value = withSpring(0, MICRO_SPRING_CONFIG.smooth)
+      opacity.value = withTiming(0.6, { duration: 200 })
+      indicatorOpacity.value = withTiming(0, { duration: 200 })
     }
-  }, [glowOpacity, iconScale, indicatorWidth, isFocused, morphValue, opacity, rippleScale, scale, translateY])
+  }, [isFocused, indicatorOpacity, opacity, scale, translateY])
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { translateY: translateY.value }] as any,
-  }))
-
-  const iconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: iconScale.value }],
-  }))
-
-  const backgroundAnimatedStyle = useAnimatedStyle(() => {
-    const backgroundColor = interpolateColor(
-      morphValue.value,
-      [0, 1],
-      ['transparent', route.name === 'create' ? theme.colors.accent : theme.colors.primary],
-    )
-
-    return {
-      opacity: interpolate(scale.value, [1, 1.08], [0, 1], Extrapolation.CLAMP),
-      backgroundColor,
-      transform: [{ scale: interpolate(morphValue.value, [0, 1], [0.8, 1], Extrapolation.CLAMP) }],
-    }
-  })
-
-  const glowAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-    transform: [{ scale: interpolate(glowOpacity.value, [0, 1], [0.5, 1.3], Extrapolation.CLAMP) }],
-  }))
-
-  const rippleAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(rippleScale.value, [0, 0.5, 1], [0, 0.6, 0], Extrapolation.CLAMP),
-    transform: [{ scale: interpolate(rippleScale.value, [0, 1], [0, 2], Extrapolation.CLAMP) }],
-  }))
-
-  const morphingIndicatorStyle = useAnimatedStyle(() => ({
-    width: indicatorWidth.value,
-    transform: [{ scaleX: interpolate(morphValue.value, [0, 1], [0, 1], Extrapolation.CLAMP) }],
-  }))
-
-  const labelAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }, { translateY: translateY.value }],
     opacity: opacity.value,
   }))
 
+  const indicatorStyle = useAnimatedStyle(() => ({
+    opacity: indicatorOpacity.value,
+    transform: [{ scale: interpolate(indicatorOpacity.value, [0, 1], [0.8, 1]) }],
+  }))
+
+  const labelStyle = useAnimatedStyle(() => {
+    const color = interpolateColor(
+      opacity.value,
+      [0.6, 1],
+      [theme.colors.textMuted, theme.colors.primary],
+    )
+    return { color }
+  })
+
   const handlePress = () => {
-    // Enhanced haptic feedback pattern
-    if (route.name === 'create') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    } else {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     onPress()
   }
-
 
   const { options } = descriptors[route.key]
   const label =
@@ -162,7 +112,7 @@ const TabButton = ({ route, isFocused, onPress, onLongPress: _onLongPress, descr
     <AnimatedPressable 
       onPress={handlePress} 
       style={styles.tabButton} 
-      scale={0.95} 
+      scale={0.98}
       haptic={false}
       accessible={true}
       accessibilityRole="tab"
@@ -170,98 +120,20 @@ const TabButton = ({ route, isFocused, onPress, onLongPress: _onLongPress, descr
       accessibilityHint={`Navigate to ${label} screen`}
       accessibilityState={{ selected: isFocused }}
     >
-      <FloatingElement intensity={1} duration={4000}>
-        <Animated.View style={[styles.tabContainer, animatedStyle as any]}>
-          {/* Glow effect */}
-          <Animated.View style={[styles.glowEffect, glowAnimatedStyle]}>
-            <LinearGradient
-              colors={[
-                route.name === 'create' ? theme.colors.accent : theme.colors.primary,
-                `${route.name === 'create' ? theme.colors.accent : theme.colors.primary}60`,
-              ]}
-              style={styles.glowGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-          </Animated.View>
+      <Animated.View style={[styles.tabContainer, animatedStyle]}>
+        {/* Clean indicator dot */}
+        <Animated.View style={[styles.indicator, indicatorStyle]} />
+        
+        {/* Icon */}
+        <View style={styles.iconContainer}>
+          {getIcon(route.name, isFocused)}
+        </View>
 
-          {/* Ripple effect */}
-          <Animated.View style={[styles.rippleEffect, rippleAnimatedStyle]}>
-            <View
-              style={[
-                styles.rippleCircle,
-                {
-                  backgroundColor:
-                    route.name === 'create' ? theme.colors.accent : theme.colors.primary,
-                },
-              ]}
-            />
-          </Animated.View>
-
-          {/* Morphing background */}
-          <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
-            <LinearGradient
-              colors={[
-                route.name === 'create' ? theme.colors.accent : theme.colors.primary,
-                route.name === 'create' ? `${theme.colors.accent}dd` : theme.colors.primaryDark,
-              ]}
-              style={styles.gradientBackground}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-          </Animated.View>
-
-          {/* Icon with animation */}
-          <Animated.View style={[styles.iconContainer, iconAnimatedStyle]}>
-            {getIcon(route.name, isFocused)}
-          </Animated.View>
-
-          {/* Label with fade animation */}
-          <Animated.View style={[labelAnimatedStyle]}>
-            <Text
-              style={[styles.tabLabel, { color: isFocused ? '#ffffff' : theme.colors.textMuted }]}
-            >
-              {label}
-            </Text>
-          </Animated.View>
-
-          {/* Morphing indicator */}
-          <Animated.View style={[styles.morphingIndicator, morphingIndicatorStyle]}>
-            <LinearGradient
-              colors={['#ffffff', '#ffffff88']}
-              style={styles.indicatorGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            />
-          </Animated.View>
-
-          {/* Floating particles effect */}
-          {isFocused && (
-            <View style={styles.particlesContainer}>
-              {Array.from({ length: 3 }).map((_, index) => (
-                <FloatingElement
-                  key={index}
-                  intensity={2 + index}
-                  duration={2000 + index * 500}
-                  delay={index * 200}
-                >
-                  <View
-                    style={[
-                      styles.particle,
-                      {
-                        backgroundColor:
-                          route.name === 'create' ? theme.colors.accent : theme.colors.primary,
-                        left: 10 + index * 15,
-                        top: 5 + index * 3,
-                      },
-                    ]}
-                  />
-                </FloatingElement>
-              ))}
-            </View>
-          )}
-        </Animated.View>
-      </FloatingElement>
+        {/* Label */}
+        <Animated.Text style={[styles.tabLabel, labelStyle]}>
+          {label}
+        </Animated.Text>
+      </Animated.View>
     </AnimatedPressable>
   )
 }
@@ -269,42 +141,39 @@ const TabButton = ({ route, isFocused, onPress, onLongPress: _onLongPress, descr
 export default function AnimatedTabBar({ state, descriptors, navigation }: TabBarProps) {
   const { theme } = useTheme()
   const insets = useSafeAreaInsets()
+  
+  // Define hidden tabs
+  const hiddenTabs = ['pc', 'hardware', 'media', 'config']
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-      {/* Blur background */}
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+      {/* Clean blur background */}
       <BlurView
-        intensity={100}
+        intensity={90}
         tint={theme.isDark ? 'dark' : 'light'}
         style={StyleSheet.absoluteFillObject}
       />
 
-      {/* Enhanced gradient overlay with morphism */}
+      {/* Subtle gradient overlay */}
       <LinearGradient
         colors={
           theme.isDark
-            ? ['rgba(10, 10, 10, 0.95)', 'rgba(20, 20, 20, 0.98)', 'rgba(30, 30, 30, 0.99)']
-            : [
-                'rgba(255, 255, 255, 0.95)',
-                'rgba(250, 251, 252, 0.98)',
-                'rgba(248, 250, 252, 0.99)',
-              ]
+            ? ['rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0, 0.7)']
+            : ['rgba(255, 255, 255, 0.7)', 'rgba(255, 255, 255, 0.9)']
         }
         style={StyleSheet.absoluteFillObject}
       />
 
-      {/* Ambient glow */}
-      <LinearGradient
-        colors={['transparent', `${theme.colors.primary}08`, 'transparent']}
-        style={[StyleSheet.absoluteFillObject, { opacity: 0.6 }]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-      />
-
       {/* Tab buttons container */}
       <View style={styles.tabsContainer}>
-        {state.routes.map((route: any, index: number) => {
-          const isFocused = state.index === index
+        {state.routes.map((route: any) => {
+          // Skip hidden tabs
+          if (hiddenTabs.includes(route.name)) {
+            return null
+          }
+          
+          // Check if this route is focused by comparing the route name
+          const isFocused = state.routes[state.index]?.name === route.name
 
           const onPress = () => {
             const event = navigation.emit({
@@ -347,127 +216,51 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: Platform.OS === 'ios' ? 85 : 75,
-    overflow: 'hidden',
+    height: Platform.OS === 'ios' ? 80 : 70,
+    backgroundColor: 'transparent',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(124, 58, 237, 0.1)',
-    shadowColor: '#7c3aed',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 15,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 8,
   },
   tabsContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 8,
   },
   tabButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: 60,
   },
   tabContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    minHeight: 38,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     position: 'relative',
   },
-  focusBackground: {
+  indicator: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  gradientBackground: {
-    flex: 1,
-    borderRadius: 16,
+    top: -8,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#7c3aed',
   },
   iconContainer: {
-    marginBottom: 3,
-    zIndex: 1,
+    marginBottom: 4,
   },
   tabLabel: {
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '500',
     textAlign: 'center',
-    zIndex: 1,
-  },
-  activeIndicator: {
-    position: 'absolute',
-    top: -1,
-    alignSelf: 'center',
-  },
-  indicatorDot: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: '#ffffff',
-  },
-  glowEffect: {
-    position: 'absolute',
-    top: -5,
-    left: -5,
-    right: -5,
-    bottom: -5,
-    borderRadius: 21,
-  },
-  glowGradient: {
-    flex: 1,
-    borderRadius: 21,
-  },
-  rippleEffect: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: 60,
-    height: 60,
-    marginTop: -30,
-    marginLeft: -30,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  rippleCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    opacity: 0.3,
-  },
-  morphingIndicator: {
-    position: 'absolute',
-    top: -2,
-    alignSelf: 'center',
-    height: 3,
-    borderRadius: 1.5,
-    overflow: 'hidden',
-  },
-  indicatorGradient: {
-    flex: 1,
-    borderRadius: 1.5,
-  },
-  particlesContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: 'none',
-  },
-  particle: {
-    position: 'absolute',
-    width: 2,
-    height: 2,
-    borderRadius: 1,
-    opacity: 0.6,
   },
 })

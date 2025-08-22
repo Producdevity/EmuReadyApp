@@ -125,7 +125,7 @@ export default function Card({
           ...baseStyles,
           backgroundColor: theme.colors.glass,
           borderWidth: 1,
-          borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(91, 33, 182, 0.1)',
+          borderColor: theme.colors.borderLight,
           backdropFilter: 'blur(12px)',
         }
       case 'gradient':

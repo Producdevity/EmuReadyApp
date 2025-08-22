@@ -51,12 +51,14 @@ export const STORAGE_KEYS = {
 } as const
 
 // Performance Scales
+// Note: Colors should be retrieved from theme context for consistency
+// These are fallback values only
 export const PERFORMANCE_SCALES = {
-  PERFECT: { rank: 1, label: 'Perfect', color: '#22c55e' },
-  GREAT: { rank: 2, label: 'Great', color: '#84cc16' },
-  GOOD: { rank: 3, label: 'Good', color: '#eab308' },
-  OKAY: { rank: 4, label: 'Okay', color: '#f97316' },
-  POOR: { rank: 5, label: 'Poor', color: '#ef4444' },
+  PERFECT: { rank: 1, label: 'Perfect', colorKey: 'perfect' },
+  GREAT: { rank: 2, label: 'Great', colorKey: 'great' },
+  GOOD: { rank: 3, label: 'Good', colorKey: 'good' },
+  OKAY: { rank: 4, label: 'Okay', colorKey: 'poor' },
+  POOR: { rank: 5, label: 'Poor', colorKey: 'unplayable' },
 } as const
 
 // Tab Icons

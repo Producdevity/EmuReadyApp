@@ -1,3 +1,4 @@
+import { DESIGN_CONSTANTS } from '@/constants/design'
 import {
   Extrapolation,
   interpolate,
@@ -5,6 +6,13 @@ import {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated'
+
+// Constants for scroll header animations
+const SCROLL_HEADER_CONSTANTS = {
+  titleFadeOffset: 100, // Pixels before header height for title to start fading in
+  titleTranslateOffset: 20, // Initial Y translation for title
+  backgroundScaleMax: 1.2, // Maximum scale for background on scroll
+} as const
 
 interface ScrollHeaderAnimationConfig {
   headerHeight: number
@@ -53,17 +61,18 @@ export const useScrollHeaderAnimation = (config: ScrollHeaderAnimationConfig) =>
   })
 
   const titleAnimatedStyle = useAnimatedStyle(() => {
+    const fadeStart = headerHeight - SCROLL_HEADER_CONSTANTS.titleFadeOffset
     const opacity = interpolate(
       scrollY.value,
-      [headerHeight - 100, headerHeight],
+      [fadeStart, headerHeight],
       [0, 1],
       Extrapolation.CLAMP,
     )
 
     const translateY = interpolate(
       scrollY.value,
-      [headerHeight - 100, headerHeight],
-      [20, 0],
+      [fadeStart, headerHeight],
+      [SCROLL_HEADER_CONSTANTS.titleTranslateOffset, 0],
       Extrapolation.CLAMP,
     )
 
@@ -74,7 +83,12 @@ export const useScrollHeaderAnimation = (config: ScrollHeaderAnimationConfig) =>
   })
 
   const backgroundAnimatedStyle = useAnimatedStyle(() => {
-    const scale = interpolate(scrollY.value, [0, headerHeight], [1, 1.2], Extrapolation.CLAMP)
+    const scale = interpolate(
+      scrollY.value,
+      [0, headerHeight],
+      [1, SCROLL_HEADER_CONSTANTS.backgroundScaleMax],
+      Extrapolation.CLAMP,
+    )
 
     return {
       transform: [{ scale }],

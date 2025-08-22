@@ -88,12 +88,12 @@ export function ThemedView({
     switch (variant) {
       case 'glass':
         return theme.isDark
-          ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']
-          : ['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.02)', 'rgba(0,0,0,0.01)']
+          ? [theme.colors.glass, `${theme.colors.glass}CC`, `${theme.colors.glass}33`]
+          : [`${theme.colors.overlay}0D`, `${theme.colors.overlay}05`, `${theme.colors.overlay}03`]
       case 'gradient':
         return theme.colors.gradients.primary
       case 'holographic':
-        return ['#667eea', '#764ba2', '#f093fb', '#f5576c']
+        return [theme.colors.primary, theme.colors.primaryLight, theme.colors.accent, theme.colors.error]
       case 'neon':
         return theme.isDark
           ? [theme.colors.primary, theme.colors.accent, theme.colors.primaryLight]
@@ -231,7 +231,7 @@ export function ThemedView({
         return {
           ...baseStyle,
           borderWidth: 1,
-          borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+          borderColor: theme.colors.borderLight,
           shadowColor: theme.colors.primary,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.1,
@@ -251,7 +251,7 @@ export function ThemedView({
         return {
           ...baseStyle,
           borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.2)',
+          borderColor: `${theme.colors.borderLight}33`, // 20% opacity
         }
       default:
         return {
@@ -323,7 +323,7 @@ export function ThemedView({
 
           {variant === 'holographic' && (
             <LinearGradient
-              colors={['rgba(255,255,255,0.1)', 'transparent', 'rgba(255,255,255,0.1)']}
+              colors={[`${theme.colors.glass}1A`, 'transparent', `${theme.colors.glass}1A`]}
               style={StyleSheet.absoluteFillObject}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}

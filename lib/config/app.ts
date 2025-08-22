@@ -45,6 +45,8 @@ export const PERFORMANCE = {
 } as const
 
 // Theme and Styling
+// DEPRECATED: Use ThemeContext instead for dynamic theme support
+// These values are kept for backward compatibility only
 export const THEME = {
   COLORS: {
     PRIMARY: '#3b82f6',
@@ -95,7 +97,7 @@ export const THEME = {
   SHADOWS: {
     SM: Platform.select({
       ios: {
-        shadowColor: '#000000',
+        shadowColor: '#000000', // Use theme.colors.shadow instead
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 2,
@@ -105,7 +107,7 @@ export const THEME = {
     }),
     MD: Platform.select({
       ios: {
-        shadowColor: '#000000',
+        shadowColor: '#000000', // Use theme.colors.shadow instead
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -115,7 +117,7 @@ export const THEME = {
     }),
     LG: Platform.select({
       ios: {
-        shadowColor: '#000000',
+        shadowColor: '#000000', // Use theme.colors.shadow instead
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
         shadowRadius: 8,

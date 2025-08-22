@@ -9,11 +9,10 @@ import GamepadTabBar from '@/components/ui/GamepadTabBar'
 import { IconSymbol } from '@/components/ui/IconSymbol'
 import TabBarBackground from '@/components/ui/TabBarBackground'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useGamepadEventHandler, useOrientationOptimized } from '@/hooks/useGamepadNavigation'
+import { useGamepadEventHandler } from '@/hooks/useGamepadNavigation'
 
 export default function TabLayout() {
   const { theme } = useTheme()
-  const { isLandscape } = useOrientationOptimized()
 
   // Initialize gamepad event handling
   useGamepadEventHandler()
@@ -31,20 +30,12 @@ export default function TabLayout() {
           headerShown: false,
           tabBarButton: HapticTab,
           tabBarBackground: TabBarBackground,
-          tabBarStyle: Platform.select({
-            ios: {
-              // Use a transparent background on iOS to show the blur effect
-              position: 'absolute',
-              backgroundColor: 'transparent',
-            },
-            android: {
-              // Optimize for landscape gaming handhelds
-              height: isLandscape ? 60 : 85,
-              paddingHorizontal: isLandscape ? 8 : 0,
-              backgroundColor: 'transparent',
-            },
-            default: {},
-          }),
+          tabBarStyle: {
+            position: 'absolute',
+            backgroundColor: 'transparent',
+            elevation: 0,
+            borderTopWidth: 0,
+          },
         }}
       >
         <Tabs.Screen

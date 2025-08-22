@@ -1,8 +1,9 @@
+import React from 'react'
 import { Dimensions, Platform } from 'react-native'
 
 export interface NavigationNode {
   id: string
-  ref: any
+  ref: React.RefObject<unknown>
   onFocus?: () => void
   onBlur?: () => void
   onSelect?: () => void
@@ -24,7 +25,7 @@ export interface GamepadEvent {
 class GamepadNavigationManager {
   private nodes: Map<string, NavigationNode> = new Map()
   private currentFocus: string | null = null
-  private listeners: Set<any> = new Set()
+  private listeners: Set<() => void> = new Set()
   private isLandscape: boolean = false
 
   constructor() {

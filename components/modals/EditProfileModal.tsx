@@ -27,12 +27,8 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated'
 
-import { GradientTitle } from '@/components/themed/ThemedText'
-import { HolographicView, MagneticView } from '@/components/themed/ThemedView'
 import { Button } from '@/components/ui'
-import FluidGradient from '@/components/ui/FluidGradient'
 import { useTheme } from '@/contexts/ThemeContext'
-import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useUpdateProfile } from '@/lib/api/hooks'
 import { useUser } from '@clerk/clerk-expo'
 
@@ -47,7 +43,6 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 export default function EditProfileModal({ visible, onClose, onSuccess }: EditProfileModalProps) {
   const { theme } = useTheme()
   const { user: clerkUser } = useUser()
-  const reduceMotion = useReducedMotion()
   const updateProfileMutation = useUpdateProfile()
   
   const [name, setName] = useState('')
@@ -152,29 +147,19 @@ export default function EditProfileModal({ visible, onClose, onSuccess }: EditPr
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.modalContainer}>
             <Animated.View
-              entering={reduceMotion ? undefined : SlideInDown.springify()}
-              exiting={reduceMotion ? undefined : SlideOutDown.springify()}
+              entering={SlideInDown.springify()}
+              exiting={SlideOutDown.springify()}
               style={[styles.modal, modalStyle]}
             >
-              <HolographicView
-                morphing
-                borderRadius={24}
+              <View
                 style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}
               >
-                <FluidGradient
-                  variant="aurora"
-                  borderRadius={24}
-                  animated={!reduceMotion}
-                  speed="slow"
-                  style={StyleSheet.absoluteFillObject}
-                  opacity={0.05}
-                />
 
                 {/* Header */}
                 <View style={styles.header}>
-                  <GradientTitle animated style={styles.title}>
+                  <Text style={[styles.title, { color: theme.colors.text }]}>
                     Edit Profile
-                  </GradientTitle>
+                  </Text>
                   
                   <Pressable
                     onPress={handleClose}
@@ -200,7 +185,7 @@ export default function EditProfileModal({ visible, onClose, onSuccess }: EditPr
                     <Text style={[styles.label, { color: theme.colors.text }]}>
                       Name
                     </Text>
-                    <MagneticView borderRadius={16} style={styles.inputWrapper}>
+                    <View style={[styles.inputWrapper, { borderRadius: 16, overflow: 'hidden' }]}>
                       <LinearGradient
                         colors={[`${theme.colors.primary}10`, `${theme.colors.primary}05`]}
                         style={StyleSheet.absoluteFillObject}
@@ -220,7 +205,7 @@ export default function EditProfileModal({ visible, onClose, onSuccess }: EditPr
                         autoCapitalize="words"
                         returnKeyType="next"
                       />
-                    </MagneticView>
+                    </View>
                   </View>
 
                   {/* Bio Input */}
@@ -228,7 +213,7 @@ export default function EditProfileModal({ visible, onClose, onSuccess }: EditPr
                     <Text style={[styles.label, { color: theme.colors.text }]}>
                       Bio
                     </Text>
-                    <MagneticView borderRadius={16} style={styles.inputWrapper}>
+                    <View style={[styles.inputWrapper, { borderRadius: 16, overflow: 'hidden' }]}>
                       <LinearGradient
                         colors={[`${theme.colors.secondary}10`, `${theme.colors.secondary}05`]}
                         style={StyleSheet.absoluteFillObject}
@@ -251,7 +236,7 @@ export default function EditProfileModal({ visible, onClose, onSuccess }: EditPr
                         textAlignVertical="top"
                         returnKeyType="done"
                       />
-                    </MagneticView>
+                    </View>
                   </View>
 
                   {/* Info Text */}
@@ -290,7 +275,7 @@ export default function EditProfileModal({ visible, onClose, onSuccess }: EditPr
                     }
                   />
                 </View>
-              </HolographicView>
+              </View>
             </Animated.View>
           </View>
         </TouchableWithoutFeedback>
@@ -302,7 +287,6 @@ export default function EditProfileModal({ visible, onClose, onSuccess }: EditPr
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   container: {
     flex: 1,

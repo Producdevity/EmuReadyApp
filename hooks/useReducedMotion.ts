@@ -1,5 +1,57 @@
+import { ANIMATION_CONFIG } from '@/lib/animation/config'
+import { DESIGN_CONSTANTS } from '@/constants/design'
 import { useEffect, useState } from 'react'
 import { AccessibilityInfo } from 'react-native'
+
+// Animation duration constants for reduced motion
+const REDUCED_MOTION_DURATIONS = {
+  // When reduced motion is enabled, use minimal durations
+  reduced: {
+    short: ANIMATION_CONFIG.timing.instant * 2, // 100ms
+    medium: ANIMATION_CONFIG.timing.fast * 1.5, // 150ms
+    long: ANIMATION_CONFIG.timing.normal * 1.33, // ~200ms
+    infinite: 0, // Disable infinite animations
+  },
+  // Normal animation durations
+  normal: {
+    short: DESIGN_CONSTANTS.ANIMATION.normal, // 300ms
+    medium: DESIGN_CONSTANTS.ANIMATION.slow, // 500ms
+    long: DESIGN_CONSTANTS.ANIMATION.slower, // 800ms
+    infinite: -1, // Enable infinite animations
+  },
+} as const
+
+// Spring configuration constants
+const REDUCED_MOTION_SPRINGS = {
+  // Less bouncy animations for reduced motion
+  reduced: {
+    gentle: {
+      damping: 30,
+      stiffness: 200,
+      mass: 0.8,
+    },
+    bouncy: {
+      damping: 20,
+      stiffness: 150,
+      mass: 0.5,
+    },
+    precise: {
+      damping: 40,
+      stiffness: 300,
+      mass: 1,
+    },
+  },
+  // Normal spring animations
+  normal: {
+    gentle: ANIMATION_CONFIG.spring.gentle,
+    bouncy: ANIMATION_CONFIG.spring.bouncy,
+    precise: {
+      damping: 20,
+      stiffness: 200,
+      mass: 0.8,
+    },
+  },
+} as const
 
 /**
  * Hook to detect if user prefers reduced motion for accessibility
@@ -23,7 +75,12 @@ export function useReducedMotion(): boolean {
     checkReduceMotion()
 
     // Listen for changes in accessibility settings
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion)
+    let subscription: { remove: () => void } | null = null
+    try {
+      subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion)
+    } catch (error) {
+      console.warn('Failed to add accessibility event listener:', error)
+    }
 
     return () => {
       subscription?.remove()
@@ -39,13 +96,9 @@ export function useReducedMotion(): boolean {
  */
 export function useAnimationDuration() {
   const reduceMotion = useReducedMotion()
+  const config = reduceMotion ? REDUCED_MOTION_DURATIONS.reduced : REDUCED_MOTION_DURATIONS.normal
 
-  return {
-    short: reduceMotion ? 100 : 300,
-    medium: reduceMotion ? 150 : 500,
-    long: reduceMotion ? 200 : 800,
-    infinite: reduceMotion ? 0 : -1, // Disable infinite animations if reduced motion
-  }
+  return config
 }
 
 /**
@@ -54,22 +107,7 @@ export function useAnimationDuration() {
  */
 export function useSpringConfig() {
   const reduceMotion = useReducedMotion()
+  const config = reduceMotion ? REDUCED_MOTION_SPRINGS.reduced : REDUCED_MOTION_SPRINGS.normal
 
-  return {
-    gentle: {
-      damping: reduceMotion ? 30 : 15,
-      stiffness: reduceMotion ? 200 : 100,
-      mass: reduceMotion ? 0.8 : 1,
-    },
-    bouncy: {
-      damping: reduceMotion ? 20 : 8,
-      stiffness: reduceMotion ? 150 : 50,
-      mass: reduceMotion ? 0.5 : 0.3,
-    },
-    precise: {
-      damping: reduceMotion ? 40 : 20,
-      stiffness: reduceMotion ? 300 : 200,
-      mass: reduceMotion ? 1 : 0.8,
-    },
-  }
+  return config
 }

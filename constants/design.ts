@@ -1,3 +1,18 @@
+/**
+ * @deprecated Many values in this file overlap with ThemeContext.
+ * Use ThemeContext for theme-related values:
+ * - spacing: use theme.spacing
+ * - borderRadius: use theme.borderRadius
+ * - typography: use theme.typography
+ * - animations: use theme.animations
+ * 
+ * This file should only be used for non-theme constants like:
+ * - Screen dimensions
+ * - Z-index system
+ * - Performance thresholds
+ * - Component-specific constants (FAB, TAB_BAR)
+ */
+
 import { Dimensions } from 'react-native'
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -7,7 +22,7 @@ export const DESIGN_CONSTANTS = {
   SCREEN_WIDTH,
   SCREEN_HEIGHT,
 
-  // Spacing system
+  // @deprecated Use theme.spacing instead
   SPACING: {
     xs: 4,
     sm: 8,
@@ -18,17 +33,18 @@ export const DESIGN_CONSTANTS = {
     xxxl: 64,
   },
 
-  // Border radius system
+  // @deprecated Use theme.borderRadius instead
   RADIUS: {
     xs: 4,
     sm: 8,
     md: 12,
     lg: 16,
-    xl: 24,
+    xl: 20, // Updated to match theme.borderRadius.xl
+    xxl: 28, // Added to match theme
     pill: 9999,
   },
 
-  // Animation durations (in milliseconds)
+  // @deprecated Use theme.animations.timing instead
   ANIMATION: {
     fast: 200,
     normal: 300,
@@ -52,7 +68,8 @@ export const DESIGN_CONSTANTS = {
     },
   },
 
-  // Shadow configurations
+  // @deprecated Use theme.shadows instead
+  // These shadow configs include platform-specific properties not in theme
   SHADOW: {
     small: {
       shadowOffset: { width: 0, height: 2 },
@@ -95,16 +112,16 @@ export const DESIGN_CONSTANTS = {
     borderRadius: 24,
   },
 
-  // Typography scale
+  // @deprecated Use theme.typography instead
   TYPOGRAPHY: {
     sizes: {
-      xs: 12,
-      sm: 14,
-      base: 16,
-      lg: 18,
-      xl: 20,
-      '2xl': 24,
-      '3xl': 30,
+      xs: 11, // Updated to match theme
+      sm: 13, // Updated to match theme
+      base: 15, // Updated to match theme.typography.fontSize.md
+      lg: 17, // Updated to match theme
+      xl: 19, // Updated to match theme
+      '2xl': 24, // Matches theme.typography.fontSize.xxl
+      '3xl': 32, // Matches theme.typography.fontSize.xxxl
       '4xl': 36,
     },
     lineHeights: {

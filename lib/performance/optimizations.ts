@@ -17,7 +17,7 @@ export function runAfterInteractions<T>(callback: () => T): Promise<T> {
  * @param func - The function to debounce
  * @param wait - The time in milliseconds to wait before executing the function
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number,
 ): (...args: Parameters<T>) => void {
@@ -39,7 +39,7 @@ export function debounce<T extends (...args: any[]) => any>(
  * @param func - The function to throttle
  * @param limit - The time in milliseconds to wait before allowing the function to be called again
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number,
 ): (...args: Parameters<T>) => void {

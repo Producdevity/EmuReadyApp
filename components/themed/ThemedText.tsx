@@ -225,7 +225,7 @@ export function ThemedText({
       type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
       type === 'subtitle' ? styles.subtitle : undefined,
       type === 'caption' ? styles.caption : undefined,
-      type === 'link' ? styles.link : undefined,
+      type === 'link' ? { ...styles.link, color: theme.colors.info } : undefined,
       style,
     ]
 
@@ -316,8 +316,8 @@ export function ThemedText({
         />
         <LinearGradient
           colors={[
-            theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-            theme.isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+            theme.isDark ? `${theme.colors.glass}1A` : `${theme.colors.overlay}0D`,
+            theme.isDark ? `${theme.colors.glass}0D` : `${theme.colors.overlay}05`,
           ]}
           style={StyleSheet.absoluteFillObject}
         />
@@ -378,7 +378,6 @@ const styles = StyleSheet.create({
   link: {
     lineHeight: 30,
     fontSize: 16,
-    color: '#0a7ea4',
     fontWeight: '500',
   },
   glassContainer: {

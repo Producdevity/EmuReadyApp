@@ -3,26 +3,35 @@ import * as DocumentPicker from 'expo-document-picker'
 import * as FileSystem from 'expo-file-system'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
+  Text,
   TextInput,
   useWindowDimensions,
   View,
 } from 'react-native'
 import Animated, {
   BounceIn,
+  Extrapolation,
+  interpolate,
   runOnJS,
   SlideInLeft,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { ThemedText, GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
-import { GlassView } from '@/components/themed/ThemedView'
-import { Button, ScreenLayout, ScreenHeader } from '@/components/ui'
+import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
+import { GlassView, HolographicView } from '@/components/themed/ThemedView'
+import { Button } from '@/components/ui'
 import { AnimatedPressable } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
 import { getBaseDelay } from '@/lib/animation/config'
@@ -45,6 +54,48 @@ export default function ConfigScreen() {
   const [isLoading, setIsLoading] = useState(false)
   const [showContent, setShowContent] = useState(false)
 
+  // Animation values
+  const heroGlow = useSharedValue(0)
+  const uploadPulse = useSharedValue(1)
+  const configFloat = useSharedValue(0)
+  const backgroundShift = useSharedValue(0)
+  const particleFlow = useSharedValue(0)
+
+  useEffect(() => {
+    // Initialize aurora background animation
+    backgroundShift.value = withRepeat(
+      withSequence(withTiming(1, { duration: 8000 }), withTiming(0, { duration: 8000 })),
+      -1,
+      true,
+    )
+
+    // Hero glow animation
+    heroGlow.value = withRepeat(
+      withSequence(withTiming(1, { duration: 3000 }), withTiming(0.3, { duration: 3000 })),
+      -1,
+      true,
+    )
+
+    // Floating animation for config elements - disabled for professional look
+    // configFloat.value = withRepeat(
+    //   withSequence(withTiming(5, { duration: 4000 }), withTiming(-5, { duration: 4000 })),
+    //   -1,
+    //   true,
+    // )
+
+    // Particle flow animation
+    particleFlow.value = withRepeat(withTiming(1, { duration: 6000 }), -1, false)
+
+    // Upload pulse animation - DISABLED
+    // uploadPulse.value = withRepeat(
+    //   withSequence(
+    //     withSpring(1.05, MICRO_SPRING_CONFIG.bouncy),
+    //     withSpring(1, MICRO_SPRING_CONFIG.smooth),
+    //   ),
+    //   -1,
+    //   true,
+    // )
+  }, [backgroundShift, configFloat, heroGlow, particleFlow, uploadPulse])
 
   const extractTitleIdFromFilename = (filename: string): string => {
     // Remove the file extension and check if it's a valid title ID
@@ -177,21 +228,89 @@ export default function ConfigScreen() {
     )
   }
 
+  // Animated styles
+  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(backgroundShift.value, [0, 1], [-50, 50], Extrapolation.CLAMP),
+      },
+    ],
+  }))
 
+  const heroGlowStyle = useAnimatedStyle(() => ({
+    opacity: heroGlow.value,
+  }))
+
+  const configFloatStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: 0 }], // No floating
+  }))
+
+  // Removed particle flow animation - too distracting
+  // const particleFlowStyle = useAnimatedStyle(() => ({
+  //   transform: [
+  //     {
+  //       translateX: interpolate(particleFlow.value, [0, 1], [-100, 400], Extrapolation.CLAMP),
+  //     },
+  //   ],
+  //   opacity: interpolate(particleFlow.value, [0, 0.3, 0.7, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
+  // }))
 
   return (
-    <ScreenLayout keyboardShouldPersistTaps="handled">
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-            {/* Header */}
-            <ScreenHeader
-              title="Config File Tester"
-              subtitle="Upload and test INI configurations with next-gen precision"
-              variant="default"
-              animated
-            />
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      {/* Aurora Background */}
+      <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
+        {/* FluidGradient removed */}
+      </Animated.View>
+
+      {/* Removed floating particles - too distracting */}
+
+      <SafeAreaView style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              padding: isLandscape ? theme.spacing.md : theme.spacing.lg,
+              paddingHorizontal: isLandscape ? theme.spacing.xl : theme.spacing.lg,
+            }}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Enhanced Hero Header */}
+            <Animated.View
+              entering={SlideInLeft.delay(getBaseDelay('instant')).springify().damping(15)}
+            >
+              <View style={styles.heroContainer}>
+                {/* Hero glow effect */}
+                <Animated.View style={[styles.heroGlow, heroGlowStyle]}>
+                  <LinearGradient
+                    colors={['transparent', `${theme.colors.primary}30`, 'transparent']}
+                    style={StyleSheet.absoluteFillObject}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  />
+                </Animated.View>
+
+                <View style={[styles.heroIcon, { borderRadius: 32 }]}>
+                  <LinearGradient
+                    colors={theme.colors.gradients.primary}
+                    style={StyleSheet.absoluteFillObject}
+                  />
+                  <Ionicons name="document-text" size={28} color="#ffffff" />
+                </View>
+
+                <View style={styles.heroContent}>
+                  <GradientTitle animated style={styles.heroTitle}>
+                    Config File Tester
+                  </GradientTitle>
+
+                  <TypewriterText animated delay={300} style={styles.heroSubtitle}>
+                    Upload and test INI configurations with next-gen precision
+                  </TypewriterText>
+                </View>
+              </View>
+            </Animated.View>
 
             {/* Enhanced Information Card */}
             <Animated.View entering={BounceIn.delay(getBaseDelay('fast')).springify().damping(12)}>
@@ -199,9 +318,9 @@ export default function ConfigScreen() {
 
                 <View style={styles.infoContent}>
                   <View style={styles.infoHeader}>
-                    <View style={styles.infoIconContainer}>
+                    <HolographicView morphing borderRadius={16} style={styles.infoIconContainer}>
                       <Ionicons name="information-circle" size={24} color={theme.colors.primary} />
-                    </View>
+                    </HolographicView>
 
                     <GlowText style={styles.infoTitle}>How to Use</GlowText>
                   </View>
@@ -218,8 +337,18 @@ export default function ConfigScreen() {
             {/* Revolutionary File Upload Section */}
             <Animated.View
               entering={SlideInLeft.delay(getBaseDelay('normal')).springify().damping(15)}
+              style={configFloatStyle}
             >
-              <View style={styles.uploadCard}>
+              <HolographicView morphing borderRadius={28} style={styles.uploadCard}>
+                <FluidGradient
+                  variant="gaming"
+                  borderRadius={28}
+                  animated
+                  speed="fast"
+                  style={StyleSheet.absoluteFillObject}
+                  opacity={0.12}
+                />
+
                 <View style={styles.uploadContent}>
                   <GradientTitle animated style={styles.uploadTitle}>
                     Configuration File
@@ -228,9 +357,21 @@ export default function ConfigScreen() {
                   {/* Revolutionary File Picker */}
                   <View>
                     <AnimatedPressable onPress={handleFilePick}>
-                      <View
+                      <MagneticView
+                        borderRadius={20}
+                        animated
+                        hoverable
                         style={[styles.filePicker, configFile && styles.filePickerActive]}
                       >
+                        <FluidGradient
+                          variant={configFile ? 'gaming' : 'cosmic'}
+                          borderRadius={20}
+                          animated
+                          speed="normal"
+                          style={StyleSheet.absoluteFillObject}
+                          opacity={0.15}
+                        />
+
                         <View style={styles.filePickerIconContainer}>
                           <LinearGradient
                             colors={
@@ -262,7 +403,7 @@ export default function ConfigScreen() {
                             ? 'Tap to change file'
                             : 'Tap to browse for configuration files'}
                         </TypewriterText>
-                      </View>
+                      </MagneticView>
                     </AnimatedPressable>
                   </View>
 
@@ -278,7 +419,15 @@ export default function ConfigScreen() {
                             : 'Enter the game Title ID'}
                         </TypewriterText>
 
-                        <View style={styles.inputContainer}>
+                        <MagneticView borderRadius={16} style={styles.inputContainer}>
+                          <FluidGradient
+                            variant="cosmic"
+                            borderRadius={16}
+                            animated
+                            speed="slow"
+                            style={StyleSheet.absoluteFillObject}
+                            opacity={0.1}
+                          />
                           <TextInput
                             style={styles.textInput}
                             value={customTitleId}
@@ -289,14 +438,22 @@ export default function ConfigScreen() {
                             autoCapitalize="characters"
                             autoCorrect={false}
                           />
-                        </View>
+                        </MagneticView>
                       </View>
 
                       {/* Enhanced Package Name Field */}
                       <View style={styles.formSection}>
                         <GlowText style={styles.fieldLabel}>Emulator Package Name</GlowText>
 
-                        <View style={styles.inputContainer}>
+                        <MagneticView borderRadius={16} style={styles.inputContainer}>
+                          <FluidGradient
+                            variant="gaming"
+                            borderRadius={16}
+                            animated
+                            speed="slow"
+                            style={StyleSheet.absoluteFillObject}
+                            opacity={0.1}
+                          />
                           <TextInput
                             style={styles.textInput}
                             value={packageName}
@@ -306,12 +463,13 @@ export default function ConfigScreen() {
                             autoCapitalize="none"
                             autoCorrect={false}
                           />
-                        </View>
+                        </MagneticView>
                       </View>
 
                       {/* Revolutionary Action Buttons */}
                       <View style={[styles.actionButtons, isLandscape && styles.actionButtonsRow]}>
-                        <View
+                        <MagneticView
+                          borderRadius={16}
                           style={[styles.actionButton, isLandscape && styles.actionButtonFlex]}
                         >
                           <Button
@@ -328,9 +486,10 @@ export default function ConfigScreen() {
                               />
                             }
                           />
-                        </View>
+                        </MagneticView>
 
-                        <View
+                        <MagneticView
+                          borderRadius={16}
                           style={[styles.actionButton, isLandscape && styles.actionButtonFlex]}
                         >
                           <Button
@@ -341,9 +500,10 @@ export default function ConfigScreen() {
                             style={styles.button}
                             leftIcon={<Ionicons name="trash" size={20} color={theme.colors.text} />}
                           />
-                        </View>
+                        </MagneticView>
 
-                        <View
+                        <MagneticView
+                          borderRadius={16}
                           style={[styles.actionButton, isLandscape && styles.actionButtonFlex]}
                         >
                           <LinearGradient
@@ -362,7 +522,7 @@ export default function ConfigScreen() {
                               <Ionicons name="play" size={20} color={theme.colors.textInverse} />
                             }
                           />
-                        </View>
+                        </MagneticView>
                       </View>
                     </Animated.View>
                   )}
@@ -373,7 +533,7 @@ export default function ConfigScreen() {
                     </TypewriterText>
                   )}
                 </View>
-              </View>
+              </HolographicView>
             </Animated.View>
 
             {/* Revolutionary Config Content Preview */}
@@ -381,13 +541,22 @@ export default function ConfigScreen() {
               <Animated.View
                 entering={BounceIn.delay(getBaseDelay('fast')).springify().damping(12)}
               >
-                <View style={styles.previewCard}>
+                <HolographicView morphing borderRadius={24} style={styles.previewCard}>
+                  <FluidGradient
+                    variant="aurora"
+                    borderRadius={24}
+                    animated
+                    speed="slow"
+                    style={StyleSheet.absoluteFillObject}
+                    opacity={0.1}
+                  />
+
                   <View style={styles.previewContent}>
                     <View style={styles.previewHeader}>
                       <View style={styles.previewHeaderLeft}>
-                        <View style={styles.previewIconContainer}>
+                        <MagneticView borderRadius={12} style={styles.previewIconContainer}>
                           <Ionicons name="code" size={20} color={theme.colors.primary} />
-                        </View>
+                        </MagneticView>
 
                         <GlowText style={styles.previewTitle}>Configuration Content</GlowText>
                       </View>
@@ -399,15 +568,17 @@ export default function ConfigScreen() {
 
                     <GlassView borderRadius={16} blurIntensity={20} style={styles.codeContainer}>
                       <ScrollView style={styles.codeScrollView} showsVerticalScrollIndicator={true}>
-                        <ThemedText style={styles.codeText}>{configFile.content}</ThemedText>
+                        <Text style={styles.codeText}>{configFile.content}</Text>
                       </ScrollView>
                     </GlassView>
                   </View>
-                </View>
+                </HolographicView>
               </Animated.View>
             )}
-      </KeyboardAvoidingView>
-    </ScreenLayout>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   )
 }
 

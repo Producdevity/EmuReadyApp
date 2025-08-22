@@ -51,34 +51,34 @@ export default function FluidGradient({
 
     return {
       aurora: [
-        ['#00d4ff', '#5b21b6', '#7c3aed'],
-        ['#7c3aed', '#c026d3', '#f59e0b'],
-        ['#10b981', '#06b6d4', '#8b5cf6'],
-        ['#f59e0b', '#ef4444', '#ec4899'],
+        [theme.colors.info, theme.colors.primary, theme.colors.primaryLight],
+        [theme.colors.primaryLight, theme.colors.accent, theme.colors.warning],
+        [theme.colors.success, theme.colors.info, theme.colors.primaryLight],
+        [theme.colors.warning, theme.colors.error, theme.colors.accent],
       ],
       ocean: [
-        ['#0ea5e9', '#06b6d4', '#0891b2'],
-        ['#06b6d4', '#0891b2', '#0e7490'],
-        ['#0891b2', '#0e7490', '#155e75'],
-        ['#0e7490', '#155e75', '#0ea5e9'],
+        [theme.colors.info, theme.colors.secondary, theme.colors.primaryDark],
+        [theme.colors.secondary, theme.colors.primaryDark, theme.colors.primary],
+        [theme.colors.primaryDark, theme.colors.primary, theme.colors.primaryLight],
+        [theme.colors.primary, theme.colors.primaryLight, theme.colors.info],
       ],
       sunset: [
-        ['#f97316', '#ef4444', '#ec4899'],
-        ['#ef4444', '#ec4899', '#c026d3'],
-        ['#ec4899', '#c026d3', '#a855f7'],
-        ['#c026d3', '#a855f7', '#f97316'],
+        [theme.colors.warning, theme.colors.error, theme.colors.accent],
+        [theme.colors.error, theme.colors.accent, theme.colors.primaryLight],
+        [theme.colors.accent, theme.colors.primaryLight, theme.colors.primary],
+        [theme.colors.primaryLight, theme.colors.primary, theme.colors.warning],
       ],
       cosmic: [
-        ['#1e1b4b', '#5b21b6', '#7c3aed'],
-        ['#312e81', '#6d28d9', '#8b5cf6'],
-        ['#4c1d95', '#7c3aed', '#a855f7'],
-        ['#581c87', '#8b5cf6', '#c084fc'],
+        [theme.colors.primaryDark, theme.colors.primary, theme.colors.primaryLight],
+        [theme.colors.primary, theme.colors.primaryLight, theme.colors.accent],
+        [theme.colors.primaryDark, theme.colors.primaryLight, theme.colors.accent],
+        [theme.colors.primary, theme.colors.accent, theme.colors.secondary],
       ],
       gaming: [
-        ['#00ff87', '#60efff', '#ff6b9d'],
-        ['#ff6b9d', '#ffa726', '#ab47bc'],
-        ['#ab47bc', '#5c6bc0', '#42a5f5'],
-        ['#42a5f5', '#26c6da', '#00ff87'],
+        [theme.colors.success, theme.colors.info, theme.colors.accent],
+        [theme.colors.accent, theme.colors.warning, theme.colors.primary],
+        [theme.colors.primary, theme.colors.secondary, theme.colors.info],
+        [theme.colors.info, theme.colors.secondary, theme.colors.success],
       ],
       brand: [
         theme.colors.gradients.primary,
@@ -87,17 +87,17 @@ export default function FluidGradient({
         theme.colors.gradients.gaming,
       ],
       dynamic: [
-        ['#667eea', '#764ba2', '#f093fb'],
-        ['#f093fb', '#f5576c', '#4facfe'],
-        ['#4facfe', '#00f2fe', '#43e97b'],
-        ['#43e97b', '#38f9d7', '#667eea'],
+        [theme.colors.primary, theme.colors.primaryLight, theme.colors.accent],
+        [theme.colors.accent, theme.colors.error, theme.colors.info],
+        [theme.colors.info, theme.colors.secondary, theme.colors.success],
+        [theme.colors.success, theme.colors.secondary, theme.colors.primary],
       ],
     }
   }
 
   const gradientSets = getGradientVariants()
   const currentVariant = customColors ? 'custom' : variant
-  const colorSets = gradientSets[currentVariant as keyof typeof gradientSets] || gradientSets.brand || [['#7c3aed', '#5b21b6', '#8b5cf6']]
+  const colorSets = gradientSets[currentVariant as keyof typeof gradientSets] || gradientSets.brand || [[theme.colors.primaryLight, theme.colors.primary, theme.colors.primaryDark]]
 
   useEffect(() => {
     if (animated && colorSets.length > 0) {
@@ -145,7 +145,7 @@ export default function FluidGradient({
   // Animated colors
   const _animatedColors = useDerivedValue(() => {
     if (colorSets.length === 0) {
-      return ['#7c3aed', '#5b21b6', '#8b5cf6']
+      return [theme.colors.primaryLight, theme.colors.primary, theme.colors.primaryDark]
     }
     
     const currentIndex = Math.floor(colorIndex.value)
@@ -156,7 +156,7 @@ export default function FluidGradient({
     const nextColors = colorSets[nextIndex] || colorSets[0]
 
     if (!currentColors || !Array.isArray(currentColors)) {
-      return ['#7c3aed', '#5b21b6', '#8b5cf6']
+      return [theme.colors.primaryLight, theme.colors.primary, theme.colors.primaryDark]
     }
 
     // Interpolate between color sets
@@ -183,7 +183,7 @@ export default function FluidGradient({
   // Get current colors (fallback for non-animated state)
   const getCurrentColors = () => {
     if (colorSets.length === 0) {
-      return ['#7c3aed', '#5b21b6', '#8b5cf6']
+      return [theme.colors.primaryLight, theme.colors.primary, theme.colors.primaryDark]
     }
     if (!animated) {
       return colorSets[0] || ['#7c3aed', '#5b21b6', '#8b5cf6']
@@ -217,7 +217,7 @@ export default function FluidGradient({
           style={[
             StyleSheet.absoluteFillObject,
             {
-              backgroundColor: theme.isDark ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',
+              backgroundColor: theme.isDark ? theme.colors.overlay : theme.colors.glass,
               borderRadius,
             },
           ]}

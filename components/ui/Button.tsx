@@ -219,7 +219,7 @@ export default function Button({
       case 'ghost':
         return theme.colors.primary
       default:
-        return '#ffffff'
+        return theme.colors.textInverse
     }
   }
 

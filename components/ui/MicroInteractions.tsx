@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics'
 import React, { useCallback, useEffect } from 'react'
 import type { AccessibilityRole } from 'react-native'
 import { StyleSheet, View } from 'react-native'
+import { useTheme } from '@/contexts/ThemeContext'
 import Animated, {
   cancelAnimation,
   interpolate,
@@ -421,11 +422,13 @@ interface RippleEffectProps {
 
 export const RippleEffect: React.FC<RippleEffectProps> = ({
   children,
-  rippleColor = 'rgba(124, 58, 237, 0.3)',
+  rippleColor,
   style,
   onPress,
 }) => {
+  const { theme } = useTheme()
   const { animatedStyle, startRipple } = useRippleAnimation()
+  const effectColor = rippleColor || `${theme.colors.primary}4D` // 30% opacity
 
   const handlePress = () => {
     startRipple()
@@ -440,7 +443,7 @@ export const RippleEffect: React.FC<RippleEffectProps> = ({
         style={[
           StyleSheet.absoluteFillObject,
           styles.ripple,
-          { backgroundColor: rippleColor },
+          { backgroundColor: effectColor },
           animatedStyle,
         ]}
       />

@@ -52,9 +52,11 @@ import type {
   VoteListingInput,
 } from '@/types'
 import {
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
+  type UseInfiniteQueryOptions,
   type UseMutationOptions,
   type UseQueryOptions,
 } from '@tanstack/react-query'
@@ -137,6 +139,21 @@ export const useListings = (
   return useQuery({
     queryKey: queryKeys.listings(input),
     queryFn: () => listingsService.getListings(input || {}),
+    ...options,
+  })
+}
+
+export const useInfiniteListings = (
+  input?: Omit<GetListingsInput, 'page'>,
+  options?: Partial<UseInfiniteQueryOptions<GetListingsResponse, Error>>,
+) => {
+  return useInfiniteQuery({
+    queryKey: queryKeys.listings(input),
+    queryFn: ({ pageParam }) => listingsService.getListings({ ...input, page: pageParam as number }),
+    getNextPageParam: (lastPage: GetListingsResponse) => {
+      return lastPage.pagination.hasNextPage ? lastPage.pagination.currentPage + 1 : undefined
+    },
+    initialPageParam: 1,
     ...options,
   })
 }

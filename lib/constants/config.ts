@@ -19,7 +19,7 @@ export const CONFIG = {
   // Pagination
   DEFAULT_PAGE_SIZE: 20,
 
-  // Animation Durations
+  // Animation Durations (deprecated - use DESIGN_CONSTANTS.ANIMATION instead)
   ANIMATION_DURATION: {
     SHORT: 200,
     MEDIUM: 300,

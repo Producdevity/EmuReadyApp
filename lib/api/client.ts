@@ -7,12 +7,15 @@ export const queryClient = new QueryClient({
     queries: {
       staleTime: CONFIG.CACHE_TTL, // 5 minutes
       gcTime: CONFIG.CACHE_TTL * 6, // 30 minutes (formerly cacheTime)
-      retry: (failureCount, error: unknown) => {
+      retry: (failureCount, error) => {
         // Don't retry on 4xx errors
-        const statusError = error as { status?: number }
-        return statusError?.status && statusError.status >= 400 && statusError.status < 500
-          ? false
-          : failureCount < 3 // Limit retries to 3 for server errors
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as { status: unknown }).status
+          if (typeof status === 'number' && status >= 400 && status < 500) {
+            return false
+          }
+        }
+        return failureCount < 3 // Limit retries to 3 for server errors
       },
       refetchOnWindowFocus: false,
       refetchOnMount: true,

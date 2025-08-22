@@ -10,6 +10,7 @@ export {
   NetworkError,
   OfflineState,
 } from './EmptyState'
+export { default as IllustratedEmptyState } from './IllustratedEmptyState'
 export { default as FilterChip, FilterChipGroup } from './FilterChip'
 export {
   SkeletonCard,
@@ -79,3 +80,6 @@ export {
   MinimalFloatingActionButton,
   NeonFloatingActionButton,
 } from './FloatingActionButton'
+
+export { ScreenHeader } from './ScreenHeader'
+export { ScreenLayout } from './ScreenLayout'

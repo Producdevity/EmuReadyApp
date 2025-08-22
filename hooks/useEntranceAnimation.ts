@@ -1,5 +1,12 @@
 import { ANIMATION_CONFIG, getBaseDelay, getStaggerDelay } from '@/lib/animation/config'
-import { FadeInDown, FadeInUp, SlideInLeft, SlideInRight } from 'react-native-reanimated'
+import {
+  BaseAnimationBuilder,
+  EntryAnimationsValues,
+  FadeInDown,
+  FadeInUp,
+  SlideInLeft,
+  SlideInRight,
+} from 'react-native-reanimated'
 
 type AnimationType = 'fadeUp' | 'fadeDown' | 'slideRight' | 'slideLeft'
 
@@ -10,9 +17,9 @@ interface EntranceAnimationConfig {
 }
 
 interface UseEntranceAnimationReturn {
-  getItemAnimation: (index: number) => any
-  getContainerAnimation: () => any
-  getHeaderAnimation: () => any
+  getItemAnimation: (index: number) => BaseAnimationBuilder
+  getContainerAnimation: () => BaseAnimationBuilder
+  getHeaderAnimation: () => BaseAnimationBuilder
 }
 
 export const useEntranceAnimation = (
@@ -20,7 +27,7 @@ export const useEntranceAnimation = (
 ): UseEntranceAnimationReturn => {
   const { type = 'fadeUp', baseDelay = 'fast', stagger = 'normal' } = config
 
-  const getAnimationBuilder = (animationType: AnimationType) => {
+  const getAnimationBuilder = (animationType: AnimationType): typeof FadeInUp => {
     switch (animationType) {
       case 'fadeDown':
         return FadeInDown
@@ -96,7 +103,7 @@ export const createStaggeredAnimation = (
   stagger: keyof typeof ANIMATION_CONFIG.stagger = 'normal',
   baseDelay: keyof typeof ANIMATION_CONFIG.baseDelay = 'fast',
 ) => {
-  const getBuilder = (type: AnimationType) => {
+  const getBuilder = (type: AnimationType): typeof FadeInUp => {
     switch (type) {
       case 'fadeDown':
         return FadeInDown

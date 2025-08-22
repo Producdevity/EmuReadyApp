@@ -189,7 +189,7 @@ export default function ReportListingModal({
                           }}
                         >
                           {selectedReason === reason.value && (
-                            <Ionicons name="checkmark" size={12} color="#fff" />
+                            <Ionicons name="checkmark" size={12} color={theme.colors.textInverse} />
                           )}
                         </View>
                       </View>
@@ -244,9 +244,9 @@ export default function ReportListingModal({
                 disabled={reportMutation.isPending || !selectedReason}
                 leftIcon={
                   reportMutation.isPending ? (
-                    <ActivityIndicator size={16} color="#fff" />
+                    <ActivityIndicator size={16} color={theme.colors.textInverse} />
                   ) : (
-                    <Ionicons name="flag" size={20} color="#fff" />
+                    <Ionicons name="flag" size={20} color={theme.colors.textInverse} />
                   )
                 }
               />

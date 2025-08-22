@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import React, { memo, useCallback, useEffect } from 'react'
-import { FlatList, RefreshControl, StyleSheet, View, type ListRenderItem } from 'react-native'
+import { FlatList, RefreshControl, StyleSheet, Text, View, type ListRenderItem } from 'react-native'
 import Animated, {
   BounceIn,
   runOnJS,
@@ -14,11 +14,8 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { ListingCard } from '@/components/cards'
-import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
-import { GlassView, HolographicView } from '@/components/themed/ThemedView'
-import { Button } from '@/components/ui'
-import FluidGradient from '@/components/ui/FluidGradient'
-import { FloatingElement, MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
+import { Button, IllustratedEmptyState } from '@/components/ui'
+import { MICRO_SPRING_CONFIG } from '@/components/ui/MicroInteractions'
 import { EnhancedSkeletonCard } from '@/components/ui/MorphingSkeleton'
 import { useTheme } from '@/contexts/ThemeContext'
 import type { Listing } from '@/types'
@@ -90,11 +87,11 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
     }
 
     return (
-      <FloatingElement intensity={2} duration={3000 + index * 200}>
+      
         <Animated.View style={[styles.listingWrapper, animatedStyle]}>
           <ListingCard listing={listing} onPress={handlePress} style={styles.listingCard} />
         </Animated.View>
-      </FloatingElement>
+      
     )
   })
 
@@ -161,49 +158,40 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
         ListHeaderComponent={ListHeaderComponent}
         ListEmptyComponent={
           <Animated.View entering={BounceIn.delay(300).springify()}>
-            <HolographicView morphing borderRadius={24} style={styles.errorCard}>
-              <FluidGradient
-                variant="cosmic"
-                borderRadius={24}
-                animated
-                speed="slow"
-                style={StyleSheet.absoluteFillObject}
-                opacity={0.1}
-              />
-
+            <View style={[styles.errorCard, { backgroundColor: theme.colors.surface }]}>
               <View style={styles.errorContent}>
-                <FloatingElement intensity={5} duration={2000}>
+                
                   <View style={styles.errorIconContainer}>
                     <LinearGradient
                       colors={[theme.colors.error, `${theme.colors.error}80`]}
                       style={styles.errorIconGradient}
                     >
-                      <Ionicons name="cloud-offline" size={48} color="#ffffff" />
+                      <Ionicons name="cloud-offline" size={48} color={theme.colors.textInverse} />
                     </LinearGradient>
                   </View>
-                </FloatingElement>
+                
 
-                <GradientTitle animated variant="scale" style={styles.errorTitle}>
+                <Text style={styles.errorTitle}>
                   Unable to Load Listings
-                </GradientTitle>
+                </Text>
 
-                <TypewriterText animated delay={500} style={styles.errorText}>
+                <Text style={styles.errorText}>
                   Please check your connection and try again.
-                </TypewriterText>
+                </Text>
 
                 {onRetry && (
-                  <FloatingElement intensity={3} duration={2500}>
+                  
                     <Button
                       title="Retry"
                       variant="gradient"
                       onPress={onRetry}
                       style={styles.retryButton}
-                      leftIcon={<Ionicons name="refresh" size={16} color="#ffffff" />}
+                      leftIcon={<Ionicons name="refresh" size={16} color={theme.colors.textInverse} />}
                     />
-                  </FloatingElement>
+                  
                 )}
               </View>
-            </HolographicView>
+            </View>
           </Animated.View>
         }
         ListFooterComponent={ListFooterComponent}
@@ -231,38 +219,13 @@ const VirtualizedListingsList: React.FC<VirtualizedListingsListProps> = ({
       ListHeaderComponent={ListHeaderComponent}
       ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={
-        <Animated.View entering={BounceIn.delay(300).springify()}>
-          <GlassView borderRadius={24} blurIntensity={30} style={styles.emptyCard}>
-            <FluidGradient
-              variant="aurora"
-              borderRadius={24}
-              animated
-              speed="normal"
-              style={StyleSheet.absoluteFillObject}
-              opacity={0.08}
-            />
-
-            <View style={styles.emptyContent}>
-              <FloatingElement intensity={4} duration={3000}>
-                <View style={styles.emptyIconContainer}>
-                  <LinearGradient
-                    colors={theme.colors.gradients.primary}
-                    style={styles.emptyIconGradient}
-                  >
-                    <Ionicons name="search" size={48} color="#ffffff" />
-                  </LinearGradient>
-                </View>
-              </FloatingElement>
-
-              <GlowText style={styles.emptyTitle}>
-                {emptyTitle}
-              </GlowText>
-
-              <TypewriterText animated delay={400} style={styles.emptyText}>
-                {emptySubtitle}
-              </TypewriterText>
-            </View>
-          </GlassView>
+        <Animated.View entering={BounceIn.delay(300).springify()} style={styles.emptyWrapper}>
+          <IllustratedEmptyState
+            type="search"
+            title={emptyTitle}
+            subtitle={emptySubtitle}
+            style={styles.emptyCard}
+          />
         </Animated.View>
       }
       refreshControl={
@@ -289,6 +252,9 @@ const createStyles = (theme: any) =>
       flexGrow: 1,
       paddingBottom: 120,
       justifyContent: 'center',
+    },
+    emptyWrapper: {
+      paddingHorizontal: 20,
     },
     listingWrapper: {
       paddingHorizontal: 20,

@@ -8,10 +8,7 @@ import {
   Alert,
   Dimensions,
   Pressable,
-  RefreshControl,
-  ScrollView,
   Share,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -32,15 +29,12 @@ import Animated, {
   withTiming,
   ZoomIn,
 } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import { Button, CachedImage, Card, EmptyState, SkeletonLoader } from '@/components/ui'
-import FluidGradient from '@/components/ui/FluidGradient'
+import { GlassView } from '@/components/themed/ThemedView'
+import { Button, CachedImage, Card, EmptyState, SkeletonLoader, ScreenLayout } from '@/components/ui'
 import {
   AnimatedPressable,
-  FloatingElement,
   MICRO_SPRING_CONFIG,
 } from '@/components/ui/MicroInteractions'
 import ReportButton from '@/components/ui/ReportButton'
@@ -66,7 +60,7 @@ export default function ListingDetailScreen() {
   const { theme } = useTheme()
   const { isSignedIn } = useAuth()
 
-  const [refreshing, setRefreshing] = useState(false)
+  const [_refreshing, _setRefreshing] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [showCommentForm, setShowCommentForm] = useState(false)
 
@@ -115,13 +109,6 @@ export default function ListingDetailScreen() {
     return { opacity }
   })
 
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
-      },
-    ],
-  }))
 
   const _heroGlowStyle = useAnimatedStyle(() => ({
     opacity: heroGlow.value,
@@ -143,19 +130,6 @@ export default function ListingDetailScreen() {
     opacity: performanceGlow.value,
   }))
 
-  const particleFlowStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(
-          particleFlow.value,
-          [0, 1],
-          [-200, SCREEN_WIDTH + 200],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
-    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
-  }))
 
   useEffect(() => {
     // Initialize cosmic background animation
@@ -203,14 +177,14 @@ export default function ListingDetailScreen() {
     },
   })
 
-  const onRefresh = async () => {
-    setRefreshing(true)
+  const _onRefresh = async () => {
+    _setRefreshing(true)
     try {
       await Promise.all([listingQuery.refetch(), commentsQuery.refetch(), userVoteQuery.refetch()])
     } catch (error) {
       console.error('Error refreshing data:', error)
     } finally {
-      setRefreshing(false)
+      _setRefreshing(false)
     }
   }
 
@@ -301,7 +275,7 @@ export default function ListingDetailScreen() {
   // Guard against missing id
   if (!id) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <ScreenLayout scrollable={false}>
         <EmptyState
           icon="alert-circle"
           title="Invalid Listing"
@@ -309,45 +283,41 @@ export default function ListingDetailScreen() {
           actionLabel="Go Back"
           onAction={() => router.back()}
         />
-      </SafeAreaView>
+      </ScreenLayout>
     )
   }
 
   // Loading state
   if (listingQuery.isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <StatusBar barStyle={theme.isDark ? 'light-content' : 'dark-content'} />
-
+      <ScreenLayout scrollable={false}>
         {/* Header Skeleton */}
         <View style={{ height: HEADER_HEIGHT }}>
           <SkeletonLoader width="100%" height={HEADER_HEIGHT} />
         </View>
 
         {/* Content Skeleton */}
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: theme.spacing.lg }}>
+        <View style={{ flex: 1, padding: theme.spacing.lg, gap: theme.spacing.lg }}>
           <SkeletonLoader
             width="100%"
             height={200}
             borderRadius={theme.borderRadius.lg}
-            style={{ marginBottom: theme.spacing.lg }}
           />
           <SkeletonLoader
             width="100%"
             height={150}
             borderRadius={theme.borderRadius.lg}
-            style={{ marginBottom: theme.spacing.lg }}
           />
           <SkeletonLoader width="100%" height={100} borderRadius={theme.borderRadius.lg} />
-        </ScrollView>
-      </View>
+        </View>
+      </ScreenLayout>
     )
   }
 
   // Error state
   if (listingQuery.error) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <ScreenLayout scrollable={false}>
         <EmptyState
           icon="alert-circle"
           title="Error Loading Report"
@@ -355,58 +325,30 @@ export default function ListingDetailScreen() {
           actionLabel="Retry"
           onAction={() => listingQuery.refetch()}
         />
-      </SafeAreaView>
+      </ScreenLayout>
     )
   }
 
   const listing = listingQuery.data
 
+  const _onRefreshListing = async () => {
+    _setRefreshing(true)
+    try {
+      await Promise.all([listingQuery.refetch(), commentsQuery.refetch(), userVoteQuery.refetch()])
+    } catch (error) {
+      console.error('Error refreshing data:', error)
+    } finally {
+      _setRefreshing(false)
+    }
+  }
+
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar translucent />
-
-      {/* Revolutionary Cosmic Background */}
-      <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
-        <FluidGradient
-          variant="aurora"
-          animated
-          speed="slow"
-          style={StyleSheet.absoluteFillObject}
-          opacity={0.3}
-        />
-      </Animated.View>
-
-      {/* Floating Particles */}
-      <Animated.View style={[{ position: 'absolute', top: '25%' }, particleFlowStyle]}>
-        <View
-          style={{
-            width: 14,
-            height: 14,
-            borderRadius: 7,
-            backgroundColor: `${theme.colors.primary}30`,
-          }}
-        />
-      </Animated.View>
-      <Animated.View style={[{ position: 'absolute', top: '55%' }, particleFlowStyle]}>
-        <View
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: 5,
-            backgroundColor: `${theme.colors.secondary}30`,
-          }}
-        />
-      </Animated.View>
-      <Animated.View style={[{ position: 'absolute', top: '85%' }, particleFlowStyle]}>
-        <View
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: 6,
-            backgroundColor: `${theme.colors.accent}30`,
-          }}
-        />
-      </Animated.View>
+    <ScreenLayout scrollable={false}>
+      {/* Simple gradient background */}
+      <LinearGradient
+        colors={theme.isDark ? [theme.colors.background, '#000000'] : [theme.colors.background, '#f5f5f5']}
+        style={StyleSheet.absoluteFillObject}
+      />
 
       {/* Hero Header */}
       <Animated.View
@@ -462,7 +404,7 @@ export default function ListingDetailScreen() {
       </Animated.View>
 
       {/* Navigation Header */}
-      <SafeAreaView style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
         <BlurView
           intensity={80}
           tint={theme.isDark ? 'dark' : 'light'}
@@ -472,6 +414,7 @@ export default function ListingDetailScreen() {
             justifyContent: 'space-between',
             paddingHorizontal: theme.spacing.lg,
             paddingVertical: theme.spacing.md,
+            paddingTop: theme.spacing.xxl,
           }}
         >
           <Pressable
@@ -523,20 +466,12 @@ export default function ListingDetailScreen() {
             </View>
           </View>
         </BlurView>
-      </SafeAreaView>
+      </View>
 
       {/* Scrollable Content */}
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.colors.primary}
-            progressViewOffset={HEADER_HEIGHT * 0.8}
-          />
-        }
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingTop: HEADER_HEIGHT - theme.spacing.xl,
@@ -710,16 +645,15 @@ export default function ListingDetailScreen() {
 
           {/* Enhanced Performance Notes */}
           {listing?.notes && (
-            <HolographicView
-              morphing
+            <GlassView
               borderRadius={theme.borderRadius.xl}
-              style={{ marginBottom: theme.spacing.lg }}
+              blurIntensity={20}
+              style={{ 
+                marginBottom: theme.spacing.lg,
+                padding: theme.spacing.lg,
+                backgroundColor: theme.colors.surface,
+              }}
             >
-              <GlassView
-                borderRadius={theme.borderRadius.xl}
-                blurIntensity={20}
-                style={{ padding: theme.spacing.lg }}
-              >
                 <GradientTitle
                   animated
                   style={{
@@ -742,19 +676,18 @@ export default function ListingDetailScreen() {
                   {listing.notes}
                 </TypewriterText>
               </GlassView>
-            </HolographicView>
           )}
 
           {/* Enhanced Voting Section - Gamepad Optimized */}
-          <HolographicView
-            morphing
-            borderRadius={theme.borderRadius.xl}
-            style={{ marginBottom: theme.spacing.lg, overflow: 'hidden' }}
+          <LinearGradient
+            colors={theme.colors.gradients.primary}
+            style={{ 
+              marginBottom: theme.spacing.lg,
+              padding: theme.spacing.lg,
+              borderRadius: theme.borderRadius.xl,
+              overflow: 'hidden',
+            }}
           >
-            <LinearGradient
-              colors={theme.colors.gradients.primary}
-              style={{ padding: theme.spacing.lg }}
-            >
               <GradientTitle
                 animated
                 style={{
@@ -787,8 +720,7 @@ export default function ListingDetailScreen() {
                   disabled={voteMutation.isPending}
                 >
                   <Animated.View style={voteScaleStyle}>
-                    <MagneticView
-                      borderRadius={theme.borderRadius.lg}
+                    <View
                       style={{
                         flexDirection: 'row',
                         alignItems: 'center',
@@ -796,15 +728,14 @@ export default function ListingDetailScreen() {
                         paddingHorizontal: theme.spacing.lg,
                         paddingVertical: theme.spacing.md,
                         opacity: userVoteQuery.data === true ? 1 : 0.7,
+                        borderRadius: theme.borderRadius.lg,
                       }}
                     >
-                      <FloatingElement intensity={1} duration={2000}>
-                        <Ionicons
-                          name={userVoteQuery.data === true ? 'thumbs-up' : 'thumbs-up-outline'}
-                          size={24}
-                          color={theme.colors.textInverse}
-                        />
-                      </FloatingElement>
+                      <Ionicons
+                        name={userVoteQuery.data === true ? 'thumbs-up' : 'thumbs-up-outline'}
+                        size={24}
+                        color={theme.colors.textInverse}
+                      />
                       <GlowText
                         style={{
                           fontSize: theme.typography.fontSize.lg,
@@ -815,7 +746,7 @@ export default function ListingDetailScreen() {
                       >
                         {listing?.upVotes || 0}
                       </GlowText>
-                    </MagneticView>
+                    </View>
                   </Animated.View>
                 </AnimatedPressable>
 
@@ -831,8 +762,7 @@ export default function ListingDetailScreen() {
                   disabled={voteMutation.isPending}
                 >
                   <Animated.View style={voteScaleStyle}>
-                    <MagneticView
-                      borderRadius={theme.borderRadius.lg}
+                    <View
                       style={{
                         flexDirection: 'row',
                         alignItems: 'center',
@@ -840,17 +770,16 @@ export default function ListingDetailScreen() {
                         paddingHorizontal: theme.spacing.lg,
                         paddingVertical: theme.spacing.md,
                         opacity: userVoteQuery.data === false ? 1 : 0.7,
+                        borderRadius: theme.borderRadius.lg,
                       }}
                     >
-                      <FloatingElement intensity={1} duration={2000}>
-                        <Ionicons
-                          name={
-                            userVoteQuery.data === false ? 'thumbs-down' : 'thumbs-down-outline'
-                          }
-                          size={24}
-                          color={theme.colors.textInverse}
-                        />
-                      </FloatingElement>
+                      <Ionicons
+                        name={
+                          userVoteQuery.data === false ? 'thumbs-down' : 'thumbs-down-outline'
+                        }
+                        size={24}
+                        color={theme.colors.textInverse}
+                      />
                       <GlowText
                         style={{
                           fontSize: theme.typography.fontSize.lg,
@@ -861,20 +790,21 @@ export default function ListingDetailScreen() {
                       >
                         {listing?.downVotes || 0}
                       </GlowText>
-                    </MagneticView>
+                    </View>
                   </Animated.View>
                 </AnimatedPressable>
               </View>
             </LinearGradient>
-          </HolographicView>
 
           {/* Enhanced Comments Section */}
-          <HolographicView morphing borderRadius={theme.borderRadius.xl}>
-            <GlassView
-              borderRadius={theme.borderRadius.xl}
-              blurIntensity={20}
-              style={{ padding: theme.spacing.lg }}
-            >
+          <GlassView
+            borderRadius={theme.borderRadius.xl}
+            blurIntensity={20}
+            style={{ 
+              padding: theme.spacing.lg,
+              backgroundColor: theme.colors.surface,
+            }}
+          >
               <View
                 style={{
                   flexDirection: 'row',
@@ -975,14 +905,13 @@ export default function ListingDetailScreen() {
                     entering={FadeInUp.delay(getStaggerDelay(index, 'fast', 'fast')).springify()}
                     style={{ marginBottom: theme.spacing.md }}
                   >
-                    <FloatingElement intensity={1} duration={3000 + index * 200}>
-                      <MagneticView
-                        borderRadius={theme.borderRadius.md}
-                        style={{
-                          backgroundColor: theme.colors.surface,
-                          padding: theme.spacing.md,
-                        }}
-                      >
+                    <View
+                      style={{
+                        backgroundColor: theme.colors.surface,
+                        padding: theme.spacing.md,
+                        borderRadius: theme.borderRadius.md,
+                      }}
+                    >
                         <View
                           style={{
                             flexDirection: 'row',
@@ -1023,31 +952,27 @@ export default function ListingDetailScreen() {
                         >
                           {comment.content}
                         </TypewriterText>
-                      </MagneticView>
-                    </FloatingElement>
+                      </View>
                   </Animated.View>
                 ))
               ) : (
-                <HolographicView morphing borderRadius={theme.borderRadius.xl}>
-                  <EmptyState
-                    icon="chatbubble"
-                    title="No Comments Yet"
-                    subtitle="Be the first to share your thoughts!"
-                    actionLabel={isSignedIn ? 'Add Comment' : 'Sign In to Comment'}
-                    onAction={() => {
-                      if (isSignedIn) {
-                        setShowCommentForm(true)
-                      } else {
-                        router.push('/(auth)/sign-in')
-                      }
-                    }}
-                  />
-                </HolographicView>
+                <EmptyState
+                  icon="chatbubble"
+                  title="No Comments Yet"
+                  subtitle="Be the first to share your thoughts!"
+                  actionLabel={isSignedIn ? 'Add Comment' : 'Sign In to Comment'}
+                  onAction={() => {
+                    if (isSignedIn) {
+                      setShowCommentForm(true)
+                    } else {
+                      router.push('/(auth)/sign-in')
+                    }
+                  }}
+                />
               )}
             </GlassView>
-          </HolographicView>
         </Animated.View>
       </Animated.ScrollView>
-    </View>
+    </ScreenLayout>
   )
 }

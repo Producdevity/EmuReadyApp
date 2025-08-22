@@ -82,11 +82,12 @@ export default function FloatingActionButton({
   // Position styles
   const getPositionStyle = () => {
     const offset = 20
+    const tabBarHeight = 80 // Account for tab bar height
     switch (position) {
       case 'bottom-right':
-        return { bottom: offset, right: offset }
+        return { bottom: offset + tabBarHeight, right: offset }
       case 'bottom-left':
-        return { bottom: offset, left: offset }
+        return { bottom: offset + tabBarHeight, left: offset }
       case 'top-right':
         return { top: offset + 50, right: offset }
       case 'top-left':
@@ -99,7 +100,7 @@ export default function FloatingActionButton({
           marginLeft: -config.size / 2,
         }
       default:
-        return { bottom: offset, right: offset }
+        return { bottom: offset + tabBarHeight, right: offset }
     }
   }
 

@@ -10,6 +10,7 @@ export interface GetListingsInput {
   systemId?: string
   deviceId?: string
   emulatorId?: string
+  emulatorIds?: string[] // Support for multiple emulator IDs
   search?: string
 }
 

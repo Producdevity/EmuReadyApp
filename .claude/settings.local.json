@@ -42,7 +42,9 @@
       "Bash(head:*)",
       "Bash(tail:*)",
       "Bash(./gradlew:*)",
-      "Bash(npm start:*)"
+      "Bash(npm start:*)",
+      "Bash(perl:*)",
+      "Bash(git diff:*)"
     ],
     "deny": []
   }

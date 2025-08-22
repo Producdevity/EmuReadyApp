@@ -325,7 +325,7 @@ export default function EmulatorDetailScreen() {
                   style={styles.emulatorStats}
                   entering={FadeInUp.delay(600).springify()}
                 >
-                  <View style={[styles.statItem, { backgroundColor: theme.colors.primaryLight }]}>
+                  <View style={[styles.statItem, { backgroundColor: theme.colors.surface }]}>
                     <Text style={[styles.statValue, { color: theme.colors.primary }]}>
                       {listings.length}
                     </Text>
@@ -452,7 +452,7 @@ export default function EmulatorDetailScreen() {
                     Performance Overview
                   </Text>
                   <View style={styles.performanceGrid}>
-                    {getPerformanceStats(listings).map((stat, index) => (
+                    {getPerformanceStats(listings, theme).map((stat, index) => (
                       <View key={index} style={styles.performanceItem}>
                         <View style={[styles.performanceDot, { backgroundColor: stat.color }]} />
                         <Text style={[styles.performanceLabel, { color: theme.colors.text }]}>
@@ -555,7 +555,7 @@ export default function EmulatorDetailScreen() {
   )
 }
 
-function getPerformanceStats(listings: any[]) {
+function getPerformanceStats(listings: any[], theme: any) {
   const stats = listings.reduce(
     (acc: any, listing: any) => {
       const rank = listing.performance?.rank || 0
@@ -574,17 +574,17 @@ function getPerformanceStats(listings: any[]) {
     .map(([label, data]: [string, any]) => ({
       label,
       count: data.count,
-      color: getPerformanceColor(data.rank),
+      color: getPerformanceColor(data.rank, theme),
     }))
     .sort((a, b) => b.count - a.count)
 }
 
-function getPerformanceColor(rank: number): string {
-  if (rank >= 5) return '#10b981' // Green for perfect
-  if (rank >= 4) return '#3b82f6' // Blue for great
-  if (rank >= 3) return '#f59e0b' // Yellow for good
-  if (rank >= 2) return '#ef4444' // Red for poor
-  return '#6b7280' // Gray for unknown
+function getPerformanceColor(rank: number, theme: any): string {
+  if (rank >= 5) return theme.colors.success // Green for perfect
+  if (rank >= 4) return theme.colors.info // Blue for great
+  if (rank >= 3) return theme.colors.warning // Yellow for good
+  if (rank >= 2) return theme.colors.error // Red for poor
+  return theme.colors.textMuted // Gray for unknown
 }
 
 const createStyles = (theme: any) =>
@@ -648,9 +648,11 @@ const createStyles = (theme: any) =>
       width: 80,
       height: 80,
       borderRadius: 40,
-      backgroundColor: theme.colors.primaryLight,
+      backgroundColor: theme.colors.surface,
       alignItems: 'center',
       justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: theme.colors.border,
     },
     emulatorInfo: {
       alignItems: 'center',
@@ -677,6 +679,8 @@ const createStyles = (theme: any) =>
       borderRadius: 12,
       alignItems: 'center',
       minWidth: 80,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
     },
     statValue: {
       fontSize: 18,

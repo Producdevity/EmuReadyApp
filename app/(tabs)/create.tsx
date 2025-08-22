@@ -2,40 +2,28 @@ import { useAuth } from '@clerk/clerk-expo'
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   Alert,
-  Dimensions,
   Pressable,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native'
 import Animated, {
   BounceIn,
-  Extrapolation,
   FadeInUp,
   SlideInLeft,
   SlideInRight,
   ZoomIn,
-  interpolate,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
-  withSequence,
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
 
-import { GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
-import { HolographicView } from '@/components/themed/ThemedView'
-import { Button, Card, SkeletonLoader } from '@/components/ui'
-import FluidGradient from '@/components/ui/FluidGradient'
-import { FloatingElement } from '@/components/ui/MicroInteractions'
+import { ThemedText } from '@/components/themed'
+import { GlassView } from '@/components/themed/ThemedView'
+import { Button, Card, SkeletonLoader, ScreenLayout, ScreenHeader } from '@/components/ui'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useCreateListing, useDevices, useEmulators, useGames } from '@/lib/api/hooks'
 import type { Device, Game } from '@/types'
@@ -48,8 +36,6 @@ interface FormData {
   notes: string
 }
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window')
-const HEADER_HEIGHT = SCREEN_HEIGHT * 0.2
 
 export default function CreateScreen() {
   const { isSignedIn } = useAuth()
@@ -70,39 +56,9 @@ export default function CreateScreen() {
   const emulatorsQuery = useEmulators({})
   const createListingMutation = useCreateListing()
 
-  // Enhanced 2025 animation values
+  // Simplified animation values
   const fadeAnim = useSharedValue(1)
   const progressAnim = useSharedValue(0.2)
-  const heroGlow = useSharedValue(0)
-  const backgroundShift = useSharedValue(0)
-  const stepFloat = useSharedValue(0)
-  const particleFlow = useSharedValue(0)
-
-  useEffect(() => {
-    // Initialize cosmic background animation
-    backgroundShift.value = withRepeat(
-      withSequence(withTiming(1, { duration: 12000 }), withTiming(0, { duration: 12000 })),
-      -1,
-      true,
-    )
-
-    // Hero glow animation
-    heroGlow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 2500 }), withTiming(0.4, { duration: 2500 })),
-      -1,
-      true,
-    )
-
-    // Step floating animation
-    // stepFloat.value = withRepeat(
-    //   withSequence(withTiming(8, { duration: 5000 }), withTiming(-8, { duration: 5000 })),
-    //   -1,
-    //   true,
-    // )
-
-    // Particle flow animation
-    particleFlow.value = withRepeat(withTiming(1, { duration: 8000 }), -1, false)
-  }, [backgroundShift, heroGlow, particleFlow, stepFloat])
 
   const steps = [
     { step: 1, title: 'Select Game', icon: 'game-controller', completed: !!formData.gameId },
@@ -257,7 +213,7 @@ export default function CreateScreen() {
       case 1:
         return (
           <View>
-            <Text
+            <ThemedText
               style={{
                 fontSize: theme.typography.fontSize.xl,
                 fontWeight: theme.typography.fontWeight.bold,
@@ -266,8 +222,8 @@ export default function CreateScreen() {
               }}
             >
               Step 1: Select Game
-            </Text>
-            <Text
+            </ThemedText>
+            <ThemedText
               style={{
                 fontSize: theme.typography.fontSize.md,
                 color: theme.colors.textSecondary,
@@ -276,7 +232,7 @@ export default function CreateScreen() {
               }}
             >
               Choose the game you want to create a performance listing for
-            </Text>
+            </ThemedText>
 
             <View style={{ marginBottom: theme.spacing.lg }}>
               <View
@@ -350,24 +306,24 @@ export default function CreateScreen() {
                         }}
                       >
                         <View style={{ padding: theme.spacing.md }}>
-                          <Text
+                          <ThemedText
+                            type="defaultSemiBold"
                             style={{
                               fontSize: theme.typography.fontSize.md,
-                              fontWeight: theme.typography.fontWeight.semibold,
-                              color: theme.colors.text,
                               marginBottom: theme.spacing.xs,
                             }}
                           >
                             {game.title}
-                          </Text>
-                          <Text
+                          </ThemedText>
+                          <ThemedText
+                            type="caption"
                             style={{
                               fontSize: theme.typography.fontSize.sm,
                               color: theme.colors.textMuted,
                             }}
                           >
                             {game.system?.name}
-                          </Text>
+                          </ThemedText>
                         </View>
                       </Card>
                     </Pressable>
@@ -386,7 +342,8 @@ export default function CreateScreen() {
                     color={theme.colors.textMuted}
                     style={{ marginBottom: theme.spacing.md }}
                   />
-                  <Text
+                  <ThemedText
+                    type="subtitle"
                     style={{
                       fontSize: theme.typography.fontSize.md,
                       color: theme.colors.textMuted,
@@ -396,7 +353,7 @@ export default function CreateScreen() {
                     {searchQuery
                       ? 'No games found. Try a different search.'
                       : 'Start typing to search for games.'}
-                  </Text>
+                  </ThemedText>
                 </View>
               )}
             </View>
@@ -406,17 +363,17 @@ export default function CreateScreen() {
       case 2:
         return (
           <View>
-            <Text
+            <ThemedText
+              type="title"
               style={{
                 fontSize: theme.typography.fontSize.xl,
-                fontWeight: theme.typography.fontWeight.bold,
-                color: theme.colors.text,
                 marginBottom: theme.spacing.sm,
               }}
             >
               Step 2: Choose Device
-            </Text>
-            <Text
+            </ThemedText>
+            <ThemedText
+              type="subtitle"
               style={{
                 fontSize: theme.typography.fontSize.md,
                 color: theme.colors.textSecondary,
@@ -425,7 +382,7 @@ export default function CreateScreen() {
               }}
             >
               Select the device you tested the game on
-            </Text>
+            </ThemedText>
 
             <View style={{ gap: theme.spacing.sm }}>
               {devicesQuery.isLoading ? (
@@ -469,31 +426,32 @@ export default function CreateScreen() {
                         }}
                       >
                         <View style={{ padding: theme.spacing.md }}>
-                          <Text
+                          <ThemedText
+                            type="defaultSemiBold"
                             style={{
                               fontSize: theme.typography.fontSize.md,
-                              fontWeight: theme.typography.fontWeight.semibold,
-                              color: theme.colors.text,
                               marginBottom: theme.spacing.xs,
                             }}
                           >
                             {device.brand?.name} {device.modelName}
-                          </Text>
-                          <Text
+                          </ThemedText>
+                          <ThemedText
+                            type="caption"
                             style={{
                               fontSize: theme.typography.fontSize.sm,
                               color: theme.colors.textMuted,
                             }}
                           >
                             {device.soc?.name || 'Unknown SoC'}
-                          </Text>
+                          </ThemedText>
                         </View>
                       </Card>
                     </Pressable>
                   </Animated.View>
                 ))
               ) : (
-                <Text
+                <ThemedText
+                  type="subtitle"
                   style={{
                     fontSize: theme.typography.fontSize.md,
                     color: theme.colors.textMuted,
@@ -502,7 +460,7 @@ export default function CreateScreen() {
                   }}
                 >
                   No devices available.
-                </Text>
+                </ThemedText>
               )}
             </View>
           </View>
@@ -511,7 +469,7 @@ export default function CreateScreen() {
       case 3:
         return (
           <View>
-            <Text
+            <ThemedText
               style={{
                 fontSize: theme.typography.fontSize.xl,
                 fontWeight: theme.typography.fontWeight.bold,
@@ -520,8 +478,8 @@ export default function CreateScreen() {
               }}
             >
               Step 3: Pick Emulator
-            </Text>
-            <Text
+            </ThemedText>
+            <ThemedText
               style={{
                 fontSize: theme.typography.fontSize.md,
                 color: theme.colors.textSecondary,
@@ -530,7 +488,7 @@ export default function CreateScreen() {
               }}
             >
               Choose the emulator you used for testing
-            </Text>
+            </ThemedText>
 
             <View style={{ gap: theme.spacing.sm }}>
               {emulatorsQuery.isLoading ? (
@@ -574,7 +532,7 @@ export default function CreateScreen() {
                           }}
                         >
                           <View style={{ padding: theme.spacing.md }}>
-                            <Text
+                            <ThemedText
                               style={{
                                 fontSize: theme.typography.fontSize.md,
                                 fontWeight: theme.typography.fontWeight.semibold,
@@ -583,15 +541,15 @@ export default function CreateScreen() {
                               }}
                             >
                               {emulator.name}
-                            </Text>
-                            <Text
+                            </ThemedText>
+                            <ThemedText
                               style={{
                                 fontSize: theme.typography.fontSize.sm,
                                 color: theme.colors.textMuted,
                               }}
                             >
                               {emulator.description}
-                            </Text>
+                            </ThemedText>
                           </View>
                         </Card>
                       </Pressable>
@@ -610,7 +568,7 @@ export default function CreateScreen() {
                     color={theme.colors.textMuted}
                     style={{ marginBottom: theme.spacing.md }}
                   />
-                  <Text
+                  <ThemedText
                     style={{
                       fontSize: theme.typography.fontSize.md,
                       color: theme.colors.textMuted,
@@ -618,7 +576,7 @@ export default function CreateScreen() {
                     }}
                   >
                     {emulatorsQuery.error ? 'Failed to load emulators. Please try again.' : 'No emulators available.'}
-                  </Text>
+                  </ThemedText>
                   {emulatorsQuery.error && (
                     <Button
                       title="Retry"
@@ -637,7 +595,7 @@ export default function CreateScreen() {
       case 4:
         return (
           <View>
-            <Text
+            <ThemedText
               style={{
                 fontSize: theme.typography.fontSize.xl,
                 fontWeight: theme.typography.fontWeight.bold,
@@ -646,8 +604,8 @@ export default function CreateScreen() {
               }}
             >
               Step 4: Rate Performance
-            </Text>
-            <Text
+            </ThemedText>
+            <ThemedText
               style={{
                 fontSize: theme.typography.fontSize.md,
                 color: theme.colors.textSecondary,
@@ -656,7 +614,7 @@ export default function CreateScreen() {
               }}
             >
               How well did the game perform on your setup?
-            </Text>
+            </ThemedText>
 
             <View style={{ gap: theme.spacing.sm }}>
               {performanceOptions.map((option, index) => (
@@ -706,7 +664,7 @@ export default function CreateScreen() {
                             }}
                           >
                             <Ionicons name={option.icon as any} size={24} color={option.color} />
-                            <Text
+                            <ThemedText
                               style={{
                                 fontSize: theme.typography.fontSize.lg,
                                 fontWeight: theme.typography.fontWeight.bold,
@@ -714,7 +672,7 @@ export default function CreateScreen() {
                               }}
                             >
                               {option.label}
-                            </Text>
+                            </ThemedText>
                           </View>
                           <View
                             style={{
@@ -724,7 +682,7 @@ export default function CreateScreen() {
                               borderRadius: theme.borderRadius.sm,
                             }}
                           >
-                            <Text
+                            <ThemedText
                               style={{
                                 fontSize: theme.typography.fontSize.xs,
                                 fontWeight: theme.typography.fontWeight.bold,
@@ -732,10 +690,10 @@ export default function CreateScreen() {
                               }}
                             >
                               {'★'.repeat(option.rank)}
-                            </Text>
+                            </ThemedText>
                           </View>
                         </View>
-                        <Text
+                        <ThemedText
                           style={{
                             fontSize: theme.typography.fontSize.sm,
                             color: theme.colors.textSecondary,
@@ -744,7 +702,7 @@ export default function CreateScreen() {
                           }}
                         >
                           {option.description}
-                        </Text>
+                        </ThemedText>
                       </LinearGradient>
                     </Card>
                   </Pressable>
@@ -757,7 +715,7 @@ export default function CreateScreen() {
       case 5:
         return (
           <View>
-            <Text
+            <ThemedText
               style={{
                 fontSize: theme.typography.fontSize.xl,
                 fontWeight: theme.typography.fontWeight.bold,
@@ -766,8 +724,8 @@ export default function CreateScreen() {
               }}
             >
               Step 5: Add Notes (Optional)
-            </Text>
-            <Text
+            </ThemedText>
+            <ThemedText
               style={{
                 fontSize: theme.typography.fontSize.md,
                 color: theme.colors.textSecondary,
@@ -776,7 +734,7 @@ export default function CreateScreen() {
               }}
             >
               Share any additional details about your experience
-            </Text>
+            </ThemedText>
 
             <TextInput
               style={{
@@ -804,7 +762,7 @@ export default function CreateScreen() {
                 colors={theme.colors.gradients.card}
                 style={{ padding: theme.spacing.lg }}
               >
-                <Text
+                <ThemedText
                   style={{
                     fontSize: theme.typography.fontSize.lg,
                     fontWeight: theme.typography.fontWeight.bold,
@@ -813,7 +771,7 @@ export default function CreateScreen() {
                   }}
                 >
                   Review Your Listing
-                </Text>
+                </ThemedText>
 
                 <View style={{ gap: theme.spacing.md }}>
                   <View
@@ -826,7 +784,7 @@ export default function CreateScreen() {
                       borderBottomColor: theme.colors.border,
                     }}
                   >
-                    <Text
+                    <ThemedText
                       style={{
                         fontSize: theme.typography.fontSize.md,
                         fontWeight: theme.typography.fontWeight.medium,
@@ -834,8 +792,8 @@ export default function CreateScreen() {
                       }}
                     >
                       Game:
-                    </Text>
-                    <Text
+                    </ThemedText>
+                    <ThemedText
                       style={{
                         fontSize: theme.typography.fontSize.md,
                         fontWeight: theme.typography.fontWeight.semibold,
@@ -846,7 +804,7 @@ export default function CreateScreen() {
                     >
                       {gamesQuery.data?.find((g: Game) => g.id === formData.gameId)?.title ||
                         'Selected'}
-                    </Text>
+                    </ThemedText>
                   </View>
 
                   <View
@@ -859,7 +817,7 @@ export default function CreateScreen() {
                       borderBottomColor: theme.colors.border,
                     }}
                   >
-                    <Text
+                    <ThemedText
                       style={{
                         fontSize: theme.typography.fontSize.md,
                         fontWeight: theme.typography.fontWeight.medium,
@@ -867,8 +825,8 @@ export default function CreateScreen() {
                       }}
                     >
                       Device:
-                    </Text>
-                    <Text
+                    </ThemedText>
+                    <ThemedText
                       style={{
                         fontSize: theme.typography.fontSize.md,
                         fontWeight: theme.typography.fontWeight.semibold,
@@ -879,7 +837,7 @@ export default function CreateScreen() {
                     >
                       {devicesQuery.data?.find((d: Device) => d.id === formData.deviceId)
                         ?.modelName || 'Selected'}
-                    </Text>
+                    </ThemedText>
                   </View>
 
                   <View
@@ -889,7 +847,7 @@ export default function CreateScreen() {
                       alignItems: 'center',
                     }}
                   >
-                    <Text
+                    <ThemedText
                       style={{
                         fontSize: theme.typography.fontSize.md,
                         fontWeight: theme.typography.fontWeight.medium,
@@ -897,7 +855,7 @@ export default function CreateScreen() {
                       }}
                     >
                       Performance:
-                    </Text>
+                    </ThemedText>
                     <View
                       style={{
                         backgroundColor:
@@ -908,7 +866,7 @@ export default function CreateScreen() {
                         borderRadius: theme.borderRadius.md,
                       }}
                     >
-                      <Text
+                      <ThemedText
                         style={{
                           fontSize: theme.typography.fontSize.sm,
                           fontWeight: theme.typography.fontWeight.semibold,
@@ -917,7 +875,7 @@ export default function CreateScreen() {
                       >
                         {performanceOptions.find((p) => p.id === formData.performanceId)?.label ||
                           'Selected'}
-                      </Text>
+                      </ThemedText>
                     </View>
                   </View>
                 </View>
@@ -931,40 +889,10 @@ export default function CreateScreen() {
     }
   }
 
-  // Animated styles - must be defined before any conditional returns
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(backgroundShift.value, [0, 1], [-30, 30], Extrapolation.CLAMP),
-      },
-    ],
-  }))
-
-  const heroGlowStyle = useAnimatedStyle(() => ({
-    opacity: heroGlow.value,
-  }))
-
-  const stepFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: 0 }],
-  }))
-
-  const particleFlowStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(particleFlow.value, [0, 1], [-150, 400], Extrapolation.CLAMP),
-      },
-    ],
-    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
-  }))
 
   if (!isSignedIn) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <StatusBar
-          barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-          backgroundColor="transparent"
-          translucent
-        />
+      <ScreenLayout scrollable={false}>
         <View
           style={{
             flex: 1,
@@ -995,18 +923,19 @@ export default function CreateScreen() {
                 >
                   <Ionicons name="lock-closed" size={40} color={theme.colors.textInverse} />
                 </View>
-                <Text
+                <ThemedText
+                  type="title"
                   style={{
                     fontSize: theme.typography.fontSize.xxl,
-                    fontWeight: theme.typography.fontWeight.bold,
                     color: theme.colors.textInverse,
                     marginBottom: theme.spacing.sm,
                     textAlign: 'center',
                   }}
                 >
                   Sign In Required
-                </Text>
-                <Text
+                </ThemedText>
+                <ThemedText
+                  type="subtitle"
                   style={{
                     fontSize: theme.typography.fontSize.md,
                     color: `${theme.colors.textInverse}CC`,
@@ -1016,7 +945,7 @@ export default function CreateScreen() {
                   }}
                 >
                   You need to be signed in to create listings and share your emulation experiences.
-                </Text>
+                </ThemedText>
                 <Button
                   title="Go to Profile"
                   variant="primary"
@@ -1031,102 +960,32 @@ export default function CreateScreen() {
             </Card>
           </Animated.View>
         </View>
-      </SafeAreaView>
+      </ScreenLayout>
     )
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar
-        barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-        backgroundColor="transparent"
-        translucent
-      />
+    <ScreenLayout>
+          {/* Header */}
+          <ScreenHeader
+            title="Create Listing"
+            subtitle="Share your emulation performance data with the community"
+            variant="default"
+            animated
+          />
+          
 
-      {/* Revolutionary Aurora Background */}
-      <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
-        <FluidGradient
-          variant="cosmic"
-          animated
-          speed="slow"
-          style={StyleSheet.absoluteFillObject}
-          opacity={0.2}
-        />
-      </Animated.View>
-
-      {/* Enhanced Gradient Overlay */}
-      <LinearGradient
-        colors={theme.colors.gradients.hero}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: HEADER_HEIGHT + 100,
-          opacity: 0.8,
-        }}
-      />
-
-      {/* Floating Particles */}
-      <Animated.View style={[styles.particle, { top: '15%' }, particleFlowStyle]}>
-        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.primary}50` }]} />
-      </Animated.View>
-      <Animated.View style={[styles.particle, { top: '35%' }, particleFlowStyle]}>
-        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.secondary}50` }]} />
-      </Animated.View>
-      <Animated.View style={[styles.particle, { top: '55%' }, particleFlowStyle]}>
-        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.accent}50` }]} />
-      </Animated.View>
-
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView
-          style={{ flex: 1 }}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: theme.spacing.xxxl }}
-        >
-          {/* Revolutionary Hero Header */}
-          <FloatingElement intensity={4} duration={5000}>
-            <View style={styles.headerContainer}>
-              {/* Hero glow effect */}
-              <Animated.View style={[styles.headerGlow, heroGlowStyle]}>
-                <LinearGradient
-                  colors={['transparent', `${theme.colors.primary}40`, 'transparent']}
-                  style={StyleSheet.absoluteFillObject}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                />
-              </Animated.View>
-
-              <Animated.View entering={SlideInLeft.delay(200).springify().damping(15)}>
-                <GradientTitle animated style={styles.heroTitle}>
-                  Create Listing
-                </GradientTitle>
-
-                <TypewriterText animated delay={300} style={styles.heroSubtitle}>
-                  Share your emulation performance data with the community using next-gen precision
-                </TypewriterText>
-              </Animated.View>
-            </View>
-          </FloatingElement>
-
-          {/* Revolutionary Progress Section */}
+          {/* Progress Section */}
           <Animated.View
             entering={BounceIn.delay(400).springify().damping(12)}
-            style={stepFloatStyle}
+            style={{
+              paddingHorizontal: theme.spacing.lg,
+              marginBottom: theme.spacing.xl,
+            }}
           >
-            <FloatingElement intensity={2} duration={6000}>
-              <View style={styles.progressContainer}>
-                <HolographicView morphing borderRadius={24} style={styles.progressCard}>
-                  <FluidGradient
-                    variant="aurora"
-                    borderRadius={24}
-                    animated
-                    speed="normal"
-                    style={StyleSheet.absoluteFillObject}
-                    opacity={0.15}
-                  />
-
-                  <View style={styles.progressContent}>
+            <GlassView style={{
+              padding: theme.spacing.lg,
+            }}>
                     <View
                       style={{
                         flexDirection: 'row',
@@ -1173,7 +1032,8 @@ export default function CreateScreen() {
                               }
                             />
                           </View>
-                          <Text
+                          <ThemedText
+                            type="caption"
                             style={{
                               fontSize: theme.typography.fontSize.xs,
                               fontWeight:
@@ -1188,7 +1048,7 @@ export default function CreateScreen() {
                             }}
                           >
                             {step.title}
-                          </Text>
+                          </ThemedText>
                         </View>
                       ))}
                     </View>
@@ -1213,10 +1073,7 @@ export default function CreateScreen() {
                         ]}
                       />
                     </View>
-                  </View>
-                </HolographicView>
-              </View>
-            </FloatingElement>
+            </GlassView>
           </Animated.View>
 
           {/* Form Content */}
@@ -1283,15 +1140,15 @@ export default function CreateScreen() {
                         gap: theme.spacing.sm,
                       }}
                     >
-                      <Text
+                      <ThemedText
+                        type="defaultSemiBold"
                         style={{
                           fontSize: theme.typography.fontSize.md,
-                          fontWeight: theme.typography.fontWeight.semibold,
                           color: theme.colors.textInverse,
                         }}
                       >
                         Next
-                      </Text>
+                      </ThemedText>
                       <Ionicons name="arrow-forward" size={16} color={theme.colors.textInverse} />
                     </LinearGradient>
                   </Pressable>
@@ -1320,15 +1177,15 @@ export default function CreateScreen() {
                       }}
                     >
                       {createListingMutation.isPending ? (
-                        <Text
+                        <ThemedText
+                          type="defaultSemiBold"
                           style={{
                             fontSize: theme.typography.fontSize.md,
-                            fontWeight: theme.typography.fontWeight.semibold,
                             color: theme.colors.textInverse,
                           }}
                         >
                           Creating...
-                        </Text>
+                        </ThemedText>
                       ) : (
                         <>
                           <Ionicons
@@ -1336,15 +1193,15 @@ export default function CreateScreen() {
                             size={20}
                             color={theme.colors.textInverse}
                           />
-                          <Text
+                          <ThemedText
+                            type="defaultSemiBold"
                             style={{
                               fontSize: theme.typography.fontSize.md,
-                              fontWeight: theme.typography.fontWeight.semibold,
                               color: theme.colors.textInverse,
                             }}
                           >
                             Create Listing
-                          </Text>
+                          </ThemedText>
                         </>
                       )}
                     </LinearGradient>
@@ -1353,60 +1210,7 @@ export default function CreateScreen() {
               </Animated.View>
             </View>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+    </ScreenLayout>
   )
 }
 
-const styles = StyleSheet.create({
-  particle: {
-    position: 'absolute',
-    left: -20,
-  },
-  particleDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  headerContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 24,
-    position: 'relative',
-  },
-  headerGlow: {
-    position: 'absolute',
-    top: 16,
-    left: 8,
-    right: 8,
-    bottom: 8,
-    borderRadius: 24,
-  },
-  heroTitle: {
-    fontSize: 32,
-    fontWeight: '900',
-    marginBottom: 8,
-    position: 'relative',
-    zIndex: 1,
-  },
-  heroSubtitle: {
-    fontSize: 18,
-    lineHeight: 28,
-    position: 'relative',
-    zIndex: 1,
-  },
-  progressContainer: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  progressCard: {
-    padding: 24,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  progressContent: {
-    position: 'relative',
-    zIndex: 1,
-  },
-})

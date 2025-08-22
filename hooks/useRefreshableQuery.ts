@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-type RefetchFunction = () => Promise<any> | void
+type RefetchFunction = () => Promise<unknown> | void
 
 interface UseRefreshableQueryProps {
   queries: RefetchFunction[]

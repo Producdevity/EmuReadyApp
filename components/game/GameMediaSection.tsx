@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import React, { memo, useEffect, useState } from 'react'
-import { Image, ScrollView, StyleSheet, View } from 'react-native'
+import { Image, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -14,12 +14,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import FluidGradient from '@/components/ui/FluidGradient'
 import {
-  AnimatedPressable,
-  FloatingElement,
   MICRO_SPRING_CONFIG,
 } from '@/components/ui/MicroInteractions'
 import MorphingSkeleton from '@/components/ui/MorphingSkeleton'
@@ -119,23 +114,15 @@ export default function GameMediaSection({
   }
 
   return (
-    <FloatingElement intensity={2} duration={4000}>
-      <GlassView
-        borderRadius={20}
-        blurIntensity={25}
-        style={{ marginBottom: compact ? theme.spacing.md : theme.spacing.lg }}
-      >
-        {/* Holographic overlay */}
-        <FluidGradient
-          variant="gaming"
-          borderRadius={20}
-          animated
-          speed="slow"
-          style={StyleSheet.absoluteFillObject}
-          opacity={0.05}
-        />
-
-        <View style={styles.content}>
+    <View
+      style={[{
+        marginBottom: compact ? theme.spacing.md : theme.spacing.lg,
+        backgroundColor: theme.colors.surface,
+        borderRadius: 20,
+        overflow: 'hidden'
+      }]}
+    >
+      <View style={styles.content}>
           <View style={styles.header}>
             {/* Header glow effect */}
             <Animated.View style={[styles.headerGlow, headerGlowStyle]}>
@@ -147,24 +134,24 @@ export default function GameMediaSection({
               />
             </Animated.View>
 
-            <GradientTitle animated variant="scale" style={styles.headerTitle}>
+            <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
               Game Media
-            </GradientTitle>
+            </Text>
 
             {!compact && (
-              <AnimatedPressable onPress={handleViewAllPress}>
-                <MagneticView borderRadius={12} style={styles.viewAllButton}>
-                  <GlowText style={styles.viewAllText}>View All</GlowText>
-                </MagneticView>
-              </AnimatedPressable>
+              <TouchableOpacity onPress={handleViewAllPress}>
+                <View style={[styles.viewAllButton, { backgroundColor: `${theme.colors.primary}20` }]}>
+                  <Text style={[styles.viewAllText, { color: theme.colors.primary }]}>View All</Text>
+                </View>
+              </TouchableOpacity>
             )}
           </View>
 
           {/* Enhanced Source Selector */}
           {!compact && (
             <Animated.View style={selectorAnimatedStyle}>
-              <HolographicView morphing borderRadius={16} style={styles.sourceSelector}>
-                <AnimatedPressable onPress={() => handleSourceChange('rawg')}>
+              <View style={[styles.sourceSelector, { backgroundColor: theme.colors.surface }]}>
+                <TouchableOpacity onPress={() => handleSourceChange('rawg')}>
                   <View
                     style={[
                       styles.sourceButton,
@@ -177,18 +164,19 @@ export default function GameMediaSection({
                         style={StyleSheet.absoluteFillObject}
                       />
                     )}
-                    <GlowText
+                    <Text
                       style={[
                         styles.sourceButtonText,
+                        { color: selectedSource === 'rawg' ? theme.colors.textInverse : theme.colors.text },
                         selectedSource === 'rawg' && styles.sourceButtonTextActive,
                       ]}
                     >
                       RAWG
-                    </GlowText>
+                    </Text>
                   </View>
-                </AnimatedPressable>
+                </TouchableOpacity>
 
-                <AnimatedPressable onPress={() => handleSourceChange('tgdb')}>
+                <TouchableOpacity onPress={() => handleSourceChange('tgdb')}>
                   <View
                     style={[
                       styles.sourceButton,
@@ -201,17 +189,18 @@ export default function GameMediaSection({
                         style={StyleSheet.absoluteFillObject}
                       />
                     )}
-                    <GlowText
+                    <Text
                       style={[
                         styles.sourceButtonText,
+                        { color: selectedSource === 'tgdb' ? theme.colors.textInverse : theme.colors.text },
                         selectedSource === 'tgdb' && styles.sourceButtonTextActive,
                       ]}
                     >
                       TGDB
-                    </GlowText>
+                    </Text>
                   </View>
-                </AnimatedPressable>
-              </HolographicView>
+                </TouchableOpacity>
+              </View>
             </Animated.View>
           )}
 
@@ -251,79 +240,58 @@ export default function GameMediaSection({
 
                   {/* Enhanced View More Button */}
                   {data.length > (compact ? 3 : 6) && (
-                    <AnimatedPressable onPress={handleViewAllPress}>
-                      <MagneticView
-                        borderRadius={16}
-                        animated
+                    <TouchableOpacity onPress={handleViewAllPress}>
+                      <View
                         style={[
                           styles.viewMoreButton,
                           {
                             width: compact ? 100 : 120,
                             height: compact ? 60 : 80,
+                            backgroundColor: theme.colors.surface,
                           },
                         ]}
                       >
-                        <FluidGradient
-                          variant="aurora"
-                          borderRadius={16}
-                          animated
-                          speed="fast"
-                          style={StyleSheet.absoluteFillObject}
-                          opacity={0.1}
-                        />
-
-                        <FloatingElement intensity={3} duration={2000}>
-                          <Ionicons name="add" size={24} color={theme.colors.primary} />
-                        </FloatingElement>
-
-                        <TypewriterText
-                          type="caption"
-                          animated
-                          delay={200}
-                          style={styles.viewMoreText}
+                        <Ionicons name="add" size={24} color={theme.colors.primary} />
+                        <Text
+                          style={[styles.viewMoreText, { color: theme.colors.text }]}
                         >
                           View More
-                        </TypewriterText>
-                      </MagneticView>
-                    </AnimatedPressable>
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
                   )}
                 </View>
               </ScrollView>
             </Animated.View>
           ) : (
-            <GlassView borderRadius={16} style={styles.emptyState}>
-              <FloatingElement intensity={4} duration={3000}>
-                <View style={styles.emptyIconContainer}>
-                  <LinearGradient
-                    colors={[theme.colors.textMuted, `${theme.colors.textMuted}80`]}
-                    style={styles.emptyIconGradient}
-                  >
-                    <Ionicons name="images-outline" size={32} color="#ffffff" />
-                  </LinearGradient>
-                </View>
-              </FloatingElement>
-
-              <TypewriterText animated delay={300} style={styles.emptyText}>
+            <View style={[styles.emptyState, { backgroundColor: theme.colors.surface }]}>
+              <View style={styles.emptyIconContainer}>
+                <LinearGradient
+                  colors={[theme.colors.textMuted, `${theme.colors.textMuted}80`]}
+                  style={styles.emptyIconGradient}
+                >
+                  <Ionicons name="images-outline" size={32} color={theme.colors.textInverse} />
+                </LinearGradient>
+              </View>
+              <Text style={[styles.emptyText, { color: theme.colors.textMuted }]}>
                 No media found
-              </TypewriterText>
-            </GlassView>
+              </Text>
+            </View>
           )}
 
           {/* Enhanced Media Stats */}
           {data && data.length > 0 && !compact && (
-            <HolographicView borderRadius={12} style={styles.statsContainer}>
-              <TypewriterText type="caption" animated delay={500} style={styles.statsText}>
+            <View style={[styles.statsContainer, { backgroundColor: theme.colors.surface }]}>
+              <Text style={[styles.statsText, { color: theme.colors.textMuted }]}>
                 {data.length} images available
-              </TypewriterText>
-
-              <TypewriterText type="caption" animated delay={600} style={styles.statsText}>
+              </Text>
+              <Text style={[styles.statsText, { color: theme.colors.textMuted }]}>
                 Source: {selectedSource.toUpperCase()}
-              </TypewriterText>
-            </HolographicView>
+              </Text>
+            </View>
           )}
         </View>
-      </GlassView>
-    </FloatingElement>
+      </View>
   )
 }
 
@@ -361,12 +329,9 @@ const MediaImageCard = memo(function MediaImageCard({
   }))
 
   return (
-    <AnimatedPressable onPress={onPress} style={styles.mediaCard}>
+    <TouchableOpacity onPress={onPress} style={styles.mediaCard}>
       <Animated.View style={animatedStyle}>
-        <MagneticView
-          borderRadius={16}
-          animated
-          hoverable
+        <View
           style={[
             styles.mediaImageContainer,
             {
@@ -390,27 +355,22 @@ const MediaImageCard = memo(function MediaImageCard({
               />
             </>
           ) : (
-            <GlassView borderRadius={16} style={styles.placeholderContainer}>
-              <FloatingElement intensity={2} duration={2000}>
-                <Ionicons name="image-outline" size={24} color={theme.colors.textMuted} />
-              </FloatingElement>
-            </GlassView>
+            <View style={[styles.placeholderContainer, { backgroundColor: theme.colors.surface }]}>
+              <Ionicons name="image-outline" size={24} color={theme.colors.textMuted} />
+            </View>
           )}
-        </MagneticView>
+        </View>
 
         {!compact && (
-          <TypewriterText
-            type="caption"
-            animated
-            delay={index * 50 + 200}
-            style={[styles.mediaTitle, { width: 120 }]}
+          <Text
+            style={[styles.mediaTitle, { width: 120, color: theme.colors.textMuted }]}
             numberOfLines={1}
           >
             {item.name}
-          </TypewriterText>
+          </Text>
         )}
       </Animated.View>
-    </AnimatedPressable>
+    </TouchableOpacity>
   )
 })
 
@@ -438,6 +398,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     position: 'relative',
     zIndex: 1,
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   viewAllButton: {
     paddingHorizontal: 12,

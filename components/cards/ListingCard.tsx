@@ -316,7 +316,7 @@ function createStyles(theme: any) {
     },
     performanceText: {
       fontSize: theme.typography.fontSize.xs,
-      color: '#ffffff',
+      color: theme.colors.textInverse,
       fontWeight: theme.typography.fontWeight.semibold,
     },
     deviceInfo: {
@@ -407,7 +407,7 @@ function createStyles(theme: any) {
       zIndex: 1,
     },
     voteButtonTextActive: {
-      color: '#ffffff',
+      color: theme.colors.textInverse,
     },
   })
 }

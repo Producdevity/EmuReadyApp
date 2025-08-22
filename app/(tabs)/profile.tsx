@@ -1,10 +1,8 @@
 import { ListingCard } from '@/components/cards'
-import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import FluidGradient from '@/components/ui/FluidGradient'
+import { ThemedText } from '@/components/themed'
+import { GlassView } from '@/components/themed/ThemedView'
 import {
   AnimatedPressable,
-  FloatingElement,
   MICRO_SPRING_CONFIG,
 } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -13,43 +11,33 @@ import { useAuthHelpers, transformClerkUser } from '@/lib/auth/clerk'
 import type { Listing } from '@/types'
 import { useAuth } from '@clerk/clerk-expo'
 import { Ionicons } from '@expo/vector-icons'
-import { BlurView } from 'expo-blur'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Switch,
-  Text,
   View,
 } from 'react-native'
 import Animated, {
   BounceIn,
-  Extrapolation,
-  interpolate,
   runOnJS,
   SlideInLeft,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withSequence,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated'
 import EditProfileModal from '@/components/modals/EditProfileModal'
-import { Button, Card } from '../../components/ui'
+import { Button, Card, ScreenLayout } from '../../components/ui'
+import IllustratedEmptyState from '@/components/ui/IllustratedEmptyState'
 
 type ProfileTab = 'listings' | 'favorites' | 'activity'
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window')
-const HEADER_HEIGHT = SCREEN_HEIGHT * 0.25
+// const { height: SCREEN_HEIGHT } = Dimensions.get('window')
+// const HEADER_HEIGHT = SCREEN_HEIGHT * 0.25
 
 export default function ProfileScreen() {
   const router = useRouter()
@@ -61,46 +49,8 @@ export default function ProfileScreen() {
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
 
-  // Enhanced 2025 animation values
-  const heroGlow = useSharedValue(0)
-  const profileFloat = useSharedValue(0)
-  const backgroundShift = useSharedValue(0)
+  // Simplified animation values
   const tabScale = useSharedValue(1)
-  const statsFloat = useSharedValue(0)
-  const particleFlow = useSharedValue(0)
-
-  useEffect(() => {
-    // Initialize cosmic background animation
-    backgroundShift.value = withRepeat(
-      withSequence(withTiming(1, { duration: 15000 }), withTiming(0, { duration: 15000 })),
-      -1,
-      true,
-    )
-
-    // Hero glow animation
-    heroGlow.value = withRepeat(
-      withSequence(withTiming(1, { duration: 3000 }), withTiming(0.3, { duration: 3000 })),
-      -1,
-      true,
-    )
-
-    // Profile floating animation
-    // profileFloat.value = withRepeat(
-    //   withSequence(withTiming(10, { duration: 5000 }), withTiming(-10, { duration: 5000 })),
-    //   -1,
-    //   true,
-    // )
-
-    // Stats floating animation
-    // statsFloat.value = withRepeat(
-    //   withSequence(withTiming(5, { duration: 4000 }), withTiming(-5, { duration: 4000 })),
-    //   -1,
-    //   true,
-    // )
-
-    // Particle flow animation
-    particleFlow.value = withRepeat(withTiming(1, { duration: 10000 }), -1, false)
-  }, [backgroundShift, heroGlow, particleFlow, profileFloat, statsFloat])
 
   // Create themed styles (needs to be before early returns)
   const styles = createStyles(theme)
@@ -124,34 +74,8 @@ export default function ProfileScreen() {
   // Get user's listings
   const userListings: Listing[] = userListingsQuery.data || []
 
-  // Animated styles (must be defined before any early returns)
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(backgroundShift.value, [0, 1], [-50, 50], Extrapolation.CLAMP),
-      },
-    ],
-  }))
-
-  const profileFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: 0 }],
-  }))
-
   const tabScaleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: tabScale.value }],
-  }))
-
-  const statsFloatStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: 0 }],
-  }))
-
-  const particleFlowStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(particleFlow.value, [0, 1], [-200, 500], Extrapolation.CLAMP),
-      },
-    ],
-    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
   }))
 
   const handleSignOut = async () => {
@@ -164,8 +88,7 @@ export default function ProfileScreen() {
           setIsSigningOut(true)
           try {
             await signOut()
-          } catch (error) {
-            console.error('Sign out error:', error)
+          } catch {
             Alert.alert('Error', 'Failed to sign out. Please try again.')
           } finally {
             setIsSigningOut(false)
@@ -222,7 +145,7 @@ export default function ProfileScreen() {
   // Show sign in/up screen when not authenticated
   if (!isSignedIn) {
     return (
-      <SafeAreaView style={styles.container}>
+      <ScreenLayout scrollable={false}>
         <View style={styles.authContainer}>
           <View style={styles.authContent}>
             <Ionicons
@@ -231,11 +154,11 @@ export default function ProfileScreen() {
               color={theme.colors.textSecondary}
               style={styles.authIcon}
             />
-            <Text style={styles.authTitle}>Welcome to EmuReady</Text>
-            <Text style={styles.authDescription}>
+            <ThemedText type="title" style={styles.authTitle}>Welcome to EmuReady</ThemedText>
+            <ThemedText type="subtitle" style={styles.authDescription}>
               Sign in to access your profile, create listings, and connect with the emulation
               community.
-            </Text>
+            </ThemedText>
 
             <View style={styles.authButtons}>
               <Button
@@ -265,14 +188,14 @@ export default function ProfileScreen() {
                     style={styles.settingIcon}
                   />
                   <View>
-                    <Text style={styles.settingTitle}>Theme</Text>
-                    <Text style={styles.settingDescription}>
+                    <ThemedText style={styles.settingTitle}>Theme</ThemedText>
+                    <ThemedText type="caption" style={styles.settingDescription}>
                       {themeMode === 'system'
                         ? 'Follow system'
                         : themeMode === 'dark'
                           ? 'Dark mode'
                           : 'Light mode'}
-                    </Text>
+                    </ThemedText>
                   </View>
                 </View>
                 <Button
@@ -289,19 +212,19 @@ export default function ProfileScreen() {
             </Card>
           </View>
         </View>
-      </SafeAreaView>
+      </ScreenLayout>
     )
   }
 
   // Show loading state while fetching user data
   if (userProfileQuery.isLoading && !userData) {
     return (
-      <SafeAreaView style={styles.container}>
+      <ScreenLayout scrollable={false}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Loading profile...</Text>
+          <ThemedText style={styles.loadingText}>Loading profile...</ThemedText>
         </View>
-      </SafeAreaView>
+      </ScreenLayout>
     )
   }
 
@@ -313,7 +236,7 @@ export default function ProfileScreen() {
             {userListingsQuery.isLoading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={theme.colors.primary} />
-                <Text style={styles.loadingText}>Loading your listings...</Text>
+                <ThemedText style={styles.loadingText}>Loading your listings...</ThemedText>
               </View>
             ) : userListings.length > 0 ? (
               <View style={styles.listingsContainer}>
@@ -333,24 +256,12 @@ export default function ProfileScreen() {
                 />
               </View>
             ) : (
-              <Card style={styles.emptyCard} padding="lg">
-                <Ionicons
-                  name="game-controller"
-                  size={48}
-                  color={theme.colors.textMuted}
-                  style={styles.emptyIcon}
-                />
-                <Text style={styles.emptyTitle}>No Listings Yet</Text>
-                <Text style={styles.emptyText}>
-                  Share your emulation experiences with the community
-                </Text>
-                <Button
-                  title="Create Your First Listing"
-                  variant="primary"
-                  onPress={() => router.push('/(tabs)/create')}
-                  style={styles.emptyButton}
-                />
-              </Card>
+              <IllustratedEmptyState
+                type="listings"
+                actionLabel="Create Your First Listing"
+                onAction={() => router.push('/(tabs)/create')}
+                style={styles.emptyCard}
+              />
             )}
           </View>
         )
@@ -358,48 +269,25 @@ export default function ProfileScreen() {
       case 'favorites':
         return (
           <View style={styles.tabContent}>
-            <Card style={styles.emptyCard} padding="lg">
-              <Ionicons
-                name="heart"
-                size={48}
-                color={theme.colors.textMuted}
-                style={styles.emptyIcon}
-              />
-              <Text style={styles.emptyTitle}>No Favorites Yet</Text>
-              <Text style={styles.emptyText}>
-                Favorite listings will appear here for quick access
-              </Text>
-              <Button
-                title="Browse Listings"
-                variant="outline"
-                onPress={() => router.push('/(tabs)/browse')}
-                style={styles.emptyButton}
-              />
-            </Card>
+            <IllustratedEmptyState
+              type="favorites"
+              actionLabel="Browse Listings"
+              onAction={() => router.push('/(tabs)/browse')}
+              style={styles.emptyCard}
+            />
           </View>
         )
 
       case 'activity':
         return (
           <View style={styles.tabContent}>
-            <Card style={styles.emptyCard} padding="lg">
-              <Ionicons
-                name="time"
-                size={48}
-                color={theme.colors.textMuted}
-                style={styles.emptyIcon}
-              />
-              <Text style={styles.emptyTitle}>No Recent Activity</Text>
-              <Text style={styles.emptyText}>
-                Your votes, comments, and interactions will appear here
-              </Text>
-              <Button
-                title="Explore Community"
-                variant="outline"
-                onPress={() => router.push('/(tabs)/browse')}
-                style={styles.emptyButton}
-              />
-            </Card>
+            <IllustratedEmptyState
+              type="activity"
+              subtitle="Your votes, comments, and interactions will appear here"
+              actionLabel="Explore Community"
+              onAction={() => router.push('/(tabs)/browse')}
+              style={styles.emptyCard}
+            />
           </View>
         )
 
@@ -409,133 +297,117 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar
-        barStyle={theme.isDark ? 'light-content' : 'dark-content'}
-        backgroundColor="transparent"
-        translucent
-      />
-
-      {/* Revolutionary Aurora Background - optimized for landscape */}
-      <Animated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
-        <FluidGradient
-          variant="cosmic"
-          animated
-          speed="slow"
-          style={StyleSheet.absoluteFillObject}
-          opacity={0.2}
-        />
-      </Animated.View>
-
-      {/* Enhanced Gradient Overlay */}
-      <LinearGradient
-        colors={theme.colors.gradients.hero}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: HEADER_HEIGHT,
-          opacity: 0.6,
-        }}
-      />
-
-      {/* Floating Particles - positioned for landscape */}
-      <Animated.View style={[styles.particle, { top: '10%', left: '10%' }, particleFlowStyle]}>
-        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.primary}40` }]} />
-      </Animated.View>
-      <Animated.View style={[styles.particle, { top: '30%', left: '20%' }, particleFlowStyle]}>
-        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.secondary}40` }]} />
-      </Animated.View>
-      <Animated.View style={[styles.particle, { top: '50%', left: '15%' }, particleFlowStyle]}>
-        <View style={[styles.particleDot, { backgroundColor: `${theme.colors.accent}40` }]} />
-      </Animated.View>
-
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          horizontal={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* Revolutionary Profile Header - optimized for landscape/gamepad */}
-          <FloatingElement intensity={3} duration={5000}>
-            <Animated.View entering={SlideInLeft.delay(200).springify().damping(15)}>
-              <HolographicView
-                morphing
-                borderRadius={24}
-                style={[styles.profileHeader, profileFloatStyle]}
-              >
-                <FluidGradient
-                  variant="gaming"
-                  borderRadius={24}
-                  animated
-                  speed="normal"
-                  style={StyleSheet.absoluteFillObject}
-                  opacity={0.1}
-                />
-
-                <View style={styles.profileContent}>
-                  <View style={styles.profileInfo}>
-                    {/* Animated Profile Avatar */}
-                    <MagneticView borderRadius={48} style={styles.profileImageContainer}>
-                      <LinearGradient
-                        colors={theme.colors.gradients.primary}
-                        style={StyleSheet.absoluteFillObject}
-                      />
-                      <FloatingElement intensity={2} duration={3000}>
-                        <Ionicons name="person" size={48} color="#ffffff" />
-                      </FloatingElement>
-                    </MagneticView>
-
-                    <View style={styles.profileDetails}>
-                      <GradientTitle animated style={styles.profileName}>
-                        {userData?.name || clerkUser?.firstName || 'EmuReady User'}
-                      </GradientTitle>
-
-                      <TypewriterText animated delay={300} style={styles.profileEmail}>
-                        {userData?.email || clerkUser?.primaryEmailAddress?.emailAddress || ''}
-                      </TypewriterText>
-
-                      <Animated.View style={statsFloatStyle}>
-                        <GlowText style={styles.profileStats}>
-                          {userListings.length} listing{userListings.length !== 1 ? 's' : ''} shared
-                        </GlowText>
-                      </Animated.View>
-                    </View>
+    <ScreenLayout>
+          {/* Profile Header */}
+          <Animated.View entering={SlideInLeft.delay(200).springify().damping(15)}>
+            <GlassView style={{
+              marginHorizontal: theme.spacing.lg,
+              marginTop: theme.spacing.md,
+              marginBottom: theme.spacing.md,
+              padding: theme.spacing.lg,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  flex: 1,
+                }}>
+                  {/* Profile Avatar */}
+                  <View style={{
+                    width: 96,
+                    height: 96,
+                    borderRadius: 48,
+                    marginRight: theme.spacing.lg,
+                    overflow: 'hidden',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: theme.colors.primary,
+                  }}>
+                    <Ionicons name="person" size={48} color={theme.colors.textInverse} />
                   </View>
 
-                  {/* Gamepad-friendly Edit Button */}
-                  <AnimatedPressable
-                    onPress={() => {
-                      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
-                      handleEditProfile()
-                    }}
-                  >
-                    <MagneticView borderRadius={16} style={styles.editButton}>
-                      <BlurView
-                        intensity={80}
-                        tint={theme.isDark ? 'dark' : 'light'}
-                        style={StyleSheet.absoluteFillObject}
-                      />
-                      <View style={styles.editButtonContent}>
-                        <Ionicons name="pencil" size={16} color={theme.colors.primary} />
-                        <GlowText style={styles.editButtonText}>Edit</GlowText>
-                      </View>
-                    </MagneticView>
-                  </AnimatedPressable>
-                </View>
-              </HolographicView>
-            </Animated.View>
-          </FloatingElement>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText
+                      type="title"
+                      style={{
+                        fontSize: theme.typography.fontSize.xl,
+                        marginBottom: theme.spacing.xs,
+                      }}>
+                      {userData?.name || clerkUser?.firstName || 'EmuReady User'}
+                    </ThemedText>
 
-          {/* Enhanced Profile Tabs - Gamepad Optimized */}
+                    <ThemedText
+                      type="caption"
+                      style={{
+                        fontSize: theme.typography.fontSize.sm,
+                        color: theme.colors.textMuted,
+                        marginBottom: theme.spacing.xs,
+                      }}>
+                      {userData?.email || clerkUser?.primaryEmailAddress?.emailAddress || ''}
+                    </ThemedText>
+
+                    <ThemedText
+                      type="caption"
+                      style={{
+                        fontSize: theme.typography.fontSize.sm,
+                        color: theme.colors.textSecondary,
+                      }}>
+                      {userListings.length} listing{userListings.length !== 1 ? 's' : ''} shared
+                    </ThemedText>
+                  </View>
+                </View>
+
+                {/* Edit Button */}
+                <AnimatedPressable
+                  onPress={() => {
+                    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+                    handleEditProfile()
+                  }}
+                >
+                  <View style={{
+                    backgroundColor: theme.colors.surface,
+                    paddingHorizontal: theme.spacing.md,
+                    paddingVertical: theme.spacing.sm,
+                    borderRadius: theme.borderRadius.md,
+                    borderWidth: 1,
+                    borderColor: theme.colors.border,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: theme.spacing.sm,
+                  }}>
+                    <Ionicons name="pencil" size={16} color={theme.colors.primary} />
+                    <ThemedText style={{
+                      fontSize: theme.typography.fontSize.sm,
+                      fontWeight: theme.typography.fontWeight.medium,
+                      color: theme.colors.primary,
+                    }}>
+                      Edit
+                    </ThemedText>
+                  </View>
+                </AnimatedPressable>
+              </View>
+            </GlassView>
+          </Animated.View>
+
+          {/* Profile Tabs */}
           <Animated.View
             entering={BounceIn.delay(400).springify().damping(12)}
-            style={styles.tabsContainer}
+            style={{
+              paddingHorizontal: theme.spacing.lg,
+              marginBottom: theme.spacing.lg,
+            }}
           >
-            <GlassView borderRadius={20} blurIntensity={25} style={styles.tabsCard}>
-              <View style={styles.tabs}>
+            <GlassView style={{
+              padding: theme.spacing.sm,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                gap: theme.spacing.sm,
+              }}>
                 {[
                   { key: 'listings', label: 'Listings', icon: 'game-controller' },
                   { key: 'favorites', label: 'Favorites', icon: 'heart' },
@@ -558,30 +430,34 @@ export default function ProfileScreen() {
                         .damping(15)}
                       style={tabScaleStyle}
                     >
-                      <MagneticView
-                        borderRadius={16}
-                        style={[styles.tab, activeTab === tab.key && styles.activeTab]}
+                      <View
+                        style={{
+                          flex: 1,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: activeTab === tab.key ? theme.colors.primary : theme.colors.surface,
+                          borderRadius: theme.borderRadius.md,
+                          paddingVertical: theme.spacing.md,
+                          paddingHorizontal: theme.spacing.md,
+                        }}
                       >
-                        {activeTab === tab.key && (
-                          <LinearGradient
-                            colors={theme.colors.gradients.primary}
-                            style={[StyleSheet.absoluteFillObject, { opacity: 0.9 }]}
-                          />
-                        )}
-                        <FloatingElement intensity={1} duration={2000}>
-                          <Ionicons
-                            name={tab.icon as any}
-                            size={20}
-                            color={activeTab === tab.key ? '#ffffff' : theme.colors.textSecondary}
-                            style={styles.tabIcon}
-                          />
-                        </FloatingElement>
-                        <GlowText
-                          style={[styles.tabText, activeTab === tab.key && styles.activeTabText]}
+                        <Ionicons
+                          name={tab.icon as any}
+                          size={20}
+                          color={activeTab === tab.key ? theme.colors.textInverse : theme.colors.textSecondary}
+                          style={{ marginRight: theme.spacing.xs }}
+                        />
+                        <ThemedText
+                          style={{
+                            fontSize: theme.typography.fontSize.sm,
+                            fontWeight: theme.typography.fontWeight.medium,
+                            color: activeTab === tab.key ? theme.colors.textInverse : theme.colors.textSecondary,
+                          }}
                         >
                           {tab.label}
-                        </GlowText>
-                      </MagneticView>
+                        </ThemedText>
+                      </View>
                     </Animated.View>
                   </AnimatedPressable>
                 ))}
@@ -594,7 +470,7 @@ export default function ProfileScreen() {
 
           {/* Settings Section */}
           <View style={styles.settingsSection}>
-            <Text style={styles.sectionTitle}>Settings</Text>
+            <ThemedText style={styles.sectionTitle}>Settings</ThemedText>
 
             {/* Notifications */}
             <Card style={styles.settingCard} padding="md">
@@ -607,10 +483,10 @@ export default function ProfileScreen() {
                     style={styles.settingIcon}
                   />
                   <View>
-                    <Text style={styles.settingTitle}>Push Notifications</Text>
-                    <Text style={styles.settingDescription}>
+                    <ThemedText style={styles.settingTitle}>Push Notifications</ThemedText>
+                    <ThemedText style={styles.settingDescription}>
                       Get notified about votes and comments
-                    </Text>
+                    </ThemedText>
                   </View>
                 </View>
                 <Switch
@@ -636,14 +512,14 @@ export default function ProfileScreen() {
                     style={styles.settingIcon}
                   />
                   <View>
-                    <Text style={styles.settingTitle}>Theme</Text>
-                    <Text style={styles.settingDescription}>
+                    <ThemedText style={styles.settingTitle}>Theme</ThemedText>
+                    <ThemedText type="caption" style={styles.settingDescription}>
                       {themeMode === 'system'
                         ? 'Follow system'
                         : themeMode === 'dark'
                           ? 'Dark mode'
                           : 'Light mode'}
-                    </Text>
+                    </ThemedText>
                   </View>
                 </View>
                 <Button
@@ -692,8 +568,8 @@ export default function ProfileScreen() {
                       style={styles.settingIcon}
                     />
                     <View>
-                      <Text style={styles.settingTitle}>{setting.title}</Text>
-                      <Text style={styles.settingDescription}>{setting.description}</Text>
+                      <ThemedText style={styles.settingTitle}>{setting.title}</ThemedText>
+                      <ThemedText style={styles.settingDescription}>{setting.description}</ThemedText>
                     </View>
                   </View>
                   <Ionicons name="chevron-forward" size={16} color={theme.colors.textMuted} />
@@ -721,8 +597,6 @@ export default function ProfileScreen() {
           </View>
 
           <View style={styles.bottomSpacing} />
-        </ScrollView>
-      </SafeAreaView>
 
       {/* Edit Profile Modal */}
       <EditProfileModal
@@ -730,7 +604,7 @@ export default function ProfileScreen() {
         onClose={() => setShowEditProfile(false)}
         onSuccess={handleEditProfileSuccess}
       />
-    </View>
+    </ScreenLayout>
   )
 }
 
@@ -739,14 +613,6 @@ function createStyles(theme: any) {
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
-    },
-    particle: {
-      position: 'absolute',
-    },
-    particleDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
     },
     scrollContent: {
       flexGrow: 1,
@@ -828,117 +694,6 @@ function createStyles(theme: any) {
     },
     retryButton: {
       minWidth: 120,
-    },
-
-    // Profile styles
-    profileHeader: {
-      marginHorizontal: 20,
-      marginTop: 16,
-      marginBottom: 16,
-      padding: 20,
-      position: 'relative',
-      overflow: 'hidden',
-    },
-    profileContent: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      position: 'relative',
-      zIndex: 1,
-    },
-    profileInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-    },
-    profileImageContainer: {
-      width: 96,
-      height: 96,
-      borderRadius: 48,
-      marginRight: 20,
-      overflow: 'hidden',
-      alignItems: 'center',
-      justifyContent: 'center',
-      shadowColor: theme.colors.primary,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.3,
-      shadowRadius: 16,
-      elevation: 8,
-    },
-    editButton: {
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      borderRadius: 16,
-      overflow: 'hidden',
-      backgroundColor: theme.colors.glass,
-    },
-    editButtonContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      position: 'relative',
-      zIndex: 1,
-    },
-    editButtonText: {
-      fontSize: 14,
-      fontWeight: '600',
-    },
-    profileDetails: {
-      flex: 1,
-    },
-    profileName: {
-      fontSize: 22,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      marginBottom: 4,
-    },
-    profileEmail: {
-      fontSize: 14,
-      color: theme.colors.textMuted,
-      marginBottom: 4,
-    },
-    profileStats: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
-    },
-
-    // Tabs
-    tabsContainer: {
-      paddingHorizontal: 20,
-      marginBottom: 20,
-    },
-    tabsCard: {
-      padding: 8,
-      backgroundColor: theme.colors.glass,
-    },
-    tabs: {
-      flexDirection: 'row',
-      gap: 8,
-    },
-    tab: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.colors.surface,
-      borderRadius: 8,
-    },
-    activeTab: {
-      backgroundColor: `${theme.colors.primary}15`,
-      borderColor: theme.colors.primary,
-      borderWidth: 1,
-    },
-    tabIcon: {
-      marginRight: 6,
-    },
-    tabText: {
-      fontSize: 12,
-      fontWeight: '500',
-      color: theme.colors.textSecondary,
-    },
-    activeTabText: {
-      color: theme.colors.primary,
-      fontWeight: '600',
     },
 
     // Tab content

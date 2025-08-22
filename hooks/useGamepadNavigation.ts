@@ -1,6 +1,14 @@
+import { DESIGN_CONSTANTS } from '@/constants/design'
 import { GamepadEvent, gamepadNavigation, NavigationNode } from '@/lib/utils/gamepadNavigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { BackHandler, Platform } from 'react-native'
+import { BackHandler, KeyboardEvent, Platform, ViewStyle } from 'react-native'
+
+// Constants for gamepad navigation timing
+const GAMEPAD_CONSTANTS = {
+  autoFocusDelay: DESIGN_CONSTANTS.ANIMATION.fast / 2, // 100ms
+  orientationCheckInterval: 1000, // 1 second
+  orientationOptimizedInterval: 500, // 500ms for optimized check
+} as const
 
 interface UseGamepadNavigationOptions {
   id: string
@@ -38,7 +46,7 @@ export function useGamepadNavigation(options: UseGamepadNavigationOptions) {
   useEffect(() => {
     const node: NavigationNode = {
       id: options.id,
-      ref: ref.current,
+      ref: ref as React.RefObject<unknown>,
       onFocus: handleFocus,
       onBlur: handleBlur,
       onSelect: handleSelect,
@@ -56,7 +64,7 @@ export function useGamepadNavigation(options: UseGamepadNavigationOptions) {
     if (options.autoFocus && Platform.OS === 'android') {
       setTimeout(() => {
         gamepadNavigation.setFocus(options.id)
-      }, 100)
+      }, GAMEPAD_CONSTANTS.autoFocusDelay)
     }
 
     return unregister
@@ -78,7 +86,7 @@ export function useGamepadNavigation(options: UseGamepadNavigationOptions) {
   useEffect(() => {
     const interval = setInterval(() => {
       setIsLandscape(gamepadNavigation.getIsLandscape())
-    }, 1000)
+    }, GAMEPAD_CONSTANTS.orientationCheckInterval)
 
     return () => clearInterval(interval)
   }, [])
@@ -95,8 +103,8 @@ export function useGamepadEventHandler() {
   useEffect(() => {
     if (Platform.OS !== 'android') return
 
-    const handleKeyDown = (event: any) => {
-      const handled = gamepadNavigation.handleGamepadEvent(event as GamepadEvent)
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const handled = gamepadNavigation.handleGamepadEvent(event as unknown as GamepadEvent)
       return handled
     }
 
@@ -118,14 +126,14 @@ export function useOrientationOptimized() {
   useEffect(() => {
     const interval = setInterval(() => {
       setIsLandscape(gamepadNavigation.getIsLandscape())
-    }, 500)
+    }, GAMEPAD_CONSTANTS.orientationOptimizedInterval)
 
     return () => clearInterval(interval)
   }, [])
 
   return {
     isLandscape,
-    getLandscapeStyles: (portraitStyles: any, landscapeStyles: any) => {
+    getLandscapeStyles: <T extends ViewStyle>(portraitStyles: T, landscapeStyles: Partial<T>): T => {
       return isLandscape ? { ...portraitStyles, ...landscapeStyles } : portraitStyles
     },
   }

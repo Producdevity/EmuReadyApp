@@ -1,3 +1,5 @@
+// TODO: Replace DESIGN_CONSTANTS usage with theme.animations values
+import { DESIGN_CONSTANTS } from '@/constants/design'
 import { Easing, withSpring, withTiming } from 'react-native-reanimated'
 
 // Ultra-smooth animation configuration for 120Hz displays
@@ -7,7 +9,7 @@ export const ANIMATION_CONFIG = {
     instant: 50, // Ultra-fast for immediate feedback
     fast: 100, // Quick transitions
     normal: 150, // Standard transitions
-    slow: 200, // Deliberate animations
+    slow: DESIGN_CONSTANTS.ANIMATION.fast, // Deliberate animations (200ms)
   },
 
   // Spring presets - physics-based for natural feel

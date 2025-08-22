@@ -5,10 +5,9 @@ import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Bell, FileText, FlaskConical, Home, Plus, Search, User } from 'lucide-react-native'
 import React, { useEffect } from 'react'
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, View } from 'react-native'
 import Animated, {
-  interpolate,
-  runOnJS,
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -49,123 +48,78 @@ const GamepadTabButton = ({
     id: `tab-${route.name}`,
     onSelect: onPress,
     onFocus: () => {
-      // Visual feedback for gamepad focus
       if (Platform.OS === 'android') {
         Haptics.selectionAsync()
       }
     },
     nextFocusLeft: index > 0 ? `tab-${route.name}` : undefined,
     nextFocusRight: index < totalTabs - 1 ? `tab-${route.name}` : undefined,
-    autoFocus: index === 0, // Focus first tab by default
+    autoFocus: index === 0,
   })
 
-  // Animations
+  // Simple animations
   const scale = useSharedValue(1)
-  const iconScale = useSharedValue(1)
-  const translateY = useSharedValue(0)
   const opacity = useSharedValue(0.6)
-  const focusScale = useSharedValue(gamepadNav.isFocused ? 1.1 : 1)
+  const indicatorOpacity = useSharedValue(0)
 
-  const getIcon = (routeName: string, focused: boolean, gamepadFocused: boolean) => {
-    const color = focused || gamepadFocused ? '#ffffff' : theme.colors.textMuted
-    const size = isLandscape ? 20 : 22
+  const getIcon = (routeName: string, focused: boolean) => {
+    const color = focused ? theme.colors.primary : theme.colors.textMuted
+    const size = isLandscape ? 18 : 20
 
     switch (routeName) {
       case 'index':
-        return <Home color={color} size={size} strokeWidth={2.5} />
+        return <Home color={color} size={size} strokeWidth={2} />
       case 'browse':
-        return <Search color={color} size={size} strokeWidth={2.5} />
+        return <Search color={color} size={size} strokeWidth={2} />
       case 'create':
-        return <Plus color={color} size={size} strokeWidth={3} />
+        return <Plus color={color} size={size} strokeWidth={2.5} />
       case 'notifications':
-        return <Bell color={color} size={size} strokeWidth={2.5} />
+        return <Bell color={color} size={size} strokeWidth={2} />
       case 'profile':
-        return <User color={color} size={size} strokeWidth={2.5} />
+        return <User color={color} size={size} strokeWidth={2} />
       case 'test':
-        return <FlaskConical color={color} size={size} strokeWidth={2.5} />
+        return <FlaskConical color={color} size={size} strokeWidth={2} />
       case 'config':
-        return <FileText color={color} size={size} strokeWidth={2.5} />
+        return <FileText color={color} size={size} strokeWidth={2} />
       default:
-        return <Home color={color} size={size} strokeWidth={2.5} />
+        return <Home color={color} size={size} strokeWidth={2} />
     }
   }
 
-  // Update animations based on focus states
   useEffect(() => {
     const shouldHighlight = isFocused || gamepadNav.isFocused
 
     if (shouldHighlight) {
-      scale.value = withSpring(isLandscape ? 1.05 : 1.08, {
-        damping: 25,
-        stiffness: 350,
-      })
-      iconScale.value = withSpring(isLandscape ? 1.08 : 1.15, {
-        damping: 22,
-        stiffness: 400,
-      })
-      translateY.value = withSpring(isLandscape ? -2 : -3, {
-        damping: 25,
-        stiffness: 350,
-      })
-      opacity.value = withTiming(1, { duration: 150 })
-      focusScale.value = withSpring(gamepadNav.isFocused ? 1.12 : 1, {
-        damping: 28,
-        stiffness: 420,
-      })
+      scale.value = withSpring(1.05)
+      opacity.value = withTiming(1, { duration: 200 })
+      indicatorOpacity.value = withTiming(1, { duration: 200 })
     } else {
-      scale.value = withSpring(1, {
-        damping: 25,
-        stiffness: 350,
-      })
-      iconScale.value = withSpring(1, {
-        damping: 22,
-        stiffness: 400,
-      })
-      translateY.value = withSpring(0, {
-        damping: 25,
-        stiffness: 350,
-      })
-      opacity.value = withTiming(0.65, { duration: 150 })
-      focusScale.value = withSpring(1, {
-        damping: 28,
-        stiffness: 420,
-      })
+      scale.value = withSpring(1)
+      opacity.value = withTiming(0.6, { duration: 200 })
+      indicatorOpacity.value = withTiming(0, { duration: 200 })
     }
-  }, [
-    isFocused,
-    gamepadNav.isFocused,
-    isLandscape,
-    scale,
-    iconScale,
-    translateY,
-    opacity,
-    focusScale,
-  ])
+  }, [isFocused, gamepadNav.isFocused, scale, opacity, indicatorOpacity])
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { translateY: translateY.value }] as any,
-  }))
-
-  const iconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: iconScale.value }],
-  }))
-
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scale.value, [1, isLandscape ? 1.02 : 1.05], [0, 1]),
-  }))
-
-  const gamepadFocusStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: focusScale.value }],
-    borderWidth: gamepadNav.isFocused ? 2 : 0,
-    borderColor: theme.colors.primary,
-  }))
-
-  const labelAnimatedStyle = useAnimatedStyle(() => ({
+  const containerStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
     opacity: opacity.value,
   }))
 
+  const indicatorStyle = useAnimatedStyle(() => ({
+    opacity: indicatorOpacity.value,
+  }))
+
+  const labelStyle = useAnimatedStyle(() => {
+    const color = interpolateColor(
+      opacity.value,
+      [0.6, 1],
+      [theme.colors.textMuted, theme.colors.primary],
+    )
+    return { color }
+  })
+
   const handlePress = () => {
-    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     onPress()
   }
 
@@ -177,56 +131,34 @@ const GamepadTabButton = ({
         ? options.title
         : route.name
 
-  const styles = createTabButtonStyles(theme, isLandscape)
-
   return (
     <Pressable
       ref={gamepadNav.ref}
       onPress={handlePress}
       onLongPress={onLongPress}
       style={styles.tabButton}
+      accessible={true}
+      accessibilityRole="tab"
+      accessibilityLabel={`${label} tab`}
+      accessibilityState={{ selected: isFocused }}
     >
-      <Animated.View style={[styles.tabContainer, animatedStyle, gamepadFocusStyle]}>
-        {/* Animated background for focused state */}
-        <Animated.View style={[styles.focusBackground, backgroundAnimatedStyle]}>
-          <LinearGradient
-            colors={
-              route.name === 'create'
-                ? [theme.colors.accent, `${theme.colors.accent}dd`]
-                : [theme.colors.primary, theme.colors.primaryDark]
-            }
-            style={styles.gradientBackground}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          />
-        </Animated.View>
+      <Animated.View style={[styles.tabContainer, containerStyle]}>
+        {/* Clean indicator */}
+        <Animated.View style={[styles.indicator, indicatorStyle]} />
+        
+        {/* Icon */}
+        <View style={styles.iconContainer}>
+          {getIcon(route.name, isFocused || gamepadNav.isFocused)}
+        </View>
 
-        {/* Icon with animation */}
-        <Animated.View style={[styles.iconContainer, iconAnimatedStyle]}>
-          {getIcon(route.name, isFocused, gamepadNav.isFocused)}
-        </Animated.View>
+        {/* Label */}
+        <Animated.Text style={[styles.tabLabel, labelStyle]}>
+          {label}
+        </Animated.Text>
 
-        {/* Label with fade animation - only show in landscape for space efficiency */}
-        {!isLandscape && (
-          <Animated.View style={labelAnimatedStyle}>
-            <Text
-              style={[
-                styles.tabLabel,
-                {
-                  color: isFocused || gamepadNav.isFocused ? '#ffffff' : theme.colors.textMuted,
-                },
-              ]}
-            >
-              {label}
-            </Text>
-          </Animated.View>
-        )}
-
-        {/* Active indicator dot */}
-        {(isFocused || gamepadNav.isFocused) && (
-          <Animated.View style={[styles.activeIndicator, backgroundAnimatedStyle]}>
-            <View style={styles.indicatorDot} />
-          </Animated.View>
+        {/* Gamepad focus border */}
+        {gamepadNav.isFocused && (
+          <View style={[styles.gamepadFocusBorder, { borderColor: theme.colors.primary }]} />
         )}
       </Animated.View>
     </Pressable>
@@ -237,161 +169,148 @@ export default function GamepadTabBar({ state, descriptors, navigation }: Gamepa
   const { theme } = useTheme()
   const { isLandscape } = useOrientationOptimized()
   const insets = useSafeAreaInsets()
-
-  const styles = createStyles(theme, isLandscape, insets)
+  
+  // Define hidden tabs
+  const hiddenTabs = ['pc', 'hardware', 'media', 'config']
 
   return (
-    <View style={styles.container}>
-      {/* Blur background */}
+    <View
+      style={[
+        styles.container,
+        {
+          paddingBottom: Math.max(insets.bottom, 10),
+          height: isLandscape ? 60 : 70,
+        },
+      ]}
+    >
+      {/* Clean blur background */}
       <BlurView
-        intensity={80}
+        intensity={90}
         tint={theme.isDark ? 'dark' : 'light'}
         style={StyleSheet.absoluteFillObject}
       />
 
-      {/* Gradient overlay */}
+      {/* Subtle gradient overlay */}
       <LinearGradient
         colors={
           theme.isDark
-            ? ['rgba(10, 10, 10, 0.95)', 'rgba(20, 20, 20, 0.98)']
-            : ['rgba(255, 255, 255, 0.95)', 'rgba(250, 251, 252, 0.98)']
+            ? ['rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0, 0.7)']
+            : ['rgba(255, 255, 255, 0.7)', 'rgba(255, 255, 255, 0.9)']
         }
         style={StyleSheet.absoluteFillObject}
       />
 
-      {/* Tab buttons container */}
-      <View style={styles.tabsContainer}>
-        {state.routes.map((route: any, index: number) => {
-          const isFocused = state.index === index
+      {/* Tab buttons */}
+      <View style={[styles.tabsContainer, isLandscape && styles.tabsContainerLandscape]}>
+        {(() => {
+          // Filter visible routes first
+          const visibleRoutes = state.routes.filter((route: any) => !hiddenTabs.includes(route.name))
+          
+          return visibleRoutes.map((route: any, visibleIndex: number) => {
+            // Check if this route is focused by comparing the route name
+            const isFocused = state.routes[state.index]?.name === route.name
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            })
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              })
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name)
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name, route.params)
+              }
             }
-          }
 
-          const onLongPress = () => {
-            navigation.emit({
-              type: 'tabLongPress',
-              target: route.key,
-            })
-          }
+            const onLongPress = () => {
+              navigation.emit({
+                type: 'tabLongPress',
+                target: route.key,
+              })
+            }
 
-          return (
-            <GamepadTabButton
-              key={route.key}
-              route={route}
-              isFocused={isFocused}
-              onPress={onPress}
-              onLongPress={onLongPress}
-              descriptors={descriptors}
-              index={index}
-              totalTabs={state.routes.length}
-            />
-          )
-        })}
+            return (
+              <GamepadTabButton
+                key={route.key}
+                route={route}
+                isFocused={isFocused}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                descriptors={descriptors}
+                index={visibleIndex}
+                totalTabs={visibleRoutes.length}
+              />
+            )
+          })
+        })()}
       </View>
-
-      {/* Gamepad navigation hint for landscape */}
-      {isLandscape && Platform.OS === 'android' && (
-        <View style={styles.gamepadHint}>
-          <Text style={styles.gamepadHintText}>Use D-Pad ← → to navigate tabs</Text>
-        </View>
-      )}
     </View>
   )
 }
 
-const createTabButtonStyles = (theme: any, isLandscape: boolean) =>
-  StyleSheet.create({
-    tabButton: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: isLandscape ? 50 : 60,
-      paddingHorizontal: isLandscape ? 8 : 12,
-      paddingVertical: isLandscape ? 6 : 8,
-    },
-    tabContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: isLandscape ? 8 : 12,
-      paddingHorizontal: isLandscape ? 8 : 12,
-      paddingVertical: isLandscape ? 6 : 8,
-      minWidth: isLandscape ? 45 : 50,
-      position: 'relative',
-    },
-    focusBackground: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      borderRadius: isLandscape ? 8 : 12,
-      overflow: 'hidden',
-    },
-    gradientBackground: {
-      flex: 1,
-      borderRadius: isLandscape ? 8 : 12,
-    },
-    iconContainer: {
-      marginBottom: isLandscape ? 0 : 4,
-    },
-    tabLabel: {
-      fontSize: isLandscape ? 10 : 11,
-      fontWeight: '500',
-      textAlign: 'center',
-      marginTop: 2,
-    },
-    activeIndicator: {
-      position: 'absolute',
-      bottom: isLandscape ? -2 : -4,
-      alignSelf: 'center',
-    },
-    indicatorDot: {
-      width: isLandscape ? 4 : 6,
-      height: isLandscape ? 4 : 6,
-      borderRadius: isLandscape ? 2 : 3,
-      backgroundColor: '#ffffff',
-    },
-  })
-
-const createStyles = (theme: any, isLandscape: boolean, insets: any) =>
-  StyleSheet.create({
-    container: {
-      backgroundColor: 'transparent',
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-      paddingBottom: Math.max(insets.bottom, isLandscape ? 4 : 8),
-      paddingHorizontal: isLandscape ? 8 : 0,
-      height: isLandscape ? 60 : 85,
-    },
-    tabsContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-around',
-      paddingHorizontal: isLandscape ? 16 : 8,
-      paddingTop: isLandscape ? 8 : 12,
-      flex: 1,
-    },
-    gamepadHint: {
-      position: 'absolute',
-      top: 2,
-      right: 8,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      backgroundColor: `${theme.colors.primary}20`,
-      borderRadius: 8,
-    },
-    gamepadHintText: {
-      fontSize: 9,
-      color: theme.colors.primary,
-      fontWeight: '500',
-    },
-  })
+const styles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'transparent',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  tabsContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+  },
+  tabsContainerLandscape: {
+    paddingHorizontal: 40,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 60,
+  },
+  tabContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    position: 'relative',
+  },
+  indicator: {
+    position: 'absolute',
+    top: -8,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#7c3aed',
+  },
+  iconContainer: {
+    marginBottom: 4,
+  },
+  tabLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  gamepadFocusBorder: {
+    position: 'absolute',
+    top: -4,
+    left: -8,
+    right: -8,
+    bottom: -4,
+    borderWidth: 2,
+    borderRadius: 8,
+    borderColor: 'transparent',
+  },
+})

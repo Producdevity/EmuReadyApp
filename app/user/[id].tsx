@@ -1,11 +1,9 @@
 import { ListingCard } from '@/components/cards'
 import { GlowText, GradientTitle, TypewriterText } from '@/components/themed/ThemedText'
-import { GlassView, HolographicView, MagneticView } from '@/components/themed/ThemedView'
-import { Button, Card } from '@/components/ui'
-import FluidGradient from '@/components/ui/FluidGradient'
+import { GlassView } from '@/components/themed/ThemedView'
+import { Button, Card, ScreenLayout } from '@/components/ui'
 import {
   AnimatedPressable,
-  FloatingElement,
   MICRO_SPRING_CONFIG,
 } from '@/components/ui/MicroInteractions'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -19,7 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import * as Sharing from 'expo-sharing'
 import React, { useEffect, useMemo, useState } from 'react'
-import { Alert, Animated, Dimensions, StatusBar, StyleSheet, Text, View } from 'react-native'
+import { Alert, Animated, Dimensions, StyleSheet, Text, View } from 'react-native'
 import RNAnimated, {
   Extrapolation,
   FadeInDown,
@@ -35,7 +33,6 @@ import RNAnimated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface TabData {
   key: 'listings' | 'activity' | 'stats'
@@ -103,13 +100,6 @@ export default function UserProfileScreen() {
     }
   })
 
-  const backgroundAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(backgroundShift.value, [0, 1], [-100, 100], Extrapolation.CLAMP),
-      },
-    ],
-  }))
 
   const _heroGlowStyle = useAnimatedStyle(() => ({
     opacity: heroGlow.value,
@@ -131,19 +121,6 @@ export default function UserProfileScreen() {
     transform: [{ scale: avatarScale.value }],
   }))
 
-  const particleFlowStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(
-          particleFlow.value,
-          [0, 1],
-          [-200, SCREEN_WIDTH + 200],
-          Extrapolation.CLAMP,
-        ),
-      },
-    ],
-    opacity: interpolate(particleFlow.value, [0, 0.2, 0.8, 1], [0, 1, 1, 0], Extrapolation.CLAMP),
-  }))
 
   const isOwnProfile = currentUserId === id
 
@@ -209,10 +186,12 @@ export default function UserProfileScreen() {
   // Guard against missing id parameter
   if (!id) {
     return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Invalid user ID</Text>
-        <Button title="Go Back" onPress={() => router.back()} />
-      </SafeAreaView>
+      <ScreenLayout scrollable={false}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: theme.colors.text, marginBottom: theme.spacing.lg }}>Invalid user ID</Text>
+          <Button title="Go Back" onPress={() => router.back()} />
+        </View>
+      </ScreenLayout>
     )
   }
 
@@ -286,28 +265,25 @@ export default function UserProfileScreen() {
             ))}
             {userListingsQuery.data?.length === 0 && (
               <RNAnimated.View entering={FadeInUp.delay(200).springify()}>
-                <HolographicView morphing borderRadius={20} style={styles.emptyState}>
-                  <GlassView
-                    borderRadius={20}
-                    blurIntensity={20}
-                    style={{ padding: theme.spacing.lg }}
-                  >
-                    <RNAnimated.View entering={FadeInDown.delay(400)}>
-                      <FloatingElement intensity={2} duration={3000}>
-                        <MagneticView
-                          borderRadius={40}
-                          style={{
-                            width: 80,
-                            height: 80,
-                            backgroundColor: `${theme.colors.primary}20`,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginBottom: 20,
-                          }}
-                        >
-                          <Ionicons name="list-outline" size={36} color={theme.colors.primary} />
-                        </MagneticView>
-                      </FloatingElement>
+                <GlassView
+                  borderRadius={20}
+                  blurIntensity={20}
+                  style={[styles.emptyState, { padding: theme.spacing.lg, backgroundColor: theme.colors.surface }]}
+                >
+                  <RNAnimated.View entering={FadeInDown.delay(400)}>
+                    <View
+                      style={{
+                        width: 80,
+                        height: 80,
+                        backgroundColor: `${theme.colors.primary}20`,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 20,
+                        borderRadius: 40,
+                      }}
+                    >
+                      <Ionicons name="list-outline" size={36} color={theme.colors.primary} />
+                    </View>
                       <GradientTitle animated style={styles.emptyStateTitle}>
                         No Listings Yet
                       </GradientTitle>
@@ -322,12 +298,11 @@ export default function UserProfileScreen() {
                           variant="gradient"
                           onPress={() => router.push('/(tabs)/create')}
                           style={styles.emptyStateButton}
-                          leftIcon={<Ionicons name="add" size={16} color="#ffffff" />}
+                          leftIcon={<Ionicons name="add" size={16} color={theme.colors.textInverse} />}
                         />
                       )}
                     </RNAnimated.View>
                   </GlassView>
-                </HolographicView>
               </RNAnimated.View>
             )}
           </View>
@@ -359,21 +334,17 @@ export default function UserProfileScreen() {
           <View style={styles.tabContentContainer}>
             {activities.map((activity, index) => (
               <RNAnimated.View key={index} entering={SlideInRight.delay(index * 100).springify()}>
-                <HolographicView morphing borderRadius={16} style={styles.activityCard}>
-                  <GlassView
-                    borderRadius={16}
-                    blurIntensity={20}
-                    style={{ padding: theme.spacing.md }}
-                  >
-                    <View style={styles.activityItem}>
-                      <FloatingElement intensity={1} duration={2000 + index * 200}>
-                        <MagneticView
-                          borderRadius={22}
-                          style={[styles.activityIcon, { backgroundColor: `${activity.color}20` }]}
-                        >
-                          <Ionicons name={activity.icon as any} size={18} color={activity.color} />
-                        </MagneticView>
-                      </FloatingElement>
+                <GlassView
+                  borderRadius={16}
+                  blurIntensity={20}
+                  style={[styles.activityCard, { padding: theme.spacing.md, backgroundColor: theme.colors.surface }]}
+                >
+                  <View style={styles.activityItem}>
+                    <View
+                      style={[styles.activityIcon, { backgroundColor: `${activity.color}20`, borderRadius: 22 }]}
+                    >
+                      <Ionicons name={activity.icon as any} size={18} color={activity.color} />
+                    </View>
                       <View style={styles.activityContent}>
                         <GlowText style={styles.activityText}>{activity.text}</GlowText>
                         <TypewriterText
@@ -386,7 +357,6 @@ export default function UserProfileScreen() {
                       </View>
                     </View>
                   </GlassView>
-                </HolographicView>
               </RNAnimated.View>
             ))}
           </View>
@@ -420,19 +390,19 @@ export default function UserProfileScreen() {
             name: 'Performance Expert',
             desc: 'Created 10+ detailed listings',
             icon: 'trophy',
-            color: '#FFD700',
+            color: theme.colors.warning || '#FFD700',
           },
           {
             name: 'Community Helper',
             desc: 'Received 100+ upvotes',
             icon: 'star',
-            color: '#FF6B6B',
+            color: theme.colors.error || '#FF6B6B',
           },
           {
             name: 'Early Adopter',
             desc: 'Joined in the first month',
             icon: 'rocket',
-            color: '#8B5CF6',
+            color: theme.colors.accent || '#8B5CF6',
           },
         ]
 
@@ -510,19 +480,12 @@ export default function UserProfileScreen() {
 
 
   return (
-    <View style={styles.container}>
-      <StatusBar translucent />
-
-      {/* Revolutionary Cosmic Background */}
-      <RNAnimated.View style={[StyleSheet.absoluteFillObject, backgroundAnimatedStyle]}>
-        <FluidGradient
-          variant="cosmic"
-          animated
-          speed="slow"
-          style={StyleSheet.absoluteFillObject}
-          opacity={0.3}
-        />
-      </RNAnimated.View>
+    <ScreenLayout scrollable={false}>
+      {/* Simple gradient background */}
+      <LinearGradient
+        colors={theme.isDark ? [theme.colors.background, '#000000'] : [theme.colors.background, '#f5f5f5']}
+        style={StyleSheet.absoluteFillObject}
+      />
 
       {/* Enhanced Gradient Overlay */}
       <LinearGradient
@@ -541,37 +504,7 @@ export default function UserProfileScreen() {
         }}
       />
 
-      {/* Floating Particles */}
-      <RNAnimated.View style={[{ position: 'absolute', top: '20%' }, particleFlowStyle]}>
-        <View
-          style={{
-            width: 14,
-            height: 14,
-            borderRadius: 7,
-            backgroundColor: `${theme.colors.primary}40`,
-          }}
-        />
-      </RNAnimated.View>
-      <RNAnimated.View style={[{ position: 'absolute', top: '40%' }, particleFlowStyle]}>
-        <View
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: 5,
-            backgroundColor: `${theme.colors.secondary}40`,
-          }}
-        />
-      </RNAnimated.View>
-      <RNAnimated.View style={[{ position: 'absolute', top: '60%' }, particleFlowStyle]}>
-        <View
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: 6,
-            backgroundColor: `${theme.colors.accent}40`,
-          }}
-        />
-      </RNAnimated.View>
+      {/* Removed floating particles for simplicity */}
 
       {/* Animated Header */}
       <RNAnimated.View style={[styles.fixedHeader, headerAnimatedStyle]}>
@@ -580,16 +513,16 @@ export default function UserProfileScreen() {
           tint={theme.isDark ? 'dark' : 'light'}
           style={StyleSheet.absoluteFillObject}
         />
-        <SafeAreaView style={styles.headerContent}>
+        <View style={[styles.headerContent, { paddingTop: theme.spacing.xxl }]}>
           <AnimatedPressable
             onPress={() => {
               runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light)
               router.back()
             }}
           >
-            <MagneticView borderRadius={20} style={styles.headerButton}>
+            <View style={[styles.headerButton, { borderRadius: 20 }]}>
               <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-            </MagneticView>
+            </View>
           </AnimatedPressable>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {userProfileQuery.data?.name || 'User Profile'}
@@ -600,11 +533,11 @@ export default function UserProfileScreen() {
               handleShare()
             }}
           >
-            <MagneticView borderRadius={20} style={styles.headerButton}>
+            <View style={[styles.headerButton, { borderRadius: 20 }]}>
               <Ionicons name="share-outline" size={24} color={theme.colors.text} />
-            </MagneticView>
+            </View>
           </AnimatedPressable>
-        </SafeAreaView>
+        </View>
       </RNAnimated.View>
 
       <RNAnimated.ScrollView
@@ -622,14 +555,13 @@ export default function UserProfileScreen() {
             { transform: [{ translateY: slideAnim }] },
           ]}
         >
-          <SafeAreaView style={{ paddingTop: HEADER_HEIGHT }}>
+          <View style={{ paddingTop: HEADER_HEIGHT }}>
             <RNAnimated.View
               entering={FadeInDown.delay(200).springify()}
               style={[styles.avatarContainer, avatarScaleStyle]}
             >
-              <FloatingElement intensity={3} duration={4000}>
-                <MagneticView borderRadius={60} style={styles.avatarWrapper}>
-                  <HolographicView morphing borderRadius={60} style={styles.avatarGradient}>
+              <View style={[styles.avatarWrapper, { borderRadius: 60 }]}>
+                <View style={[styles.avatarGradient, { borderRadius: 60 }]}>
                     <LinearGradient
                       colors={[theme.colors.primary, theme.colors.primaryDark]}
                       style={StyleSheet.absoluteFillObject}
@@ -639,10 +571,9 @@ export default function UserProfileScreen() {
                     <GlowText style={styles.avatarText}>
                       {userProfileQuery.data?.name?.[0]?.toUpperCase() || 'U'}
                     </GlowText>
-                  </HolographicView>
+                  </View>
                   <View style={styles.avatarBorder} />
-                </MagneticView>
-              </FloatingElement>
+              </View>
             </RNAnimated.View>
 
             <RNAnimated.View
@@ -662,46 +593,34 @@ export default function UserProfileScreen() {
               )}
 
               <RNAnimated.View style={statsFloatStyle}>
-                <HolographicView
-                  morphing
+                <GlassView
                   borderRadius={theme.borderRadius.xl}
-                  style={styles.quickStatsCard}
+                  blurIntensity={20}
+                  style={[styles.quickStatsCard, { padding: theme.spacing.md, backgroundColor: theme.colors.surface }]}
                 >
-                  <GlassView
-                    borderRadius={theme.borderRadius.xl}
-                    blurIntensity={20}
-                    style={{ padding: theme.spacing.md }}
-                  >
                     <View style={styles.quickStats}>
-                      <FloatingElement intensity={1} duration={3000}>
-                        <View style={styles.quickStat}>
-                          <GlowText style={styles.quickStatValue}>
-                            {userProfileQuery.data?._count?.listings || 0}
-                          </GlowText>
-                          <GlowText style={styles.quickStatLabel}>Listings</GlowText>
-                        </View>
-                      </FloatingElement>
+                      <View style={styles.quickStat}>
+                        <GlowText style={styles.quickStatValue}>
+                          {userProfileQuery.data?._count?.listings || 0}
+                        </GlowText>
+                        <GlowText style={styles.quickStatLabel}>Listings</GlowText>
+                      </View>
                       <View style={styles.statDivider} />
-                      <FloatingElement intensity={1} duration={3500}>
-                        <View style={styles.quickStat}>
-                          <GlowText style={styles.quickStatValue}>
-                            {userProfileQuery.data?._count?.votes || 0}
-                          </GlowText>
-                          <GlowText style={styles.quickStatLabel}>Votes</GlowText>
-                        </View>
-                      </FloatingElement>
+                      <View style={styles.quickStat}>
+                        <GlowText style={styles.quickStatValue}>
+                          {userProfileQuery.data?._count?.votes || 0}
+                        </GlowText>
+                        <GlowText style={styles.quickStatLabel}>Votes</GlowText>
+                      </View>
                       <View style={styles.statDivider} />
-                      <FloatingElement intensity={1} duration={4000}>
-                        <View style={styles.quickStat}>
-                          <GlowText style={styles.quickStatValue}>
-                            {userProfileQuery.data?._count?.comments || 0}
-                          </GlowText>
-                          <GlowText style={styles.quickStatLabel}>Comments</GlowText>
-                        </View>
-                      </FloatingElement>
+                      <View style={styles.quickStat}>
+                        <GlowText style={styles.quickStatValue}>
+                          {userProfileQuery.data?._count?.comments || 0}
+                        </GlowText>
+                        <GlowText style={styles.quickStatLabel}>Comments</GlowText>
+                      </View>
                     </View>
                   </GlassView>
-                </HolographicView>
               </RNAnimated.View>
 
               <TypewriterText animated delay={800} style={styles.joinDate}>
@@ -750,13 +669,12 @@ export default function UserProfileScreen() {
                 />
               </RNAnimated.View>
             )}
-          </SafeAreaView>
+          </View>
         </RNAnimated.View>
 
         {/* Enhanced Tab Navigation - Gamepad Optimized */}
         <RNAnimated.View entering={FadeInUp.delay(800).springify()}>
-          <HolographicView morphing borderRadius={16} style={styles.tabContainer}>
-            <GlassView borderRadius={16} blurIntensity={20} style={styles.tabWrapper}>
+          <GlassView borderRadius={16} blurIntensity={20} style={[styles.tabContainer, styles.tabWrapper, { backgroundColor: theme.colors.surface }]}>
               {tabs.map((tab, index) => (
                 <AnimatedPressable
                   key={tab.key}
@@ -773,23 +691,21 @@ export default function UserProfileScreen() {
                     entering={SlideInRight.delay(800 + index * 100).springify()}
                     style={[styles.tab, tabScaleStyle]}
                   >
-                    <MagneticView borderRadius={12} style={styles.tabContent}>
+                    <View style={[styles.tabContent, { borderRadius: 12 }]}>
                       {selectedTab === tab.key && (
                         <LinearGradient
                           colors={theme.colors.gradients.primary}
                           style={[StyleSheet.absoluteFillObject, { opacity: 0.1 }]}
                         />
                       )}
-                      <FloatingElement intensity={0.5} duration={2000}>
-                        <Ionicons
-                          name={tab.icon as any}
-                          size={18}
-                          color={
-                            selectedTab === tab.key ? theme.colors.primary : theme.colors.textMuted
-                          }
-                          style={{ marginBottom: 4 }}
-                        />
-                      </FloatingElement>
+                      <Ionicons
+                        name={tab.icon as any}
+                        size={18}
+                        color={
+                          selectedTab === tab.key ? theme.colors.primary : theme.colors.textMuted
+                        }
+                        style={{ marginBottom: 4 }}
+                      />
                       <GlowText
                         style={[styles.tabText, selectedTab === tab.key && styles.activeTabText]}
                       >
@@ -810,7 +726,7 @@ export default function UserProfileScreen() {
                           <GlowText style={styles.tabBadgeText}>{tab.count}</GlowText>
                         </View>
                       )}
-                    </MagneticView>
+                    </View>
                     {selectedTab === tab.key && (
                       <RNAnimated.View
                         entering={FadeInUp.duration(200)}
@@ -821,7 +737,6 @@ export default function UserProfileScreen() {
                 </AnimatedPressable>
               ))}
             </GlassView>
-          </HolographicView>
         </RNAnimated.View>
 
         {/* Tab Content */}
@@ -829,7 +744,7 @@ export default function UserProfileScreen() {
           {renderTabContent()}
         </RNAnimated.View>
       </RNAnimated.ScrollView>
-    </View>
+    </ScreenLayout>
   )
 }
 
@@ -911,7 +826,7 @@ function createStyles(theme: any) {
     avatarText: {
       fontSize: 42,
       fontWeight: '800',
-      color: '#ffffff',
+      color: theme.colors.textInverse,
     },
     profileInfo: {
       alignItems: 'center',
@@ -1024,7 +939,7 @@ function createStyles(theme: any) {
     tabBadgeText: {
       fontSize: 11,
       fontWeight: '700',
-      color: '#ffffff',
+      color: theme.colors.textInverse,
     },
     tabIndicator: {
       position: 'absolute',

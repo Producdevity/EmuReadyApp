@@ -13,7 +13,12 @@ export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
 }
 
 // Response unwrapping utilities
-type UnwrapResult = { data: unknown; format: string } | null
+interface UnwrapResult {
+  data: unknown
+  format: string
+}
+
+type UnwrapResultType = UnwrapResult | null
 
 // Type guard to check if data is a SuperJSONResult
 const isSuperJSONResult = (data: unknown): data is SuperJSONResult => {
@@ -49,7 +54,7 @@ const deserializeIfNeeded = (data: unknown): unknown => {
   }
 }
 
-const unwrapTrpcResponse = (response: AxiosResponse): UnwrapResult => {
+const unwrapTrpcResponse = (response: AxiosResponse): UnwrapResultType => {
   const { data, config } = response
 
   // Define unwrapping strategies in order of precedence
